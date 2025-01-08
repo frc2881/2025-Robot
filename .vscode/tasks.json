@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Project: Init/Update Robot-Lib",
+      "type": "shell",
+      "command": "git submodule update --init", 
+      "problemMatcher": []
+    },
+    {
+      "label": "Project: Install RobotPy",
+      "type": "shell",
+      "command": "python ./scripts/install.py", 
+      "problemMatcher": []
+    },
+    {
+      "label": "Project: Sync RobotPy",
+      "type": "shell",
+      "command": "python ./scripts/sync.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "Project: Test Robot Code",
+      "type": "shell",
+      "command": "python ./scripts/test.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "Project: Simulate Robot Code",
+      "type": "shell",
+      "command": "python ./scripts/simulate.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "Project: Deploy Robot Code",
+      "type": "shell",
+      "command": "python ./scripts/deploy.py",
+      "problemMatcher": []
+    }
+  ]
+}

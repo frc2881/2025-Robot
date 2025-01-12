@@ -5,12 +5,13 @@ from wpilib import SmartDashboard, SendableChooser
 from wpimath import units
 from wpimath.controller import PIDController
 from wpimath.filter import SlewRateLimiter
-from wpimath.geometry import Rotation2d, Pose2d
+from wpimath.geometry import Rotation2d, Pose2d, Pose3d, Transform3d, Rotation3d
 from wpimath.kinematics import ChassisSpeeds, SwerveModulePosition, SwerveModuleState, SwerveDrive4Kinematics
 from pathplannerlib.util import DriveFeedforwards
 from lib import logger, utils
-from lib.classes import MotorIdleMode, SpeedMode, DriveOrientation, OptionState, LockState
+from lib.classes import MotorIdleMode, SpeedMode, DriveOrientation, OptionState, LockState, TargetAlignmentType
 from lib.components.swerve_module import SwerveModule
+from classes import Target, TargetType
 import constants
 
 class DriveSubsystem(Subsystem):
@@ -34,11 +35,29 @@ class DriveSubsystem(Subsystem):
     )
 
     self._isAlignedToTarget: bool = False
-    self._targetAlignmentController = PIDController(*self._constants.kTargetAlignmentControllerPID)
-    self._targetAlignmentController.enableContinuousInput(-180.0, 180.0)
-    self._targetAlignmentController.setTolerance(
-      self._constants.kTargetAlignmentPositionTolerance, 
-      self._constants.kTargetAlignmentVelocityTolerance
+    self._isAlignedRotationToTarget: bool = False
+    self._isAlignedTranslationXToTarget: bool = False
+    self._isAlignedTranslationYToTarget: bool = False
+
+    self._targetAlignmentRotationController = PIDController(*self._constants.kTargetAlignmentRotationPID)
+    self._targetAlignmentRotationController.enableContinuousInput(-180.0, 180.0)
+    self._targetAlignmentRotationController.setTolerance(
+      self._constants.kTargetAlignmentRotationPositionTolerance,
+      self._constants.kTargetAlignmentRotationVelocityTolerance
+    )
+
+    self._targetAlignmentTranslationXController = PIDController(*self._constants.kTargetAlignmentTranslationXPID)
+    self._targetAlignmentTranslationXController.setSetpoint(0)
+    self._targetAlignmentTranslationXController.setTolerance(
+      self._constants.kTargetAlignmentTranslationPositionTolerance,
+      self._constants.kTargetAlignmentTranslationVelocityTolerance
+    )
+
+    self._targetAlignmentTranslationYController = PIDController(*self._constants.kTargetAlignmentTranslationYPID)
+    self._targetAlignmentTranslationYController.setSetpoint(0)
+    self._targetAlignmentTranslationYController.setTolerance(
+      self._constants.kTargetAlignmentTranslationPositionTolerance,
+      self._constants.kTargetAlignmentTranslationVelocityTolerance
     )
 
     self._inputXFilter = SlewRateLimiter(self._constants.kInputRateLimitDemo)
@@ -159,30 +178,65 @@ class DriveSubsystem(Subsystem):
       for i, m in enumerate(self._swerveModules): 
         m.setTargetState(SwerveModuleState(0, Rotation2d.fromDegrees(45 if i in { 0, 3 } else -45)))
 
-  def alignToTargetCommand(self, getRobotPose: Callable[[], Pose2d], getTargetHeading: Callable[[], units.degrees]) -> Command:
+  def alignToTargetCommand(self, getRobotPose: Callable[[], Pose2d], getTargetPose: Callable[[], Pose3d], getTargetHeading: Callable[[], units.degrees], targetAlignmentType: TargetAlignmentType, offset: float) -> Command:
     return self.run(
-      lambda: self._alignToTarget(getRobotPose().rotation().degrees())
+      lambda: self._alignToTarget(getRobotPose(), getTargetPose(), targetAlignmentType, offset)
     ).beforeStarting(
       lambda: [
         self.clearTargetAlignment(),
-        self._targetAlignmentController.reset(),
-        self._targetAlignmentController.setSetpoint(utils.wrapAngle(getTargetHeading() + self._constants.kTargetAlignmentHeadingAdjustment))  
+        self._targetAlignmentRotationController.reset(),
+        self._targetAlignmentRotationController.setSetpoint(
+          getTargetPose().toPose2d().rotation().degrees() + self._constants.kTargetAlignmentPoseRotationAdjustment if targetAlignmentType == TargetAlignmentType.Pose else utils.wrapAngle(getTargetHeading() + self._constants.kTargetAlignmentHeadingAdjustment)
+        ),
+        self._targetAlignmentTranslationXController.reset(),
+        self._targetAlignmentTranslationYController.reset()
       ]
     ).onlyIf(
       lambda: self._lockState != LockState.Locked
     ).until(
       lambda: self._isAlignedToTarget
     ).withName("DriveSubsystem:AlignToTarget")
+  
+  def _alignToTarget(self, robotPose: Pose2d, targetPose: Pose3d, targetAlignmentType: TargetAlignmentType, offset: float) -> None:
+    targetPose = targetPose.transformBy(
+      Transform3d(
+        units.inchesToMeters(0),
+        units.inchesToMeters(offset), 
+        units.inchesToMeters(0),
+        Rotation3d()
+      )
+    )
+    delta = targetPose.toPose2d().__sub__(robotPose)
 
-  def _alignToTarget(self, robotHeading: units.degrees) -> None:
-    speedRotation = self._targetAlignmentController.calculate(robotHeading)
-    speedRotation += math.copysign(self._constants.kTargetAlignmentCarpetFrictionCoeff, speedRotation)
-    if self._targetAlignmentController.atSetpoint():
-      speedRotation = 0
+    speedRotation = 0
+    if not self._targetAlignmentRotationController.atSetpoint():
+      speedRotation = self._targetAlignmentRotationController.calculate(robotPose.rotation().degrees())
+      speedRotation += math.copysign(self._constants.kTargetAlignmentCarpetFrictionCoeff, speedRotation)
+
+    speedTranslationX = 0
+    if targetAlignmentType == TargetAlignmentType.Pose and not self._targetAlignmentTranslationXController.atSetpoint():
+      speedTranslationX = self._targetAlignmentTranslationXController.calculate(delta.X() * 10)
+      speedTranslationX += math.copysign(self._constants.kTargetAlignmentCarpetFrictionCoeff, speedTranslationX)
+    else:
+      self._isAlignedTranslationXToTarget = True
+
+    speedTranslationY = 0
+    if targetAlignmentType == TargetAlignmentType.Pose and not self._targetAlignmentTranslationYController.atSetpoint():
+      speedTranslationY = self._targetAlignmentTranslationYController.calculate(delta.Y() * 10)
+      speedTranslationY += math.copysign(self._constants.kTargetAlignmentCarpetFrictionCoeff, speedTranslationY)
+    else:
+      self._isAlignedTranslationYToTarget = True
+
+    if speedRotation <= 0.01 and self._isAlignedTranslationXToTarget and self._isAlignedTranslationYToTarget:
       self._isAlignedToTarget = True
+
     self._setSwerveModuleStates(
       self._constants.kDriveKinematics.toSwerveModuleStates(
-        ChassisSpeeds(0, 0, speedRotation)
+        ChassisSpeeds(
+          -utils.clampValue(speedTranslationX, -self._constants.kTargetAlignmentTranslationMaxSpeed, self._constants.kTargetAlignmentTranslationMaxSpeed), 
+          -utils.clampValue(speedTranslationY, -self._constants.kTargetAlignmentTranslationMaxSpeed, self._constants.kTargetAlignmentTranslationMaxSpeed),
+          utils.clampValue(speedRotation, -self._constants.kTargetAlignmentRotationMaxSpeed, self._constants.kTargetAlignmentRotationMaxSpeed)
+        )
       )
     )
 
@@ -191,6 +245,9 @@ class DriveSubsystem(Subsystem):
   
   def clearTargetAlignment(self) -> None:
     self._isAlignedToTarget = False
+    self._isAlignedRotationToTarget = False
+    self._isAlignedTranslationXToTarget = False
+    self._isAlignedTranslationYToTarget = False
 
   def reset(self) -> None:
     self.drive(ChassisSpeeds())

@@ -10,6 +10,7 @@ from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib.sensors.pose_sensor import PoseSensor
 from lib.classes import TargetInfo
 from lib import logger, utils
+from classes import Target
 import constants
 
 class LocalizationSubsystem(Subsystem):
@@ -35,6 +36,10 @@ class LocalizationSubsystem(Subsystem):
     self._targetPose = Pose3d()
     self._targetInfo = TargetInfo(0, 0, 0)
     self._currentAlliance = None
+
+    self._nodePoses = []
+    for target in constants.Game.Field.Targets.kTargets:
+      self._nodePoses.append(target.pose.toPose2d())
 
     SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
     SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
@@ -80,16 +85,18 @@ class LocalizationSubsystem(Subsystem):
       if poseSensor.hasTarget():
         return True
     return False
+  
+  def getNearestTarget(self) -> Target:
+    currentPose = self.getPose()
+    nearestTargetPose = currentPose.nearest(self._nodePoses)
+    return  list(filter(lambda target: target.pose.toPose2d() == nearestTargetPose, constants.Game.Field.Targets.kTargets))[0]
 
   def _updateTargetPose(self) -> None:
-    if utils.getAlliance() != self._currentAlliance:
-      self._currentAlliance = utils.getAlliance()
-      self._targetPose = utils.getValueForAlliance(
-        constants.Game.Field.Targets.kBlueTarget, 
-        constants.Game.Field.Targets.kRedTarget
-      ).transformBy(
-        constants.Game.Field.Targets.kTargetTransform
-      )
+    nearestTarget = self.getNearestTarget()
+    self._targetPose = nearestTarget.pose.transformBy(
+      nearestTarget.transform
+    )
+    logger.debug(self._targetPose)
 
   def _updateTargetInfo(self) -> None:
     self._targetInfo.distance = self._pose.translation().distance(self._targetPose.toPose2d().translation())
@@ -97,6 +104,9 @@ class LocalizationSubsystem(Subsystem):
     rotation = Rotation2d(translation.X(), translation.Y()).rotateBy(self._pose.rotation())
     self._targetInfo.heading = utils.wrapAngle(rotation.degrees())
     self._targetInfo.pitch = math.degrees(math.atan2((self._targetPose - Pose3d(self._pose)).Z(), self._targetInfo.distance))
+
+  def getTargetPose(self) -> Pose3d:
+    return self._targetPose
 
   def getTargetDistance(self) -> units.meters:
     return self._targetInfo.distance

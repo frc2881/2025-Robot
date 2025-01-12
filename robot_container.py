@@ -1,6 +1,7 @@
 from commands2 import Command, cmd
 from wpilib import DriverStation, SendableChooser, SmartDashboard
 from lib import logger, utils
+from lib.classes import TargetAlignmentType
 from lib.controllers.game_controller import GameController
 from lib.sensors.gyro_sensor_navx2 import GyroSensor_NAVX2
 from lib.sensors.pose_sensor import PoseSensor
@@ -44,7 +45,9 @@ class RobotContainer:
         self.driverController.getLeftX,
         self.driverController.getRightX
     ))
-    self.driverController.rightStick().whileTrue(self.gameCommands.alignRobotToTargetCommand())
+    self.driverController.rightStick().and_((self.driverController.rightBumper().or_(self.driverController.leftBumper())).negate()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentType.Heading))
+    self.driverController.rightStick().and_(self.driverController.rightBumper()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentType.Pose, 6.5))
+    self.driverController.rightStick().and_(self.driverController.leftBumper()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentType.Pose, -6.5))
     self.driverController.leftStick().whileTrue(self.driveSubsystem.lockCommand())
     # self.driverController.rightTrigger().whileTrue(cmd.none())
     # self.driverController.rightBumper().whileTrue(cmd.none())

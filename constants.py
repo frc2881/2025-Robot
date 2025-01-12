@@ -1,6 +1,6 @@
 import math
 from wpimath import units
-from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Pose3d, Translation2d
+from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Pose2d, Translation2d, Pose3d
 from wpimath.kinematics import SwerveDrive4Kinematics
 from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
 from navx import AHRS
@@ -9,15 +9,16 @@ from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import PID, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, PoseSensorLocation
+from lib.classes import PID, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, PoseSensorLocation, Alliance
+from classes import Target, TargetType
 
-APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2024Crescendo)
+APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
 
 class Subsystems:
   class Drive:
-    kTrackWidth: units.meters = units.inchesToMeters(24.5)
-    kWheelBase: units.meters = units.inchesToMeters(21.5)
+    kTrackWidth: units.meters = units.inchesToMeters(21.5)
+    kWheelBase: units.meters = units.inchesToMeters(24.5)
 
     kTranslationSpeedMax: units.meters_per_second = 4.8
     kRotationSpeedMax: units.radians_per_second = 4 * math.pi  # type: ignore
@@ -56,11 +57,21 @@ class Subsystems:
     kDriftCorrectionPositionTolerance: float = 0.5
     kDriftCorrectionVelocityTolerance: float = 0.5
 
-    kTargetAlignmentControllerPID = PID(0.075, 0, 0)
-    kTargetAlignmentPositionTolerance: float = 1.0
-    kTargetAlignmentVelocityTolerance: float = 1.0
+    kTargetAlignmentRotationPID = PID(0.075, 0, 0.001)
+    kTargetAlignmentRotationPositionTolerance: float = 1.0
+    kTargetAlignmentRotationVelocityTolerance: float = 1.0
+    kTargetAlignmentRotationMaxSpeed: units.radians_per_second = units.degreesToRadians(720) #type: ignore
+
+    kTargetAlignmentTranslationXPID = PID(0.3, 0, 0.003)
+    kTargetAlignmentTranslationYPID = PID(0.6, 0, 0.006)
+
+    kTargetAlignmentTranslationPositionTolerance: float = 0.05
+    kTargetAlignmentTranslationVelocityTolerance: float = 0.05
+    kTargetAlignmentTranslationMaxSpeed: units.meters_per_second = 2.0
+
     kTargetAlignmentCarpetFrictionCoeff: float = 0.2
-    kTargetAlignmentHeadingAdjustment: units.degrees = 180.0
+    kTargetAlignmentHeadingAdjustment: units.degrees = 0.0
+    kTargetAlignmentPoseRotationAdjustment: units.degrees = 180.0
 
     kInputLimitDemo: units.percent = 0.5
     kInputRateLimitDemo: units.percent = 0.33
@@ -82,15 +93,39 @@ class Sensors:
       PoseSensorConfig(
         PoseSensorLocation.Front,
         Transform3d(
-          Translation3d(units.inchesToMeters(0), units.inchesToMeters(0), units.inchesToMeters(0)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(0), units.degreesToRadians(0))
+          Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(24.2), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
+      PoseSensorConfig(
+        PoseSensorLocation.Rear,
+        Transform3d(
+          Translation3d(units.inchesToMeters(5.49), units.inchesToMeters(0.0), units.inchesToMeters(20.60)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-23.2), units.degreesToRadians(-180.0))
+        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+      ),
+      PoseSensorConfig(
+        PoseSensorLocation.Left,
+        Transform3d(
+          Translation3d(units.inchesToMeters(8.24), units.inchesToMeters(12.40), units.inchesToMeters(17.25)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-29.4), units.degreesToRadians(90.0))
+        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+      ),
+      PoseSensorConfig(
+        PoseSensorLocation.Right,
+        Transform3d(
+          Translation3d(units.inchesToMeters(8.16), units.inchesToMeters(-12.375), units.inchesToMeters(17.25)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-21.2), units.degreesToRadians(-90.0))
+        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+      )
     )
 
   class Camera:
     kStreams: dict[str, str] = {
+      "Rear": "http://10.28.81.6:1182/?action=stream",
       "Front": "http://10.28.81.6:1184/?action=stream",
+      "Left": "http://10.28.81.7:1186/?action=stream",
+      "Right": "http://10.28.81.7:1184/?action=stream",
       "Driver": "http://10.28.81.6:1188/?action=stream"
     }
 
@@ -110,12 +145,56 @@ class Game:
     kBounds = (Translation2d(0, 0), Translation2d(kLength, kWidth))
 
     class Targets:
-      kBlueTarget = APRIL_TAG_FIELD_LAYOUT.getTagPose(7) or Pose3d()
-      kRedTarget = APRIL_TAG_FIELD_LAYOUT.getTagPose(4) or Pose3d()
-
-      kTargetTransform = Transform3d(
-        units.inchesToMeters(6.0),
-        units.inchesToMeters(12.0),
+      _reefTargetTransform = Transform3d(
         units.inchesToMeters(24),
+        units.inchesToMeters(0),
+        units.inchesToMeters(0),
         Rotation3d()
       )
+
+      _stationTargetTransform = Transform3d(
+        units.inchesToMeters(24),
+        units.inchesToMeters(0),
+        units.inchesToMeters(0),
+        Rotation3d()
+      )
+
+      _processorTargetTransform = Transform3d(
+        units.inchesToMeters(24),
+        units.inchesToMeters(0),
+        units.inchesToMeters(0),
+        Rotation3d()
+      )
+
+      _bargeTargetTransform = Transform3d(
+        units.inchesToMeters(24),
+        units.inchesToMeters(0),
+        units.inchesToMeters(0),
+        Rotation3d()
+      )
+      
+      kTargets: list[Target] = [
+        Target(1, TargetType.Station, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(1), _stationTargetTransform),
+        Target(2, TargetType.Station, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(2), _stationTargetTransform),
+        Target(3, TargetType.Processor, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(3), _processorTargetTransform),
+        Target(4, TargetType.Barge, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(4), _bargeTargetTransform),
+        Target(5, TargetType.Barge, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(5), _bargeTargetTransform),
+        Target(6, TargetType.Reef, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(6), _reefTargetTransform),
+        Target(7, TargetType.Reef, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(7), _reefTargetTransform),
+        Target(8, TargetType.Reef, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(8), _reefTargetTransform),
+        Target(9, TargetType.Reef, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(9), _reefTargetTransform),
+        Target(10, TargetType.Reef, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(10), _reefTargetTransform),
+        Target(11, TargetType.Reef, Alliance.Red, APRIL_TAG_FIELD_LAYOUT.getTagPose(11), _reefTargetTransform),
+        Target(12, TargetType.Station, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(12), _stationTargetTransform),
+        Target(13, TargetType.Station, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(13), _stationTargetTransform),
+        Target(14, TargetType.Barge, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(14), _bargeTargetTransform),
+        Target(15, TargetType.Barge, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(15), _bargeTargetTransform),
+        Target(16, TargetType.Processor, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(16), _processorTargetTransform),
+        Target(17, TargetType.Reef, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(17), _reefTargetTransform),
+        Target(18, TargetType.Reef, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(18), _reefTargetTransform),
+        Target(19, TargetType.Reef, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(19), _reefTargetTransform),
+        Target(20, TargetType.Reef, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(20), _reefTargetTransform),
+        Target(21, TargetType.Reef, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(21), _reefTargetTransform),
+        Target(22, TargetType.Reef, Alliance.Blue, APRIL_TAG_FIELD_LAYOUT.getTagPose(22), _reefTargetTransform),
+      ]
+

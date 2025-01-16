@@ -190,7 +190,7 @@ class DriveSubsystem(Subsystem):
         self._setTargetPose(getTargetPose(targetAlignmentLocation)),
         self._targetAlignmentRotationController.setSetpoint(
           self._targetPose.toPose2d().rotation().degrees() + self._constants.kTargetAlignmentPoseRotationOffset 
-          if targetAlignmentMode == TargetAlignmentMode.Pose 
+          if targetAlignmentMode == TargetAlignmentMode.Translation 
           else utils.wrapAngle(utils.getTargetHeading(getRobotPose(), self._targetPose) + self._constants.kTargetAlignmentHeadingOffset)
         )
       ]
@@ -209,19 +209,16 @@ class DriveSubsystem(Subsystem):
     speedRotation = 0
     if not self._targetAlignmentRotationController.atSetpoint():
       speedRotation = self._targetAlignmentRotationController.calculate(robotPose.rotation().degrees())
-      speedRotation += math.copysign(self._constants.kTargetAlignmentCarpetFrictionCoeff, speedRotation)
 
     speedTranslationX = 0
-    if targetAlignmentMode == TargetAlignmentMode.Pose and not self._targetAlignmentTranslationXController.atSetpoint():
-      speedTranslationX = self._targetAlignmentTranslationXController.calculate(delta.X() * 10)
-      speedTranslationX += math.copysign(self._constants.kTargetAlignmentCarpetFrictionCoeff, speedTranslationX)
+    if targetAlignmentMode == TargetAlignmentMode.Translation and not self._targetAlignmentTranslationXController.atSetpoint():
+      speedTranslationX = self._targetAlignmentTranslationXController.calculate(delta.X())
     else:
       self._isAlignedTranslationXToTarget = True
 
     speedTranslationY = 0
-    if targetAlignmentMode == TargetAlignmentMode.Pose and not self._targetAlignmentTranslationYController.atSetpoint():
-      speedTranslationY = self._targetAlignmentTranslationYController.calculate(delta.Y() * 10)
-      speedTranslationY += math.copysign(self._constants.kTargetAlignmentCarpetFrictionCoeff, speedTranslationY)
+    if targetAlignmentMode == TargetAlignmentMode.Translation and not self._targetAlignmentTranslationYController.atSetpoint():
+      speedTranslationY = self._targetAlignmentTranslationYController.calculate(delta.Y())
     else:
       self._isAlignedTranslationYToTarget = True
 
@@ -231,9 +228,9 @@ class DriveSubsystem(Subsystem):
     self._setSwerveModuleStates(
       self._constants.kDriveKinematics.toSwerveModuleStates(
         ChassisSpeeds(
-          -utils.clampValue(speedTranslationX, -self._constants.kTargetAlignmentTranslationMaxSpeed, self._constants.kTargetAlignmentTranslationMaxSpeed), 
-          -utils.clampValue(speedTranslationY, -self._constants.kTargetAlignmentTranslationMaxSpeed, self._constants.kTargetAlignmentTranslationMaxSpeed),
-          utils.clampValue(speedRotation, -self._constants.kTargetAlignmentRotationMaxSpeed, self._constants.kTargetAlignmentRotationMaxSpeed)
+          -utils.clampValue(speedTranslationX, -self._constants.kTargetAlignmentTranslationSpeedMax, self._constants.kTargetAlignmentTranslationSpeedMax), 
+          -utils.clampValue(speedTranslationY, -self._constants.kTargetAlignmentTranslationSpeedMax, self._constants.kTargetAlignmentTranslationSpeedMax),
+          utils.clampValue(speedRotation, -self._constants.kTargetAlignmentRotationSpeedMax, self._constants.kTargetAlignmentRotationSpeedMax)
         )
       )
     )

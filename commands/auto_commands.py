@@ -46,13 +46,13 @@ class AutoCommands:
   def _move(self, path: AutoPath) -> Command:
     return AutoBuilder.pathfindThenFollowPath(
       self._paths.get(path), 
-      constants.Subsystems.Drive.kPathFindingConstraints
+      constants.Subsystems.Drive.kPathPlannerConstraints
     ).withTimeout(
       constants.Game.Commands.kAutoMoveTimeout
     )
   
   def _alignToTarget(self) -> Command:
-    return cmd.sequence(self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Pose, TargetAlignmentLocation.Left))
+    return cmd.sequence(self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left))
 
   def auto_0_(self) -> Command:
     return cmd.sequence(

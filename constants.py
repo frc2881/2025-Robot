@@ -1,6 +1,6 @@
 import math
 from wpimath import units
-from wpimath.geometry import Transform2d, Transform3d, Translation3d, Rotation3d, Translation2d
+from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
 from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
 from navx import AHRS
@@ -9,7 +9,7 @@ from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import PID, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, PoseSensorLocation, Alliance
+from lib.classes import MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, PoseSensorLocation, PID, Alliance
 from classes import Target, TargetType, TargetAlignmentLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
@@ -22,6 +22,9 @@ class Subsystems:
 
     kTranslationSpeedMax: units.meters_per_second = 6.32
     kRotationSpeedMax: units.radians_per_second = 4 * math.pi  # type: ignore
+
+    kInputLimitDemo: units.percent = 0.5
+    kInputRateLimitDemo: units.percent = 0.33
 
     _swerveModuleConstants = SwerveModuleConstants(
       wheelDiameter = units.inchesToMeters(3.0),
@@ -51,7 +54,7 @@ class Subsystems:
       translation_constants = PIDConstants(5.0, 0, 0),
       rotation_constants = PIDConstants(5.0, 0, 0)
     )
-    kPathFindingConstraints = PathConstraints(2.4, 1.6, units.degreesToRadians(540), units.degreesToRadians(720))
+    kPathPlannerConstraints = PathConstraints(2.4, 1.6, units.degreesToRadians(540), units.degreesToRadians(720))
 
     kDriftCorrectionControllerPID = PID(0.01, 0, 0)
     kDriftCorrectionPositionTolerance: float = 0.5
@@ -60,18 +63,14 @@ class Subsystems:
     kTargetAlignmentRotationPID = PID(0.075, 0, 0.001)
     kTargetAlignmentRotationPositionTolerance: float = 1.0
     kTargetAlignmentRotationVelocityTolerance: float = 1.0
-    kTargetAlignmentRotationMaxSpeed: units.radians_per_second = units.degreesToRadians(720) #type: ignore
+    kTargetAlignmentRotationSpeedMax: units.radians_per_second = kRotationSpeedMax * 0.5 #type: ignore
     kTargetAlignmentTranslationXPID = PID(0.5, 0, 0.001)
     kTargetAlignmentTranslationYPID = PID(0.5, 0, 0.001)
     kTargetAlignmentTranslationPositionTolerance: float = 0.05
     kTargetAlignmentTranslationVelocityTolerance: float = 0.05
-    kTargetAlignmentTranslationMaxSpeed: units.meters_per_second = 2.0
-    kTargetAlignmentCarpetFrictionCoeff: float = 0.2
+    kTargetAlignmentTranslationSpeedMax: units.meters_per_second = kTranslationSpeedMax * 0.3
     kTargetAlignmentHeadingOffset: units.degrees = 0.0
     kTargetAlignmentPoseRotationOffset: units.degrees = 180.0
-
-    kInputLimitDemo: units.percent = 0.5
-    kInputRateLimitDemo: units.percent = 0.33
 
   class Localization:
     kSingleTagStandardDeviations: tuple[float, ...] = (1.0, 1.0, 2.0)

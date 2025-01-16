@@ -5,8 +5,9 @@ from wpilib import SendableChooser, SmartDashboard
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import PathPlannerPath
 from lib import logger, utils
-from lib.classes import Alliance
+from lib.classes import Alliance, TargetAlignmentMode
 if TYPE_CHECKING: from robot_container import RobotContainer
+from classes import TargetAlignmentLocation
 import constants
 
 class AutoPath(Enum):
@@ -23,8 +24,8 @@ class AutoCommands:
     self._paths = { path: PathPlannerPath.fromPathFile(path.name) for path in AutoPath }
 
     AutoBuilder.configure(
-      self._robot.localizationSubsystem.getPose, 
-      self._robot.localizationSubsystem.resetPose, 
+      self._robot.localizationSubsystem.getRobotPose, 
+      self._robot.localizationSubsystem.resetRobotPose, 
       self._robot.driveSubsystem.getChassisSpeeds, 
       self._robot.driveSubsystem.drive, 
       constants.Subsystems.Drive.kPathPlannerController,
@@ -51,7 +52,7 @@ class AutoCommands:
     )
   
   def _alignToTarget(self) -> Command:
-    return cmd.sequence(self._robot.gameCommands.alignRobotToTargetCommand())
+    return cmd.sequence(self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Pose, TargetAlignmentLocation.Left))
 
   def auto_0_(self) -> Command:
     return cmd.sequence(

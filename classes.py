@@ -1,8 +1,7 @@
-from enum import Enum, IntEnum, auto
+from enum import Enum, auto
 from dataclasses import dataclass
 from wpimath import units
-from wpimath.geometry import Pose3d, Transform3d
-from lib.classes import Alliance
+from wpimath.geometry import Pose2d, Pose3d
 
 class TargetType(Enum):
   Reef = auto()
@@ -10,10 +9,20 @@ class TargetType(Enum):
   Processor = auto()
   Barge = auto()
 
+class TargetAlignmentLocation(Enum):
+  Default = auto()
+  Center = auto()
+  Left = auto()
+  Right = auto()
+
 @dataclass(frozen=True, slots=True)
-class Target:
-  id: int
+class Target():
   type: TargetType
-  alliance: Alliance
   pose: Pose3d
-  transform: Transform3d
+
+@dataclass(frozen=False, slots=True)
+class TargetAlignmentInfo:
+  pose: Pose2d
+  distance: units.meters
+  heading: units.degrees
+  pitch: units.degrees

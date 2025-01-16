@@ -3,14 +3,13 @@ import math
 from commands2 import Subsystem
 from wpilib import SmartDashboard
 from wpimath import units
-from wpimath.geometry import Rotation2d, Pose2d, Pose3d
+from wpimath.geometry import Rotation2d, Pose2d, Pose3d, Transform3d
 from wpimath.kinematics import SwerveModulePosition
 from wpimath.estimator import SwerveDrive4PoseEstimator
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib.sensors.pose_sensor import PoseSensor
-from lib.classes import TargetInfo
 from lib import logger, utils
-from classes import Target
+from classes import Target, TargetAlignmentLocation, TargetAlignmentInfo
 import constants
 
 class LocalizationSubsystem(Subsystem):
@@ -32,29 +31,20 @@ class LocalizationSubsystem(Subsystem):
       Pose2d()
     )
 
-    self._pose = Pose2d()
-    self._targetPose = Pose3d()
-    self._targetInfo = TargetInfo(0, 0, 0)
-    self._currentAlliance = None
-
-    self._nodePoses = []
-    for target in constants.Game.Field.Targets.kTargets:
-      self._nodePoses.append(target.pose.toPose2d())
+    self._robotPose = Pose2d()
+    self._targets: dict[int, Target] = {}
+    self._targetPoses: list[Pose2d] = []
+    self._alliance = None
 
     SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
     SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
 
-    utils.addRobotPeriodic(lambda: [ 
-      self._updatePose(),
-      self._updateTargetPose(),
-      self._updateTargetInfo(),
-      self._updateTelemetry()
-    ], 0.033)
-
   def periodic(self) -> None:
-    pass
+    self._updateRobotPose()
+    self._updateTargets()
+    self._updateTelemetry()
 
-  def _updatePose(self) -> None:
+  def _updateRobotPose(self) -> None:
     self._poseEstimator.update(self._getGyroRotation(), self._getModulePositions())
     for poseSensor in self._poseSensors:
       estimatedRobotPose = poseSensor.getEstimatedRobotPose()
@@ -72,53 +62,29 @@ class LocalizationSubsystem(Subsystem):
               if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Subsystems.Localization.kMaxPoseAmbiguity):
                 self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Subsystems.Localization.kSingleTagStandardDeviations)
                 break
-    self._pose = self._poseEstimator.getEstimatedPosition()
+    self._robotPose = self._poseEstimator.getEstimatedPosition()
 
-  def getPose(self) -> Pose2d:
-    return self._pose
+  def getRobotPose(self) -> Pose2d:
+    return self._robotPose
 
-  def resetPose(self, pose: Pose2d) -> None:
+  def resetRobotPose(self, pose: Pose2d) -> None:
     self._poseEstimator.resetPose(pose)
 
-  def hasVisionTargets(self) -> bool:
+  def hasTarget(self) -> bool:
     for poseSensor in self._poseSensors:
       if poseSensor.hasTarget():
         return True
     return False
-  
-  def getNearestTarget(self) -> Target:
-    currentPose = self.getPose()
-    nearestTargetPose = currentPose.nearest(self._nodePoses)
-    return  list(filter(lambda target: target.pose.toPose2d() == nearestTargetPose, constants.Game.Field.Targets.kTargets))[0]
 
-  def _updateTargetPose(self) -> None:
-    nearestTarget = self.getNearestTarget()
-    self._targetPose = nearestTarget.pose.transformBy(
-      nearestTarget.transform
-    )
-    logger.debug(self._targetPose)
+  def _updateTargets(self) -> None:
+    if utils.getAlliance() != self._alliance:
+      self._alliance = utils.getAlliance()
+      self._targets = constants.Game.Field.Targets.kTargets[self._alliance]
+      self._targetPoses = [t.pose.toPose2d() for t in self._targets.values()]
 
-  def _updateTargetInfo(self) -> None:
-    self._targetInfo.distance = self._pose.translation().distance(self._targetPose.toPose2d().translation())
-    translation = self._targetPose.toPose2d().relativeTo(self._pose).translation()
-    rotation = Rotation2d(translation.X(), translation.Y()).rotateBy(self._pose.rotation())
-    self._targetInfo.heading = utils.wrapAngle(rotation.degrees())
-    self._targetInfo.pitch = math.degrees(math.atan2((self._targetPose - Pose3d(self._pose)).Z(), self._targetInfo.distance))
+  def getTargetPose(self, targetAlignmentLocation: TargetAlignmentLocation) -> Pose3d:
+    target = self._targets.get(utils.getTargetHash(self._robotPose.nearest(self._targetPoses)))
+    return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])
 
-  def getTargetPose(self) -> Pose3d:
-    return self._targetPose
-
-  def getTargetDistance(self) -> units.meters:
-    return self._targetInfo.distance
-
-  def getTargetHeading(self) -> units.degrees:
-    return self._targetInfo.heading
-  
-  def getTargetPitch(self) -> units.degrees:
-    return self._targetInfo.pitch
-  
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putNumberArray("Robot/Localization/Pose", [self._pose.X(), self._pose.Y(), self._pose.rotation().degrees()])
-    SmartDashboard.putNumber("Robot/Localization/Target/Distance", self._targetInfo.distance)
-    SmartDashboard.putNumber("Robot/Localization/Target/Heading", self._targetInfo.heading)
-    SmartDashboard.putNumber("Robot/Localization/Target/Pitch", self._targetInfo.pitch)
+    SmartDashboard.putNumberArray("Robot/Localization/Pose", [self._robotPose.X(), self._robotPose.Y(), self._robotPose.rotation().degrees()])

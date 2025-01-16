@@ -1,7 +1,7 @@
 from commands2 import Command, cmd
-from wpilib import DriverStation, SendableChooser, SmartDashboard
+from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
-from lib.classes import TargetAlignmentType
+from lib.classes import TargetAlignmentMode
 from lib.controllers.game_controller import GameController
 from lib.sensors.gyro_sensor_navx2 import GyroSensor_NAVX2
 from lib.sensors.pose_sensor import PoseSensor
@@ -9,6 +9,7 @@ from commands.auto_commands import AutoCommands
 from commands.game_commands import GameCommands
 from subsystems.drive_subsystem import DriveSubsystem
 from subsystems.localization_subsystem import LocalizationSubsystem
+from classes import TargetAlignmentLocation
 import constants
 
 class RobotContainer:
@@ -45,9 +46,9 @@ class RobotContainer:
         self.driverController.getLeftX,
         self.driverController.getRightX
     ))
-    self.driverController.rightStick().and_((self.driverController.rightBumper().or_(self.driverController.leftBumper())).negate()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentType.Heading))
-    self.driverController.rightStick().and_(self.driverController.rightBumper()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentType.Pose, 6.5))
-    self.driverController.rightStick().and_(self.driverController.leftBumper()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentType.Pose, -6.5))
+    self.driverController.rightStick().and_((self.driverController.rightBumper().or_(self.driverController.leftBumper())).negate()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Pose, TargetAlignmentLocation.Center))
+    self.driverController.rightStick().and_(self.driverController.rightBumper()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Pose, TargetAlignmentLocation.Right))
+    self.driverController.rightStick().and_(self.driverController.leftBumper()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Pose, TargetAlignmentLocation.Left))
     self.driverController.leftStick().whileTrue(self.driveSubsystem.lockCommand())
     # self.driverController.rightTrigger().whileTrue(cmd.none())
     # self.driverController.rightBumper().whileTrue(cmd.none())
@@ -92,7 +93,7 @@ class RobotContainer:
     self.resetRobot()
 
   def autoExit(self) -> None: 
-    self.gyroSensor.resetRobotToField(self.localizationSubsystem.getPose())
+    self.gyroSensor.resetRobotToField(self.localizationSubsystem.getRobotPose())
 
   def teleopInit(self) -> None:
     self.resetRobot()

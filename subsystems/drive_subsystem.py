@@ -169,7 +169,7 @@ class DriveSubsystem(Subsystem):
       targetAlignmentLocation: TargetAlignmentLocation
     ) -> Command:
     return self.run(
-      lambda: self._runTargetAlignment(getRobotPose(), self._targetPose, targetAlignmentMode)
+      lambda: self._runTargetAlignment(getRobotPose(), targetAlignmentMode)
     ).beforeStarting(
       lambda: self._initTargetAlignment(getRobotPose(), getTargetPose(targetAlignmentLocation), targetAlignmentMode)
     ).onlyIf(
@@ -194,8 +194,8 @@ class DriveSubsystem(Subsystem):
     self._targetAlignmentTranslationXController.reset()
     self._targetAlignmentTranslationYController.reset()
     
-  def _runTargetAlignment(self, robotPose: Pose2d, targetPose: Pose3d, targetAlignmentMode: TargetAlignmentMode) -> None:
-    targetTranslation = targetPose.__sub__(Pose3d(robotPose))
+  def _runTargetAlignment(self, robotPose: Pose2d, targetAlignmentMode: TargetAlignmentMode) -> None:
+    targetTranslation = self._targetPose.__sub__(Pose3d(robotPose))
 
     speedRotation = 0
     speedTranslationX = 0
@@ -213,9 +213,9 @@ class DriveSubsystem(Subsystem):
     self._setSwerveModuleStates(
       self._constants.kDriveKinematics.toSwerveModuleStates(
         ChassisSpeeds(
-          -utils.clampValue(speedTranslationX, -self._constants.kTargetAlignmentTranslationSpeedMax, self._constants.kTargetAlignmentTranslationSpeedMax), 
-          -utils.clampValue(speedTranslationY, -self._constants.kTargetAlignmentTranslationSpeedMax, self._constants.kTargetAlignmentTranslationSpeedMax),
-          utils.clampValue(speedRotation, -self._constants.kTargetAlignmentRotationSpeedMax, self._constants.kTargetAlignmentRotationSpeedMax)
+          -utils.clampValue(speedTranslationX, -self._constants.kTargetAlignmentConstants.translationSpeedMax, self._constants.kTargetAlignmentConstants.translationSpeedMax), 
+          -utils.clampValue(speedTranslationY, -self._constants.kTargetAlignmentConstants.translationSpeedMax, self._constants.kTargetAlignmentConstants.translationSpeedMax),
+          utils.clampValue(speedRotation, -self._constants.kTargetAlignmentConstants.rotationSpeedMax, self._constants.kTargetAlignmentConstants.rotationSpeedMax)
         )
       )
     )

@@ -9,7 +9,7 @@ from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, PoseSensorLocation, PID, Alliance
+from lib.classes import MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, PoseSensorLocation, PID, Tolerance, DriftCorrectionConstants, TargetAlignmentConstants, Alliance
 from classes import Target, TargetType, TargetAlignmentLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
@@ -50,27 +50,24 @@ class Subsystems:
     kDriveKinematics = SwerveDrive4Kinematics(*(c.translation for c in kSwerveModuleConfigs))
 
     kPathPlannerRobotConfig = PATHPLANNER_ROBOT_CONFIG
-    kPathPlannerController = PPHolonomicDriveController(
-      translation_constants = PIDConstants(5.0, 0, 0),
-      rotation_constants = PIDConstants(5.0, 0, 0)
-    )
+    kPathPlannerController = PPHolonomicDriveController(PIDConstants(5.0, 0, 0), PIDConstants(5.0, 0, 0))
     kPathPlannerConstraints = PathConstraints(2.4, 1.6, units.degreesToRadians(540), units.degreesToRadians(720))
 
-    kDriftCorrectionControllerPID = PID(0.01, 0, 0)
-    kDriftCorrectionPositionTolerance: float = 0.5
-    kDriftCorrectionVelocityTolerance: float = 0.5
+    kDriftCorrectionConstants = DriftCorrectionConstants(
+      rotationPID = PID(0.01, 0, 0), 
+      rotationTolerance = Tolerance(0.5, 1.0)
+    )
 
-    kTargetAlignmentRotationPID = PID(0.075, 0, 0.001)
-    kTargetAlignmentRotationPositionTolerance: float = 1.0
-    kTargetAlignmentRotationVelocityTolerance: float = 1.0
-    kTargetAlignmentRotationSpeedMax: units.radians_per_second = kRotationSpeedMax * 0.5 #type: ignore
-    kTargetAlignmentTranslationXPID = PID(0.5, 0, 0.001)
-    kTargetAlignmentTranslationYPID = PID(0.5, 0, 0.001)
-    kTargetAlignmentTranslationPositionTolerance: float = 0.05
-    kTargetAlignmentTranslationVelocityTolerance: float = 0.05
-    kTargetAlignmentTranslationSpeedMax: units.meters_per_second = kTranslationSpeedMax * 0.3
-    kTargetAlignmentHeadingOffset: units.degrees = 0.0
-    kTargetAlignmentPoseRotationOffset: units.degrees = 180.0
+    kTargetAlignmentConstants = TargetAlignmentConstants(
+      rotationPID = PID(0.075, 0, 0.001),
+      rotationTolerance = Tolerance(1.0, 2.0),
+      rotationSpeedMax = kRotationSpeedMax * 0.5,
+      rotationHeadingModeOffset = 0.0,
+      rotationTranslationModeOffset = 180.0,
+      translationPID = PID(0.5, 0, 0.001),
+      translationTolerance = Tolerance(0.05, 0.1),
+      translationSpeedMax = kTranslationSpeedMax * 0.3
+    )
 
   class Localization:
     kSingleTagStandardDeviations: tuple[float, ...] = (1.0, 1.0, 2.0)

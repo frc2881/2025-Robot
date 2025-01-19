@@ -2,6 +2,7 @@ from commands2 import Command, cmd
 from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
 from lib.classes import TargetAlignmentMode
+from lib.sensors.object_sensor import ObjectSensor
 from lib.controllers.game_controller import GameController
 from lib.sensors.gyro_sensor_navx2 import GyroSensor_NAVX2
 from lib.sensors.pose_sensor import PoseSensor
@@ -9,7 +10,7 @@ from commands.auto_commands import AutoCommands
 from commands.game_commands import GameCommands
 from subsystems.drive_subsystem import DriveSubsystem
 from subsystems.localization_subsystem import LocalizationSubsystem
-from classes import TargetAlignmentLocation
+from classes import TargetAlignmentLocation, TargetType
 import constants
 
 class RobotContainer:
@@ -25,10 +26,11 @@ class RobotContainer:
     self.gyroSensor = GyroSensor_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
+    self.intakeObjectSensor = ObjectSensor(constants.Sensors.Object.Intake.kCameraName)
     
   def _setupSubsystems(self) -> None:
     self.driveSubsystem = DriveSubsystem(self.gyroSensor.getHeading)
-    self.localizationSubsystem = LocalizationSubsystem(self.poseSensors, self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions)
+    self.localizationSubsystem = LocalizationSubsystem(self.poseSensors, self.intakeObjectSensor, self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions)
     
   def _setupControllers(self) -> None:
     self.driverController = GameController(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)
@@ -46,9 +48,10 @@ class RobotContainer:
         self.driverController.getLeftX,
         self.driverController.getRightX
     ))
-    self.driverController.rightStick().and_((self.driverController.rightBumper().or_(self.driverController.leftBumper())).negate()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center))
+    self.driverController.rightStick().and_((self.driverController.rightBumper().or_(self.driverController.leftBumper()).or_(self.driverController.leftTrigger())).negate()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center))
     self.driverController.rightStick().and_(self.driverController.rightBumper()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Right))
     self.driverController.rightStick().and_(self.driverController.leftBumper()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left))
+    self.driverController.rightStick().and_(self.driverController.leftTrigger()).whileTrue(self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center, TargetType.Object))
     self.driverController.leftStick().whileTrue(self.driveSubsystem.lockCommand())
     # self.driverController.rightTrigger().whileTrue(cmd.none())
     # self.driverController.rightBumper().whileTrue(cmd.none())

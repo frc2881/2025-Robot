@@ -1,6 +1,6 @@
 import math
 from wpimath import units
-from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d
+from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d, Rotation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
 from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
 from navx import AHRS
@@ -61,12 +61,12 @@ class Subsystems:
     kTargetAlignmentConstants = TargetAlignmentConstants(
       rotationPID = PID(0.075, 0, 0.001),
       rotationTolerance = Tolerance(1.0, 2.0),
-      rotationSpeedMax = kRotationSpeedMax * 0.5,
+      rotationSpeedMax = kRotationSpeedMax * 0.5, 
       rotationHeadingModeOffset = 0.0,
-      rotationTranslationModeOffset = 180.0,
-      translationPID = PID(0.5, 0, 0.001),
+      rotationTranslationModeOffset = 180,
+      translationPID = PID(5.0, 0, 0),
       translationTolerance = Tolerance(0.05, 0.1),
-      translationSpeedMax = kTranslationSpeedMax * 0.3
+      translationSpeedMax = kTranslationSpeedMax * 0.5
     )
 
   class Localization:
@@ -74,10 +74,14 @@ class Subsystems:
     kMultiTagStandardDeviations: tuple[float, ...] = (0.5, 0.5, 1.0)
     kMaxPoseAmbiguity: units.percent = 0.2
 
-class Sensors:
+class Sensors: 
   class Gyro:
     class NAVX2:
       kComType = AHRS.NavXComType.kUSB1
+
+  class Object:
+    class Intake:
+      kCameraName = "Intake"
 
   class Pose:
     _poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
@@ -176,19 +180,25 @@ class Game:
         },
         TargetType.Station: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(12), units.inchesToMeters(-30), 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(12), units.inchesToMeters(30), 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), units.inchesToMeters(-30), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), units.inchesToMeters(30), 0, Rotation3d())
         },
         TargetType.Processor: {
+          TargetAlignmentLocation.Default: Transform3d(),
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d())
+        },
+        TargetType.Barge: {
           TargetAlignmentLocation.Default: Transform3d(),
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d())
         },
-        TargetType.Barge: {
+        TargetType.Object: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(6), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d())
         }

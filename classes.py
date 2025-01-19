@@ -4,10 +4,12 @@ from wpimath import units
 from wpimath.geometry import Pose2d, Pose3d
 
 class TargetType(Enum):
+  Default = auto()
   Reef = auto()
   Station = auto()
   Processor = auto()
   Barge = auto()
+  Object = auto()
 
 class TargetAlignmentLocation(Enum):
   Default = auto()

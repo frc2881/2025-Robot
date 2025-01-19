@@ -11,7 +11,7 @@ from pathplannerlib.util import DriveFeedforwards
 from lib import logger, utils
 from lib.classes import MotorIdleMode, SpeedMode, DriveOrientation, OptionState, LockState, TargetAlignmentMode
 from lib.components.swerve_module import SwerveModule
-from classes import TargetAlignmentLocation
+from classes import TargetAlignmentLocation, TargetType
 import constants
 
 class DriveSubsystem(Subsystem):
@@ -166,12 +166,13 @@ class DriveSubsystem(Subsystem):
       getRobotPose: Callable[[], Pose2d], 
       getTargetPose: Callable[[TargetAlignmentLocation], Pose3d], 
       targetAlignmentMode: TargetAlignmentMode, 
-      targetAlignmentLocation: TargetAlignmentLocation
+      targetAlignmentLocation: TargetAlignmentLocation,
+      targetType: TargetType
     ) -> Command:
     return self.run(
       lambda: self._runTargetAlignment(getRobotPose(), targetAlignmentMode)
     ).beforeStarting(
-      lambda: self._initTargetAlignment(getRobotPose(), getTargetPose(targetAlignmentLocation), targetAlignmentMode)
+      lambda: self._initTargetAlignment(getRobotPose(), getTargetPose(targetAlignmentLocation, targetType), targetAlignmentMode)
     ).onlyIf(
       lambda: self._lockState != LockState.Locked
     ).until(

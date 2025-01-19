@@ -4,7 +4,7 @@ from wpilib import RobotBase
 from lib import logger, utils
 from lib.classes import ControllerRumbleMode, ControllerRumblePattern, TargetAlignmentMode
 if TYPE_CHECKING: from robot_container import RobotContainer
-from classes import TargetAlignmentLocation
+from classes import TargetAlignmentLocation, TargetType
 import constants
 
 class GameCommands:
@@ -14,14 +14,15 @@ class GameCommands:
     ) -> None:
     self._robot = robot
 
-  def alignRobotToTargetCommand(self, targetAlignmentMode: TargetAlignmentMode, targetAlignmentLocation: TargetAlignmentLocation = TargetAlignmentLocation.Default) -> Command:
+  def alignRobotToTargetCommand(self, targetAlignmentMode: TargetAlignmentMode, targetAlignmentLocation: TargetAlignmentLocation = TargetAlignmentLocation.Default, targetType: TargetType = TargetType.Default) -> Command:
     return cmd.sequence(
       cmd.parallel(
         self._robot.driveSubsystem.alignToTargetCommand(
           self._robot.localizationSubsystem.getRobotPose, 
           self._robot.localizationSubsystem.getTargetPose,
           targetAlignmentMode,
-          targetAlignmentLocation
+          targetAlignmentLocation,
+          targetType
         ),
         self.rumbleControllersCommand(ControllerRumbleMode.Operator, ControllerRumblePattern.Short),
         cmd.sequence(

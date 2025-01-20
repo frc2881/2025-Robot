@@ -10,7 +10,7 @@ from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
 from lib.classes import MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, PoseSensorLocation, PID, Tolerance, DriftCorrectionConstants, TargetAlignmentConstants, Alliance
-from classes import Target, TargetType, TargetAlignmentLocation
+from core.classes import Target, TargetType, TargetAlignmentLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
@@ -21,7 +21,7 @@ class Subsystems:
     kWheelBase: units.meters = units.inchesToMeters(24.5)
 
     kTranslationSpeedMax: units.meters_per_second = 6.32
-    kRotationSpeedMax: units.radians_per_second = 4 * math.pi  # type: ignore
+    kRotationSpeedMax: units.radians_per_second = 4 * math.pi # type: ignore
 
     kInputLimitDemo: units.percent = 0.5
     kInputRateLimitDemo: units.percent = 0.33
@@ -70,9 +70,10 @@ class Subsystems:
     )
 
   class Localization:
-    kSingleTagStandardDeviations: tuple[float, ...] = (1.0, 1.0, 2.0)
-    kMultiTagStandardDeviations: tuple[float, ...] = (0.5, 0.5, 1.0)
-    kMaxPoseAmbiguity: units.percent = 0.2
+    kStateStandardDeviations: tuple[float, float, float] = (0.05, 0.05, units.degreesToRadians(5))
+    kVisionMultiTagStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(10))
+    kVisionDefaultStandardDeviations: tuple[float, float, float] = (0.5, 0.5, units.degreesToRadians(15))
+    kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 
   class Gyro:
@@ -180,9 +181,9 @@ class Game:
         },
         TargetType.Station: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), units.inchesToMeters(-30), 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), units.inchesToMeters(30), 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(0), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(0), units.inchesToMeters(-30), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(0), units.inchesToMeters(30), 0, Rotation3d())
         },
         TargetType.Processor: {
           TargetAlignmentLocation.Default: Transform3d(),

@@ -1,5 +1,4 @@
 from typing import Callable
-import math
 from commands2 import Subsystem, Command
 from wpilib import SmartDashboard, SendableChooser
 from wpimath import units
@@ -11,8 +10,8 @@ from pathplannerlib.util import DriveFeedforwards
 from lib import logger, utils
 from lib.classes import MotorIdleMode, SpeedMode, DriveOrientation, OptionState, LockState, TargetAlignmentMode
 from lib.components.swerve_module import SwerveModule
-from classes import TargetAlignmentLocation, TargetType
-import constants
+from core.classes import TargetAlignmentLocation, TargetType
+import core.constants as constants
 
 class DriveSubsystem(Subsystem):
   def __init__(

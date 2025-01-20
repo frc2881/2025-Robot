@@ -3,7 +3,7 @@
 from commands2 import CommandScheduler, cmd, TimedCommandRobot
 from lib import logger, telemetry, utils
 from lib.classes import RobotMode
-from robot_container import RobotContainer
+from core.robot import RobotCore
 
 class Robot(TimedCommandRobot):
   def __init__(self) -> None:
@@ -12,14 +12,14 @@ class Robot(TimedCommandRobot):
     logger.start()
     telemetry.start()
     self._autoCommand = cmd.none()
-    self._robotContainer = RobotContainer()
+    self._robotCore = RobotCore()
 
   def robotPeriodic(self) -> None:
     try:
       CommandScheduler.getInstance().run()
     except:
       CommandScheduler.getInstance().cancelAll()
-      self._robotContainer.resetRobot()
+      self._robotCore.resetRobot()
       logger.exception()
 
   def disabledInit(self) -> None:
@@ -30,8 +30,8 @@ class Robot(TimedCommandRobot):
 
   def autonomousInit(self) -> None:
     logger.mode(RobotMode.Auto)
-    self._robotContainer.autoInit()
-    self._autoCommand = self._robotContainer.getAutoCommand()
+    self._robotCore.autoInit()
+    self._autoCommand = self._robotCore.getAutoCommand()
     if self._autoCommand is not None:
       self._autoCommand.schedule()
 
@@ -39,13 +39,13 @@ class Robot(TimedCommandRobot):
     pass
 
   def autonomousExit(self):
-    self._robotContainer.autoExit()
+    self._robotCore.autoExit()
 
   def teleopInit(self) -> None:
     logger.mode(RobotMode.Teleop)
     if self._autoCommand is not None:
       self._autoCommand.cancel()
-    self._robotContainer.teleopInit()
+    self._robotCore.teleopInit()
 
   def teleopPeriodic(self) -> None:
     pass
@@ -53,7 +53,7 @@ class Robot(TimedCommandRobot):
   def testInit(self) -> None:
     logger.mode(RobotMode.Test)
     CommandScheduler.getInstance().cancelAll()
-    self._robotContainer.testInit()
+    self._robotCore.testInit()
 
   def testPeriodic(self) -> None:
     pass

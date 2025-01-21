@@ -14,16 +14,16 @@ import core.constants as constants
 class LocalizationService():
   def __init__(
       self,
-      poseSensors: tuple[PoseSensor, ...],
-      objectSensor: ObjectSensor,
       getGyroRotation: Callable[[], Rotation2d],
-      getModulePositions: Callable[[], tuple[SwerveModulePosition, ...]]
+      getModulePositions: Callable[[], tuple[SwerveModulePosition, ...]],
+      poseSensors: tuple[PoseSensor, ...],
+      objectSensor: ObjectSensor
     ) -> None:
     super().__init__()
-    self._poseSensors = poseSensors
-    self._objectSensor = objectSensor
     self._getGyroRotation = getGyroRotation
     self._getModulePositions = getModulePositions
+    self._poseSensors = poseSensors
+    self._objectSensor = objectSensor
 
     self._poseEstimator = SwerveDrive4PoseEstimator(
       constants.Subsystems.Drive.kDriveKinematics,
@@ -34,19 +34,20 @@ class LocalizationService():
       constants.Subsystems.Localization.kVisionDefaultStandardDeviations
     )
 
+    self._alliance = None
     self._robotPose = Pose2d()
     self._targets: dict[int, Target] = {}
     self._targetPoses: list[Pose2d] = []
-    self._alliance = None
 
     SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
     SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
 
-    utils.addRobotPeriodic(lambda: [
-      self._updateRobotPose(),
-      self._updateTargets(),
-      self._updateTelemetry()
-    ])
+    utils.addRobotPeriodic(self._periodic)
+
+  def _periodic(self) -> None:
+    self._updateRobotPose()
+    self._updateTargets()
+    self._updateTelemetry()
 
   def _updateRobotPose(self) -> None:
     self._poseEstimator.update(self._getGyroRotation(), self._getModulePositions())
@@ -58,7 +59,7 @@ class LocalizationService():
           if estimatedRobotPose.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR:
             self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Subsystems.Localization.kVisionMultiTagStandardDeviations)
           else:
-            ambiguity = sum([target.getPoseAmbiguity() for target in estimatedRobotPose.targetsUsed]) / len(estimatedRobotPose.targetsUsed)
+            ambiguity = sum(target.getPoseAmbiguity() for target in estimatedRobotPose.targetsUsed) / len(estimatedRobotPose.targetsUsed)
             if utils.isValueInRange(ambiguity, 0, constants.Subsystems.Localization.kVisionMaxPoseAmbiguity):
               self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Subsystems.Localization.kVisionDefaultStandardDeviations)
     self._robotPose = self._poseEstimator.getEstimatedPosition()
@@ -78,17 +79,8 @@ class LocalizationService():
   def getTargetPose(self, targetAlignmentLocation: TargetAlignmentLocation, targetType: TargetType) -> Pose3d:
     match targetType:
       case TargetType.Object:
-        # TODO: replace experimental / hard-coded object detection logic using training on 2024 notes
-        distances = (2.275, 1.783, 1.581, 1.097, 0.732, 0.424, 0.0)
-        areas = (0.01, 1.2, 1.6, 3.2, 6.8, 18, 99)
-        objectTargetInfo = self._objectSensor.getTargetInfo()
-        area = objectTargetInfo.getArea()
-        if area <= 0:
-          return Pose3d(self._robotPose)
-        distance = utils.getInterpolatedValue(area, areas, distances)
-        yaw = -objectTargetInfo.getYaw() + 185.0
-        transformedPose = Pose3d(self._robotPose).transformBy(Transform3d(distance, 0, 0, Rotation3d(Rotation2d.fromDegrees(yaw))))
-        return transformedPose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[targetType][targetAlignmentLocation])
+        objectPose = Pose3d(self._robotPose).transformBy(self._objectSensor.getObjectTransform())
+        return objectPose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[targetType][targetAlignmentLocation])
       case _:
         target = self._targets.get(utils.getTargetHash(self._robotPose.nearest(self._targetPoses)))
         return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])

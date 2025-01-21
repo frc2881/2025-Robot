@@ -2,10 +2,10 @@ from commands2 import Command, cmd
 from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
 from lib.classes import TargetAlignmentMode
-from lib.sensors.object_sensor import ObjectSensor
 from lib.controllers.game_controller import GameController
 from lib.sensors.gyro_sensor_navx2 import GyroSensor_NAVX2
 from lib.sensors.pose_sensor import PoseSensor
+from lib.sensors.object_sensor import ObjectSensor
 from core.commands.auto import AutoCommands
 from core.commands.game import GameCommands
 from core.subsystems.drive import DriveSubsystem
@@ -15,36 +15,36 @@ import core.constants as constants
 
 class RobotCore:
   def __init__(self) -> None:
-    self._setupSensors()
-    self._setupSubsystems()
-    self._setupServices()
-    self._setupControllers()
-    self._setupCommands()
-    self._setupTriggers()
-    utils.addRobotPeriodic(lambda: [ self._updateTelemetry() ])
+    self._initSensors()
+    self._initSubsystems()
+    self._initServices()
+    self._initControllers()
+    self._initCommands()
+    self._initTriggers()
+    utils.addRobotPeriodic(self._periodic)
 
-  def _setupSensors(self) -> None:
+  def _initSensors(self) -> None:
     self.gyroSensor = GyroSensor_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
-    self.objectSensor = ObjectSensor(constants.Sensors.Object.Intake.kCameraName)
-    
-  def _setupSubsystems(self) -> None:
-    self.driveSubsystem = DriveSubsystem(self.gyroSensor.getHeading)
-
-  def _setupServices(self) -> None:
-    self.localizationService = LocalizationService(self.poseSensors, self.objectSensor, self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions)
+    self.objectSensor = ObjectSensor(constants.Sensors.Object.kObjectSensorConfig)
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
     
-  def _setupControllers(self) -> None:
+  def _initSubsystems(self) -> None:
+    self.driveSubsystem = DriveSubsystem(self.gyroSensor.getHeading)
+
+  def _initServices(self) -> None:
+    self.localizationService = LocalizationService(self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions, self.poseSensors, self.objectSensor)
+    
+  def _initControllers(self) -> None:
     self.driverController = GameController(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)
     self.operatorController = GameController(constants.Controllers.kOperatorControllerPort, constants.Controllers.kInputDeadband)
     DriverStation.silenceJoystickConnectionWarning(True)
 
-  def _setupCommands(self) -> None:
+  def _initCommands(self) -> None:
     self.gameCommands = GameCommands(self)
     self.autoCommands = AutoCommands(self)
 
-  def _setupTriggers(self) -> None:
+  def _initTriggers(self) -> None:
     self.driveSubsystem.setDefaultCommand(
       self.driveSubsystem.driveCommand(
         self.driverController.getLeftY,
@@ -85,6 +85,9 @@ class RobotCore:
     # self.operatorController.x().whileTrue(cmd.none())
     # self.operatorController.start().whileTrue(cmd.none())
     # self.operatorController.back().whileTrue(cmd.none())
+
+  def _periodic(self) -> None:
+    self._updateTelemetry()
 
   def getAutoCommand(self) -> Command:
     return self.autoCommands.getSelected()

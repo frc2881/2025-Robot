@@ -9,7 +9,7 @@ from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, PoseSensorLocation, PID, Tolerance, DriftCorrectionConstants, TargetAlignmentConstants, Alliance
+from lib.classes import MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, ObjectSensorConfig, PID, Tolerance, DriftCorrectionConstants, TargetAlignmentConstants, Alliance
 from core.classes import Target, TargetType, TargetAlignmentLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
@@ -80,41 +80,47 @@ class Sensors:
     class NAVX2:
       kComType = AHRS.NavXComType.kUSB1
 
-  class Object:
-    class Intake:
-      kCameraName = "Intake"
-
   class Pose:
     _poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
     _fallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
+    
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
       PoseSensorConfig(
-        PoseSensorLocation.Front,
+        "Front",
         Transform3d(
           Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(24.2), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
-        PoseSensorLocation.Rear,
+        "Rear",
         Transform3d(
           Translation3d(units.inchesToMeters(5.49), units.inchesToMeters(0.0), units.inchesToMeters(20.60)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-23.2), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
-        PoseSensorLocation.Left,
+        "Left",
         Transform3d(
           Translation3d(units.inchesToMeters(8.24), units.inchesToMeters(12.40), units.inchesToMeters(17.25)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-29.4), units.degreesToRadians(90.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
-        PoseSensorLocation.Right,
+        "Right",
         Transform3d(
           Translation3d(units.inchesToMeters(8.16), units.inchesToMeters(-12.375), units.inchesToMeters(17.25)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-21.2), units.degreesToRadians(-90.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+      )
+    )
+
+  class Object:
+    kObjectSensorConfig = ObjectSensorConfig(
+      "Front",
+      Transform3d(
+        Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(19.25)),
+        Rotation3d(units.degreesToRadians(0), units.degreesToRadians(24.2), units.degreesToRadians(0.0))
       )
     )
 

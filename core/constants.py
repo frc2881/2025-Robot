@@ -1,6 +1,6 @@
 import math
 from wpimath import units
-from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d, Rotation2d
+from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
 from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
 from navx import AHRS
@@ -9,7 +9,7 @@ from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, ObjectSensorConfig, PID, Tolerance, DriftCorrectionConstants, TargetAlignmentConstants, Alliance
+from lib.classes import Alliance, PID, Tolerance, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, ObjectSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants
 from core.classes import Target, TargetType, TargetAlignmentLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
@@ -51,7 +51,7 @@ class Subsystems:
 
     kPathPlannerRobotConfig = PATHPLANNER_ROBOT_CONFIG
     kPathPlannerController = PPHolonomicDriveController(PIDConstants(5.0, 0, 0), PIDConstants(5.0, 0, 0))
-    kPathPlannerConstraints = PathConstraints(2.4, 1.6, units.degreesToRadians(540), units.degreesToRadians(720))
+    kPathPlannerConstraints = PathConstraints(3.6, 2.4, units.degreesToRadians(540), units.degreesToRadians(720))
 
     kDriftCorrectionConstants = DriftCorrectionConstants(
       rotationPID = PID(0.01, 0, 0), 
@@ -69,6 +69,7 @@ class Subsystems:
       translationSpeedMax = kTranslationSpeedMax * 0.5
     )
 
+class Services:
   class Localization:
     kStateStandardDeviations: tuple[float, float, float] = (0.05, 0.05, units.degreesToRadians(5))
     kVisionMultiTagStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(10))

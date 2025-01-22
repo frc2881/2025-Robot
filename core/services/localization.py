@@ -30,8 +30,8 @@ class LocalizationService():
       self._getGyroRotation(),
       self._getModulePositions(),
       Pose2d(),
-      constants.Subsystems.Localization.kStateStandardDeviations,
-      constants.Subsystems.Localization.kVisionDefaultStandardDeviations
+      constants.Services.Localization.kStateStandardDeviations,
+      constants.Services.Localization.kVisionDefaultStandardDeviations
     )
 
     self._alliance = None
@@ -57,11 +57,11 @@ class LocalizationService():
         pose = estimatedRobotPose.estimatedPose.toPose2d()
         if utils.isPoseInBounds(pose, constants.Game.Field.kBounds):
           if estimatedRobotPose.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR:
-            self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Subsystems.Localization.kVisionMultiTagStandardDeviations)
+            self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Services.Localization.kVisionMultiTagStandardDeviations)
           else:
             ambiguity = sum(target.getPoseAmbiguity() for target in estimatedRobotPose.targetsUsed) / len(estimatedRobotPose.targetsUsed)
-            if utils.isValueInRange(ambiguity, 0, constants.Subsystems.Localization.kVisionMaxPoseAmbiguity):
-              self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Subsystems.Localization.kVisionDefaultStandardDeviations)
+            if utils.isValueInRange(ambiguity, 0, constants.Services.Localization.kVisionMaxPoseAmbiguity):
+              self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, constants.Services.Localization.kVisionDefaultStandardDeviations)
     self._robotPose = self._poseEstimator.getEstimatedPosition()
 
   def getRobotPose(self) -> Pose2d:

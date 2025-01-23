@@ -9,6 +9,11 @@ from lib.sensors.object_sensor import ObjectSensor
 from core.commands.auto import AutoCommands
 from core.commands.game import GameCommands
 from core.subsystems.drive import DriveSubsystem
+from core.subsystems.elevator import ElevatorSubsystem
+from core.subsystems.arm import ArmSubsystem
+from core.subsystems.wrist import WristSubsystem
+from core.subsystems.hand import HandSubsystem
+from core.subsystems.intake import IntakeSubsystem
 from core.services.localization import LocalizationService
 from core.classes import TargetAlignmentLocation, TargetType
 import core.constants as constants
@@ -31,7 +36,12 @@ class RobotCore:
     
   def _initSubsystems(self) -> None:
     self.driveSubsystem = DriveSubsystem(self.gyroSensor.getHeading)
-
+    self.elevatorSubsystem = ElevatorSubsystem()
+    self.armSubsystem = ArmSubsystem()
+    self.wristSubsystem = WristSubsystem()
+    self.handSubsystem = HandSubsystem()
+    self.intakeSubsystem = IntakeSubsystem()
+    
   def _initServices(self) -> None:
     self.localizationService = LocalizationService(self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions, self.poseSensors, self.objectSensor)
     

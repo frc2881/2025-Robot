@@ -69,6 +69,21 @@ class Subsystems:
       translationSpeedMax = kTranslationSpeedMax * 0.5
     )
 
+  class Elevator:
+    pass
+
+  class Arm:
+    pass
+
+  class Wrist:
+    pass
+
+  class Hand:
+    pass
+
+  class Intake:
+    pass
+
 class Services:
   class Localization:
     kStateStandardDeviations: tuple[float, float, float] = (0.05, 0.05, units.degreesToRadians(5))

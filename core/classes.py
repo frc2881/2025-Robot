@@ -28,3 +28,8 @@ class TargetAlignmentInfo:
   distance: units.meters
   heading: units.degrees
   pitch: units.degrees
+
+@dataclass(frozen=True)
+class ElevatorStagePositions:
+  lower: float
+  upper: float

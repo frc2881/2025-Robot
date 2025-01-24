@@ -9,7 +9,7 @@ from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import Alliance, PID, Tolerance, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, ObjectSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants
+from lib.classes import Alliance, PID, Tolerance, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, ObjectSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, LeadscrewModuleConstants, LeadscrewModuleConfig
 from core.classes import Target, TargetType, TargetAlignmentLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
@@ -70,7 +70,40 @@ class Subsystems:
     )
 
   class Elevator:
-    pass
+    _leadscrewModuleLowerConstants = LeadscrewModuleConstants(
+        leadscrewTravelDistance = 0.5,
+        motorControllerType = MotorControllerType.SparkFlex,
+        motorCurrentLimit = 60,
+        motorReduction = 3.0,
+        motorPID = PID(0.1, 0, 0.01),
+        motorMotionMaxVelocityRate = 33.0,
+        motorMotionMaxAccelerationRate = 66.0,
+        allowedClosedLoopError = 0.1,
+        motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
+        motorSoftLimitReverse = 0,
+        motorResetSpeed = 0.1 
+    )
+
+    _leadscrewModuleUpperConstants = LeadscrewModuleConstants(
+      leadscrewTravelDistance = 1.0,
+      motorControllerType = MotorControllerType.SparkFlex,
+      motorCurrentLimit = 60,
+      motorReduction = 1.0,
+      motorPID = PID(0.1, 0, 0.01),
+      motorMotionMaxVelocityRate = 33.0,
+      motorMotionMaxAccelerationRate = 66.0,
+      allowedClosedLoopError = 0.1,
+      motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
+      motorSoftLimitReverse = 0,
+      motorResetSpeed = 0.1
+    )
+
+    kLeadScrewModuleConfigLower = LeadscrewModuleConfig("Elevator/Leadscrews/Lower", 10, None, _leadscrewModuleLowerConstants)
+    kLeadScrewModuleConfigUpper = LeadscrewModuleConfig("Elevator/Leadscrews/Upper", 11, None, _leadscrewModuleUpperConstants)
+
+    kHeightAlignmentPositionTolerance: float = 0.05
+
+    kInputLimit: units.percent = 0.5
 
   class Arm:
     pass
@@ -82,7 +115,35 @@ class Subsystems:
     pass
 
   class Intake:
-    pass
+    _leadscrewModuleConstants = LeadscrewModuleConstants(
+      leadscrewTravelDistance = 0.5,
+      motorControllerType = MotorControllerType.SparkMax,
+      motorCurrentLimit = 60,
+      motorReduction = 3.0,
+      motorPID = PID(0.1, 0, 0.01),
+      motorMotionMaxVelocityRate = 33.0,
+      motorMotionMaxAccelerationRate = 66.0,
+      allowedClosedLoopError = 0.1,
+      motorSoftLimitForward = 22.50, # TODO: Update Intake soft limits
+      motorSoftLimitReverse = 0,
+      motorResetSpeed = 0.1
+    )
+
+    kStartingPosition: float = 0.0 # TODO: Update Intake Positions
+    kDefaultPosition: float = 0.0 # TODO: Update Intake Positions
+    kCoralIntakePosition: float = 0.0 # TODO: Update Intake Positions
+    kAlgaeIntakePosition:float  = 0.0 # TODO: Update Intake Positions
+
+    kLeadScrewModuleConfigRight = LeadscrewModuleConfig("Launcher/Arm/Leadscrews/Right", 16, 17, _leadscrewModuleConstants)
+    kLeadScrewModuleConfigLeft = LeadscrewModuleConfig("Launcher/Arm/Leadscrews/Left", 17, None, _leadscrewModuleConstants)
+
+    kRollerMotorCANId: int = 18
+    kRollerMotorCurrentLimit: int = 60
+
+    kTargetAlignmentPositionTolerance: float = 0.05
+
+    kInputLimit: units.percent = 0.5
+
 
 class Services:
   class Localization:
@@ -146,7 +207,7 @@ class Sensors:
       "Front": "http://10.28.81.6:1184/?action=stream",
       "Left": "http://10.28.81.7:1186/?action=stream",
       "Right": "http://10.28.81.7:1184/?action=stream",
-      "Driver": "http://10.28.81.6:1188/?action=stream"
+      "Driver": "http://10.28.81.6:1186/?action=stream"
     }
 
 class Controllers:

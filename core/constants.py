@@ -106,7 +106,15 @@ class Subsystems:
     kInputLimit: units.percent = 0.5
 
   class Arm:
-    pass
+    kArmMotorCANId: int = 12
+    kInputLimit: units.percent = 0.5
+    kMotorCurrentLimit: int = 60 #TODO: Verify this current limit
+    kMotorPID: PID = PID(0, 0, 0) #TODO: Need to tune arm motor PID
+    kAllowedClosedLoopError: float = 0 #TODO: Update AllowedClosedLoopError
+    kMotorSoftLimitForward: float = 0 #TODO: Update kMotorSoftLimitForward
+    kMotorSoftLimitReverse: float = 0 #TODO: Update kMotorSoftLimitReverse
+    kHeightAlignmentPositionTolerance: float = 0.5  
+    kMotorResetSpeed: float = 0.1 
 
   class Wrist:
     pass

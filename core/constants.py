@@ -106,15 +106,25 @@ class Subsystems:
     kInputLimit: units.percent = 0.5
 
   class Arm:
-    kArmMotorCANId: int = 12
+    _armPositionControlModuleUpperConstants = PositionControlModuleConstants(
+      motorTravelDistance = 1.0,
+      motorControllerType = MotorControllerType.SparkFlex,
+      motorCurrentLimit = 60,
+      motorReduction = 1.0,
+      motorPID = PID(0.1, 0, 0.01),
+      motorMotionMaxVelocityRate = 33.0,
+      motorMotionMaxAccelerationRate = 66.0,
+      allowedClosedLoopError = 0.1,
+      motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
+      motorSoftLimitReverse = 0,
+      motorResetSpeed = 0.1
+    )
+
+    kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, _armPositionControlModuleUpperConstants)
+
+    kPositionAlignmentPositionTolerance: float = 0.5  
+
     kInputLimit: units.percent = 0.5
-    kMotorCurrentLimit: int = 60 #TODO: Verify this current limit
-    kMotorPID: PID = PID(0, 0, 0) #TODO: Need to tune arm motor PID
-    kAllowedClosedLoopError: float = 0 #TODO: Update AllowedClosedLoopError
-    kMotorSoftLimitForward: float = 0 #TODO: Update kMotorSoftLimitForward
-    kMotorSoftLimitReverse: float = 0 #TODO: Update kMotorSoftLimitReverse
-    kHeightAlignmentPositionTolerance: float = 0.5  
-    kMotorResetSpeed: float = 0.1 
 
   class Wrist:
     pass

@@ -5,7 +5,7 @@ from wpimath import units
 from commands2 import Subsystem, Command
 from rev import SparkMax, SparkMaxConfig, SparkBase
 from lib import logger, utils
-from lib.components.leadscrew_module import LeadscrewModule
+from lib.components.position_control_module import PositionControlModule
 import core.constants as constants
 
 class IntakeSubsystem(Subsystem):
@@ -16,8 +16,8 @@ class IntakeSubsystem(Subsystem):
     self._hasInitialZeroReset: bool = False
     self._isAlignedToTarget: bool = False
 
-    self._leadscrewModuleLeft = LeadscrewModule(self._constants.kLeadScrewModuleConfigLeft)
-    self._leadscrewModuleRight = LeadscrewModule(self._constants.kLeadScrewModuleConfigRight)
+    self._leadscrewModuleLeft = PositionControlModule(self._constants.kLeadScrewModuleConfigLeft)
+    self._leadscrewModuleRight = PositionControlModule(self._constants.kLeadScrewModuleConfigRight)
 
     self._rollerMotor = SparkMax(self._constants.kRollerMotorCANId, SparkBase.MotorType.kBrushless)
     self._sparkConfig = SparkMaxConfig()

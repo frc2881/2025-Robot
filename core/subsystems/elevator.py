@@ -5,7 +5,7 @@ from wpimath import units
 from commands2 import Subsystem, Command
 from rev import SparkMax, SparkMaxConfig, SparkBase
 from lib import logger, utils
-from lib.components.leadscrew_module import LeadscrewModule
+from lib.components.position_control_module import PositionControlModule
 from core.classes import ElevatorStagePositions
 import core.constants as constants
 
@@ -17,8 +17,8 @@ class ElevatorSubsystem(Subsystem):
     self._hasInitialZeroReset: bool = False
     self._isAlignedToHeight: bool = False
 
-    self._leadscrewModuleLower = LeadscrewModule(self._constants.kLeadScrewModuleConfigLower)
-    self._leadscrewModuleUpper = LeadscrewModule(self._constants.kLeadScrewModuleConfigUpper)
+    self._leadscrewModuleLower = PositionControlModule(self._constants.kLeadScrewModuleConfigLower)
+    self._leadscrewModuleUpper = PositionControlModule(self._constants.kLeadScrewModuleConfigUpper)
     
   def periodic(self) -> None:
     self._updateTelemetry()

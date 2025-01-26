@@ -9,7 +9,7 @@ from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
-from lib.classes import Alliance, PID, Tolerance, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, ObjectSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, LeadscrewModuleConstants, LeadscrewModuleConfig
+from lib.classes import Alliance, PID, Tolerance, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, ObjectSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, PositionControlModuleConstants, PositionControlModuleConfig
 from core.classes import Target, TargetType, TargetAlignmentLocation
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
@@ -70,8 +70,8 @@ class Subsystems:
     )
 
   class Elevator:
-    _leadscrewModuleLowerConstants = LeadscrewModuleConstants(
-        leadscrewTravelDistance = 0.5,
+    _leadscrewModuleLowerConstants = PositionControlModuleConstants(
+        motorTravelDistance = 0.5,
         motorControllerType = MotorControllerType.SparkFlex,
         motorCurrentLimit = 60,
         motorReduction = 3.0,
@@ -84,8 +84,8 @@ class Subsystems:
         motorResetSpeed = 0.1 
     )
 
-    _leadscrewModuleUpperConstants = LeadscrewModuleConstants(
-      leadscrewTravelDistance = 1.0,
+    _leadscrewModuleUpperConstants = PositionControlModuleConstants(
+      motorTravelDistance = 1.0,
       motorControllerType = MotorControllerType.SparkFlex,
       motorCurrentLimit = 60,
       motorReduction = 1.0,
@@ -98,8 +98,8 @@ class Subsystems:
       motorResetSpeed = 0.1
     )
 
-    kLeadScrewModuleConfigLower = LeadscrewModuleConfig("Elevator/Leadscrews/Lower", 10, None, _leadscrewModuleLowerConstants)
-    kLeadScrewModuleConfigUpper = LeadscrewModuleConfig("Elevator/Leadscrews/Upper", 11, None, _leadscrewModuleUpperConstants)
+    kLeadScrewModuleConfigLower = PositionControlModuleConfig("Elevator/Leadscrews/Lower", 10, None, _leadscrewModuleLowerConstants)
+    kLeadScrewModuleConfigUpper = PositionControlModuleConfig("Elevator/Leadscrews/Upper", 11, None, _leadscrewModuleUpperConstants)
 
     kHeightAlignmentPositionTolerance: float = 0.05
 
@@ -115,8 +115,8 @@ class Subsystems:
     pass
 
   class Intake:
-    _leadscrewModuleConstants = LeadscrewModuleConstants(
-      leadscrewTravelDistance = 0.5,
+    _leadscrewModuleConstants = PositionControlModuleConstants(
+      motorTravelDistance = 0.5,
       motorControllerType = MotorControllerType.SparkMax,
       motorCurrentLimit = 60,
       motorReduction = 3.0,
@@ -134,8 +134,8 @@ class Subsystems:
     kCoralIntakePosition: float = 0.0 # TODO: Update Intake Positions
     kAlgaeIntakePosition:float  = 0.0 # TODO: Update Intake Positions
 
-    kLeadScrewModuleConfigRight = LeadscrewModuleConfig("Launcher/Arm/Leadscrews/Right", 16, 17, _leadscrewModuleConstants)
-    kLeadScrewModuleConfigLeft = LeadscrewModuleConfig("Launcher/Arm/Leadscrews/Left", 17, None, _leadscrewModuleConstants)
+    kLeadScrewModuleConfigRight = PositionControlModuleConfig("Launcher/Arm/Leadscrews/Right", 16, 17, _leadscrewModuleConstants)
+    kLeadScrewModuleConfigLeft = PositionControlModuleConfig("Launcher/Arm/Leadscrews/Left", 17, None, _leadscrewModuleConstants)
 
     kRollerMotorCANId: int = 18
     kRollerMotorCurrentLimit: int = 60

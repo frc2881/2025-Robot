@@ -210,6 +210,13 @@ class Sensors:
       "Driver": "http://10.28.81.6:1186/?action=stream"
     }
 
+  class Distance:
+    class Intake:
+      kSensorName = "Intake"
+      kMinTargetDistance: units.millimeters = 1
+      kMaxTargetDistance: units.millimeters = 320
+      
+
 class Controllers:
   kDriverControllerPort: int = 0
   kOperatorControllerPort: int = 1

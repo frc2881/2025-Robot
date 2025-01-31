@@ -9,8 +9,16 @@ from lib.components.position_control_module import PositionControlModule
 import core.constants as constants
 
 class IntakeSubsystem(Subsystem):
-  def __init__(self):
+  def __init__(
+      self,
+      getLauncherHasTarget: Callable[[], bool],
+      getLauncherDistance: Callable[[], units.millimeters]
+    ):
     super().__init__()
+
+    self._getLauncherHasTarget = getLauncherHasTarget
+    self._getLauncherDistance = getLauncherDistance
+
     self._constants = constants.Subsystems.Intake
 
     self._hasInitialZeroReset: bool = False
@@ -60,6 +68,24 @@ class IntakeSubsystem(Subsystem):
     ).beforeStarting(
       lambda: self.clearTargetAlignment()
     ).withName("IntakeSubsystem:AlignToPosition")
+
+  def intakeCoral(self) -> Command:
+    return self.run(
+      self.runRollersCommand(0.5)
+    ).alongWith(
+      self.alignToPositionCommand(self._constants.kCoralIntakePosition).until(
+        self._getLauncherHasTarget()
+      ).andThen(
+        self.alignToPositionCommand(self._constants.kDefaultPosition)
+      )
+    ).withName("IntakeSubsystem:IntakeCoral")
+  
+  def intakeAlgae(self) -> Command:
+    return self.run(
+      self.runRollersCommand(0.5)
+    ).alongWith(
+      self.alignToPositionCommand(self._constants.kAlgaeIntakePosition)
+    ).withName("IntakeSubsystem:IntakeAlgae")
 
   def _setLeadscrewSpeed(self, speed: units.percent) -> None:
     self._leadscrewModuleLeft.setSpeed(speed)

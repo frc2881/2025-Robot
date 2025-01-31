@@ -43,8 +43,12 @@ class ElevatorSubsystem(Subsystem):
     ).withName("ElevatorSubsystem:AlignToPosition")
 
   def _setSpeed(self, speed: units.percent) -> None:
-    self._leadscrewModuleLower.setSpeed(speed)
-    self._leadscrewModuleUpper.setSpeed(speed)
+    if math.fabs(self._leadscrewModuleUpper.getPosition() - (self._constants._leadscrewModuleUpperConstants.motorSoftLimitReverse if speed < 0 else self._constants._leadscrewModuleUpperConstants.motorSoftLimitForward)) < self._constants.kHeightAlignmentPositionTolerance:
+      self._leadscrewModuleLower.setSpeed(speed)
+      self._leadscrewModuleUpper.setSpeed(0)
+    else:
+      self._leadscrewModuleLower.setSpeed(0) 
+      self._leadscrewModuleUpper.setSpeed(speed)
 
   def _setPosition(self, elevatorStagePositions: ElevatorStagePositions) -> None:
     self._leadscrewModuleLower.setPosition(elevatorStagePositions.lower)

@@ -65,7 +65,7 @@ class Subsystems:
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
-      translationTolerance = Tolerance(0.05, 0.1),
+      translationTolerance = Tolerance(0.025, 0.05),
       translationSpeedMax = kTranslationSpeedMax * 0.5
     )
 
@@ -147,9 +147,9 @@ class Subsystems:
 
 class Services:
   class Localization:
-    kStateStandardDeviations: tuple[float, float, float] = (0.05, 0.05, units.degreesToRadians(5))
-    kVisionMultiTagStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(10))
-    kVisionDefaultStandardDeviations: tuple[float, float, float] = (0.5, 0.5, units.degreesToRadians(15))
+    kStateStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(5))
+    kVisionMultiTagStandardDeviations: tuple[float, float, float] = (0.2, 0.2, units.degreesToRadians(10))
+    kVisionDefaultStandardDeviations: tuple[float, float, float] = (0.5, 0.5, units.degreesToRadians(25))
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 
@@ -215,7 +215,7 @@ class Sensors:
       kSensorName = "Intake"
       kMinTargetDistance: units.millimeters = 1
       kMaxTargetDistance: units.millimeters = 320
-      
+
 
 class Controllers:
   kDriverControllerPort: int = 0

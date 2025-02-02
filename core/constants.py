@@ -10,7 +10,7 @@ from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib import logger, utils
 from lib.classes import Alliance, PID, Tolerance, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, ObjectSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, PositionControlModuleConstants, PositionControlModuleConfig
-from core.classes import Target, TargetType, TargetAlignmentLocation
+from core.classes import Target, TargetType, TargetAlignmentLocation, ReefLevel, ElevatorStagePositions
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
@@ -105,6 +105,13 @@ class Subsystems:
 
     kInputLimit: units.percent = 0.5
 
+    kElevatorScoringPositions = dict[ReefLevel, ElevatorStagePositions] = {
+      ReefLevel.L1: ElevatorStagePositions(0, 0),
+      ReefLevel.L2: ElevatorStagePositions(0, 0),
+      ReefLevel.L3: ElevatorStagePositions(0, 0),
+      ReefLevel.L4: ElevatorStagePositions(0, 0)
+    }
+
   class Arm:
     _armPositionControlModuleUpperConstants = PositionControlModuleConstants(
       motorTravelDistance = 1.0,
@@ -125,6 +132,13 @@ class Subsystems:
     kPositionAlignmentPositionTolerance: float = 0.5  
 
     kInputLimit: units.percent = 0.5
+
+    kArmScoringPositions = dict[ReefLevel, float] = {
+      ReefLevel.L1: 0.0,
+      ReefLevel.L2: 0.0,
+      ReefLevel.L3: 0.0,
+      ReefLevel.L4: 0.0
+    }
 
   class Wrist:
     kWristMotorCANId: int = 13

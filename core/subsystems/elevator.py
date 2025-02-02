@@ -6,7 +6,7 @@ from commands2 import Subsystem, Command
 from rev import SparkMax, SparkMaxConfig, SparkBase
 from lib import logger, utils
 from lib.components.position_control_module import PositionControlModule
-from core.classes import ElevatorStagePositions
+from core.classes import ElevatorStagePositions, ReefLevel
 import core.constants as constants
 
 class ElevatorSubsystem(Subsystem):
@@ -32,11 +32,11 @@ class ElevatorSubsystem(Subsystem):
       lambda end: self.reset()
     ).withName("ElevatorSubsystem:Run")
 
-  def alignToHeightCommand(self, height: units.meters) -> Command:
+  def alignToHeightCommand(self, elevatorPosition: ElevatorStagePositions) -> Command:
     return self.run(
       lambda: [
-        self._setPosition(self._getIndividualPositions(height)),
-        self._setIsAlignedToHeight(height)
+        self._setPosition(elevatorPosition),
+        self._setIsAlignedToHeight(elevatorPosition)
       ]
     ).beforeStarting(
       lambda: self.clearHeightAlignment()
@@ -55,14 +55,14 @@ class ElevatorSubsystem(Subsystem):
     self._leadscrewModuleUpper.setPosition(elevatorStagePositions.upper)
 
   def _getIndividualPositions(self, height: units.meters) -> ElevatorStagePositions:
-    # TODO: calculate the individual elevator position?
+    # TODO: Determine whether it's more optimal to have set upper/lower heights or calculate the correct positions based on overall height
     pass
 
-  def _getHeight(self) -> float:
-    return self._leadscrewModuleLower.getPosition() + self._leadscrewModuleUpper.getPosition()
+  def _getHeight(self) -> ElevatorStagePositions:
+    return ElevatorStagePositions(self._leadscrewModuleLower.getPosition(), self._leadscrewModuleUpper.getPosition())
 
-  def _setIsAlignedToHeight(self, height: float) -> None:
-    self._isAlignedToHeight = math.fabs(self._getHeight() - height) <= self._constants.kHeightAlignmentPositionTolerance
+  def _setIsAlignedToHeight(self, elevatorPosition: ElevatorStagePositions) -> None:
+    self._isAlignedToHeight = (math.fabs(self._getHeight().lower - elevatorPosition.lower) <= self._constants.kHeightAlignmentPositionTolerance) and (math.fabs(self._getHeight().upper - elevatorPosition.upper) <= self._constants.kHeightAlignmentPositionTolerance)
 
   def isAlignedToHeight(self) -> bool:
     return self._isAlignedToHeight

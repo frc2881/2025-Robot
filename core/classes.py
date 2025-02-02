@@ -17,6 +17,13 @@ class TargetAlignmentLocation(Enum):
   Left = auto()
   Right = auto()
 
+class ReefLevel(Enum):
+  L1 = auto()
+  L2 = auto()
+  L3 = auto()
+  L4 = auto()
+  
+
 @dataclass(frozen=True, slots=True)
 class Target():
   type: TargetType

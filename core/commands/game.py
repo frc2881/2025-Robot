@@ -4,7 +4,7 @@ from wpilib import RobotBase
 from lib import logger, utils
 from lib.classes import ControllerRumbleMode, ControllerRumblePattern, TargetAlignmentMode
 if TYPE_CHECKING: from core.robot import RobotCore
-from core.classes import TargetAlignmentLocation, TargetType
+from core.classes import TargetAlignmentLocation, TargetType, ReefLevel
 import core.constants as constants
 
 class GameCommands:
@@ -31,6 +31,13 @@ class GameCommands:
         )
       )
     ).withName("GameCommands:AlignRobotToTarget")
+  
+  def scoreCoralOnReef(self, reefLevel: ReefLevel):
+    return cmd.parallel(
+      self._robot.elevatorSubsystem.alignToHeightCommand(constants.Subsystems.Elevator.kElevatorScoringPositions[reefLevel]),
+      self._robot.armSubsystem.alignToPositionCommand(constants.Subsystems.Arm.kArmScoringPositions[reefLevel]),
+      self._robot.wristSubsystem.moveDownCommand()
+    ).withName("GameCommands:ScoreCoralOnReef")
 
   def rumbleControllersCommand(self, mode: ControllerRumbleMode, pattern: ControllerRumblePattern) -> Command:
     return cmd.parallel(

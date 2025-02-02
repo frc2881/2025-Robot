@@ -127,7 +127,11 @@ class Subsystems:
     kInputLimit: units.percent = 0.5
 
   class Wrist:
-    pass
+    kWristMotorCANId: int = 13
+    kWristMotorCurrentLimit: int = 60
+    kWristInputLimit: units.percent = 0.2
+    kWristMoveSpeed: units.percent = 0.1
+    kWristMaxCurrent: int = 60 # TODO: Update WristMaxCurrent
 
   class Hand:
     kRollerMotorCANId: int = 14

@@ -130,7 +130,14 @@ class Subsystems:
     pass
 
   class Hand:
-    pass
+    kRollerMotorCANId: int = 14
+    kHandMotorCurrentLimit: int = 60
+    kHandInputLimit: units.percent = 0.2
+    kSuctionMotorCANId: int = 15
+    kSuctionMotorCurrentLimit: int = 60
+    kSuctionMotorSpeed: units.percent = 0.2
+    kSuctionMaxCurrent: int = 60 # TODO: Update SuctionMaxCurrent
+    kSuctionSolenoidPortId: int = 0
 
   class Intake:
     _leadscrewModuleConstants = PositionControlModuleConstants(

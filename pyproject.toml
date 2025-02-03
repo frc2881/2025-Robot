@@ -1,5 +1,5 @@
 [tool.robotpy]
-robotpy_version = "2025.2.1.0"
+robotpy_version = "2025.2.1.1"
 robotpy_extras = [
   "commands2",
   "navx",

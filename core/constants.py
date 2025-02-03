@@ -105,7 +105,7 @@ class Subsystems:
 
     kInputLimit: units.percent = 0.5
 
-    kElevatorScoringPositions = dict[ReefLevel, ElevatorStagePositions] = {
+    kElevatorScoringPositions: dict[ReefLevel, ElevatorStagePositions] = {
       ReefLevel.L1: ElevatorStagePositions(0, 0),
       ReefLevel.L2: ElevatorStagePositions(0, 0),
       ReefLevel.L3: ElevatorStagePositions(0, 0),
@@ -133,7 +133,7 @@ class Subsystems:
 
     kInputLimit: units.percent = 0.5
 
-    kArmScoringPositions = dict[ReefLevel, float] = {
+    kArmScoringPositions: dict[ReefLevel, float] = {
       ReefLevel.L1: 0.0,
       ReefLevel.L2: 0.0,
       ReefLevel.L3: 0.0,
@@ -186,7 +186,6 @@ class Subsystems:
     kTargetAlignmentPositionTolerance: float = 0.05
 
     kInputLimit: units.percent = 0.5
-
 
 class Services:
   class Localization:

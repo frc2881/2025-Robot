@@ -129,7 +129,8 @@ class DriveSubsystem(Subsystem):
         ChassisSpeeds.discretize(chassisSpeeds, 0.02)
       )
     )
-    self.clearTargetAlignment()
+    if chassisSpeeds.vx > 0 or chassisSpeeds.vy > 0:
+      self.clearTargetAlignment()
 
   def _setSwerveModuleStates(self, swerveModuleStates: tuple[SwerveModuleState, ...]) -> None:
     SwerveDrive4Kinematics.desaturateWheelSpeeds(swerveModuleStates, self._constants.kTranslationSpeedMax)

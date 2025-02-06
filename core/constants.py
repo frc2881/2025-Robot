@@ -21,7 +21,7 @@ class Subsystems:
     kWheelBase: units.meters = units.inchesToMeters(24.5)
 
     kTranslationSpeedMax: units.meters_per_second = 6.32
-    kRotationSpeedMax: units.radians_per_second = 4 * math.pi # type: ignore
+    kRotationSpeedMax: units.radians_per_second = 4 * math.pi
 
     kInputLimitDemo: units.percent = 0.5
     kInputRateLimitDemo: units.percent = 0.33
@@ -267,6 +267,7 @@ class Controllers:
 class Game:
   class Commands:
     kAutoMoveTimeout: units.seconds = 4.0
+    kAutoTargetAlignmentTimeout: units.seconds = 2.0
 
   class Field:
     kAprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT
@@ -313,9 +314,9 @@ class Game:
         },
         TargetType.Station: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(0), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(0), units.inchesToMeters(-30), 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(0), units.inchesToMeters(30), 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(12), units.inchesToMeters(-24), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(12), units.inchesToMeters(24), 0, Rotation3d())
         },
         TargetType.Processor: {
           TargetAlignmentLocation.Default: Transform3d(),

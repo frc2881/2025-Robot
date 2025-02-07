@@ -8,6 +8,7 @@ from pathplannerlib.config import RobotConfig
 from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
 from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
+from rev import SparkLowLevel
 from lib import logger, utils
 from lib.classes import Alliance, PID, Tolerance, MotorControllerType, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, PositionControlModuleConstants, PositionControlModuleConfig
 from core.classes import Target, TargetType, TargetAlignmentLocation, ReefLevel, ElevatorStagePositions
@@ -33,7 +34,8 @@ class Subsystems:
       wheelBevelPinionTeeth = 15,
       drivingMotorPinionTeeth = 14,
       drivingMotorFreeSpeed = 6784,
-      drivingMotorControllerType = MotorControllerType.SparkFlex,
+      drivingMotorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
+      drivingMotorType = SparkLowLevel.MotorType.kBrushless,
       drivingMotorCurrentLimit = 80,
       drivingMotorPID = PID(0.04, 0, 0),
       turningMotorCurrentLimit = 20,
@@ -72,7 +74,8 @@ class Subsystems:
   class Elevator:
     _leadscrewModuleLowerConstants = PositionControlModuleConstants(
         motorTravelDistance = 0.5,
-        motorControllerType = MotorControllerType.SparkFlex,
+        motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
+        motorType = SparkLowLevel.MotorType.kBrushless,
         motorCurrentLimit = 60,
         motorReduction = 3.0,
         motorPID = PID(0.1, 0, 0.01),
@@ -86,7 +89,8 @@ class Subsystems:
 
     _leadscrewModuleUpperConstants = PositionControlModuleConstants(
       motorTravelDistance = 1.0,
-      motorControllerType = MotorControllerType.SparkFlex,
+      motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
+      motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 60,
       motorReduction = 1.0,
       motorPID = PID(0.1, 0, 0.01),
@@ -115,7 +119,8 @@ class Subsystems:
   class Arm:
     _armPositionControlModuleUpperConstants = PositionControlModuleConstants(
       motorTravelDistance = 1.0,
-      motorControllerType = MotorControllerType.SparkFlex,
+      motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
+      motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 60,
       motorReduction = 1.0,
       motorPID = PID(0.1, 0, 0.01),

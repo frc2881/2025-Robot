@@ -5,7 +5,6 @@ from lib.classes import TargetAlignmentMode
 from lib.controllers.game_controller import GameController
 from lib.sensors.gyro_sensor_navx2 import GyroSensor_NAVX2
 from lib.sensors.pose_sensor import PoseSensor
-from lib.sensors.object_sensor import ObjectSensor 
 from lib.sensors.distance_sensor import DistanceSensor
 from core.commands.auto import AutoCommands
 from core.commands.game import GameCommands
@@ -31,7 +30,6 @@ class RobotCore:
   def _initSensors(self) -> None:
     self.gyroSensor = GyroSensor_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
-    self.objectSensor = ObjectSensor(constants.Sensors.Object.kObjectSensorConfig)
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
     
@@ -43,7 +41,7 @@ class RobotCore:
     self.handSubsystem = HandSubsystem()
     
   def _initServices(self) -> None:
-    self.localizationService = LocalizationService(self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions, self.poseSensors, self.objectSensor)
+    self.localizationService = LocalizationService(self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions, self.poseSensors)
     
   def _initControllers(self) -> None:
     self.driverController = GameController(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)

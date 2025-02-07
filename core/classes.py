@@ -9,7 +9,6 @@ class TargetType(Enum):
   Station = auto()
   Processor = auto()
   Barge = auto()
-  Object = auto()
 
 class TargetAlignmentLocation(Enum):
   Default = auto()
@@ -23,7 +22,6 @@ class ReefLevel(Enum):
   L3 = auto()
   L4 = auto()
   
-
 @dataclass(frozen=True, slots=True)
 class Target():
   type: TargetType

@@ -6,7 +6,6 @@ from wpimath.kinematics import SwerveModulePosition
 from wpimath.estimator import SwerveDrive4PoseEstimator
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib.sensors.pose_sensor import PoseSensor
-from lib.sensors.object_sensor import ObjectSensor
 from lib import logger, utils
 from core.classes import Target, TargetAlignmentLocation, TargetType
 import core.constants as constants
@@ -16,14 +15,12 @@ class LocalizationService():
       self,
       getGyroRotation: Callable[[], Rotation2d],
       getModulePositions: Callable[[], tuple[SwerveModulePosition, ...]],
-      poseSensors: tuple[PoseSensor, ...],
-      objectSensor: ObjectSensor
+      poseSensors: tuple[PoseSensor, ...]
     ) -> None:
     super().__init__()
     self._getGyroRotation = getGyroRotation
     self._getModulePositions = getModulePositions
     self._poseSensors = poseSensors
-    self._objectSensor = objectSensor
 
     self._poseEstimator = SwerveDrive4PoseEstimator(
       constants.Subsystems.Drive.kDriveKinematics,
@@ -76,14 +73,9 @@ class LocalizationService():
       self._targets = constants.Game.Field.Targets.kTargets[self._alliance]
       self._targetPoses = [t.pose.toPose2d() for t in self._targets.values()]
 
-  def getTargetPose(self, targetAlignmentLocation: TargetAlignmentLocation, targetType: TargetType) -> Pose3d:
-    match targetType:
-      case TargetType.Object:
-        objectPose = Pose3d(self._robotPose).transformBy(self._objectSensor.getObjectTransform())
-        return objectPose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[targetType][targetAlignmentLocation])
-      case _:
-        target = self._targets.get(utils.getTargetHash(self._robotPose.nearest(self._targetPoses)))
-        return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])
+  def getTargetPose(self, targetAlignmentLocation: TargetAlignmentLocation) -> Pose3d:
+    target = self._targets.get(utils.getTargetHash(self._robotPose.nearest(self._targetPoses)))
+    return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])
 
   def hasVisionTarget(self) -> bool:
     for poseSensor in self._poseSensors:

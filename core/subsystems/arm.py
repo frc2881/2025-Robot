@@ -14,7 +14,7 @@ class ArmSubsystem(Subsystem):
     self._constants = constants.Subsystems.Arm
 
     self._hasInitialZeroReset: bool = False
-    self._isAlignedToTarget: bool = False
+    self._isAlignedToPosition: bool = False
 
     self._armMotor = PositionControlModule(self._constants.kArmPositonControlModuleConfig)
 
@@ -25,7 +25,7 @@ class ArmSubsystem(Subsystem):
     return self.run(
       lambda: self._setSpeed(getInput() * self._constants.kInputLimit)
     ).beforeStarting(
-      lambda: self.clearTargetAlignment()
+      lambda: self.clearPositionAlignment()
     ).finallyDo(
       lambda end: self.reset()
     ).withName("ArmSubsystem:Run")
@@ -34,10 +34,10 @@ class ArmSubsystem(Subsystem):
     return self.run(
       lambda: [
         self._setPosition(position),
-        self._setIsAlignedToTarget(position)
+        self._setIsAlignedToPosition(position)
       ]
     ).beforeStarting(
-      lambda: self.clearTargetAlignment()
+      lambda: self.clearPositionAlignment()
     ).withName("ArmSubsystem:AlignToPosition")
   
   def _setSpeed(self, speed: units.percent) -> None:
@@ -49,14 +49,14 @@ class ArmSubsystem(Subsystem):
   def _getPosition(self) -> float:
     return self._armMotor.getPosition()
 
-  def _setIsAlignedToTarget(self, position: float) -> None:
-    self._isAlignedToTarget = math.fabs(self._getPosition() - position) <= self._constants.kPositionAlignmentPositionTolerance
+  def _setIsAlignedToPosition(self, position: float) -> None:
+    self._isAlignedToPosition = math.fabs(self._getPosition() - position) <= self._constants.kPositionAlignmentPositionTolerance
 
-  def isAlignedToTarget(self) -> bool:
-    return self._isAlignedToTarget
+  def isAlignedToPosition(self) -> bool:
+    return self._isAlignedToPosition
   
-  def clearTargetAlignment(self) -> None:
-    self._isAlignedToTarget = False
+  def clearPositionAlignment(self) -> None:
+    self._isAlignedToPosition = False
 
   def resetToZeroCommand(self) -> Command:
     return self.startEnd(
@@ -74,7 +74,7 @@ class ArmSubsystem(Subsystem):
 
   def reset(self) -> None:
     self._armMotor.reset()
-    self.clearTargetAlignment()
+    self.clearPositionAlignment()
 
   def _updateTelemetry(self) -> None:
     SmartDashboard.putNumber("Robot/Arm/Position", self._getPosition())

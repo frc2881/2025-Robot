@@ -72,7 +72,7 @@ class Subsystems:
     )
 
   class Elevator:
-    _leadscrewModuleLowerConstants = PositionControlModuleConstants(
+    kLeadScrewModuleConfigLower = PositionControlModuleConfig("Elevator/Lower", 10, None, PositionControlModuleConstants(
         motorTravelDistance = 0.5,
         motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
         motorType = SparkLowLevel.MotorType.kBrushless,
@@ -85,9 +85,8 @@ class Subsystems:
         motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
         motorSoftLimitReverse = 0,
         motorResetSpeed = 0.1 
-    )
-
-    _leadscrewModuleUpperConstants = PositionControlModuleConstants(
+    ))
+    kLeadScrewModuleConfigUpper = PositionControlModuleConfig("Elevator/Upper", 11, None, PositionControlModuleConstants(
       motorTravelDistance = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
@@ -100,10 +99,7 @@ class Subsystems:
       motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
       motorSoftLimitReverse = 0,
       motorResetSpeed = 0.1
-    )
-
-    kLeadScrewModuleConfigLower = PositionControlModuleConfig("Elevator/Leadscrews/Lower", 10, None, _leadscrewModuleLowerConstants)
-    kLeadScrewModuleConfigUpper = PositionControlModuleConfig("Elevator/Leadscrews/Upper", 11, None, _leadscrewModuleUpperConstants)
+    ))
 
     kHeightAlignmentPositionTolerance: float = 0.05
 
@@ -117,7 +113,7 @@ class Subsystems:
     }
 
   class Arm:
-    _armPositionControlModuleUpperConstants = PositionControlModuleConstants(
+    kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, PositionControlModuleConstants(
       motorTravelDistance = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
@@ -130,9 +126,7 @@ class Subsystems:
       motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
       motorSoftLimitReverse = 0,
       motorResetSpeed = 0.1
-    )
-
-    kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, _armPositionControlModuleUpperConstants)
+    ))
 
     kPositionAlignmentPositionTolerance: float = 0.5  
 
@@ -166,7 +160,7 @@ class Services:
   class Localization:
     kStateStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(5))
     kVisionMultiTagStandardDeviations: tuple[float, float, float] = (0.2, 0.2, units.degreesToRadians(10))
-    kVisionDefaultStandardDeviations: tuple[float, float, float] = (0.5, 0.5, units.degreesToRadians(25))
+    kVisionDefaultStandardDeviations: tuple[float, float, float] = (0.5, 0.5, units.degreesToRadians(25)) # TODO: update based on testing if single tag and multi tag should be equal weight
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 
@@ -178,37 +172,39 @@ class Sensors:
     _poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
     _fallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
     
+    # TODO: apply actual precise measurements for camera transforms after mounting to the robot (rought placehlders for now)
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
       PoseSensorConfig(
         "FrontRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-2), units.degreesToRadians(0.0))
+          Translation3d(units.inchesToMeters(-6.0), units.inchesToMeters(-6.0), units.inchesToMeters(24.0)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.0), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "FrontLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(5.49), units.inchesToMeters(0.0), units.inchesToMeters(20.60)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30), units.degreesToRadians(0.0))
+          Translation3d(units.inchesToMeters(-6.0), units.inchesToMeters(6.0), units.inchesToMeters(24.0)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "RearRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(8.24), units.inchesToMeters(12.40), units.inchesToMeters(17.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5), units.degreesToRadians(-180.0))
+          Translation3d(units.inchesToMeters(-6.0), units.inchesToMeters(-6.0), units.inchesToMeters(24.0)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "RearLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(8.16), units.inchesToMeters(-12.375), units.inchesToMeters(17.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5), units.degreesToRadians(-180.0))
+          Translation3d(units.inchesToMeters(-6.0), units.inchesToMeters(6.0), units.inchesToMeters(24.0)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       )
     )
 
+  # TODO: update stream addresses and ports after photonvision configurations are applied
   class Camera:
     kStreams: dict[str, str] = {
       "FrontRight": "http://10.28.81.6:1182/?action=stream",
@@ -264,6 +260,7 @@ class Game:
         }
       }
 
+      # TODO: update target alignment transforms for real world scoring and pickup once robot is operational for testing
       kTargetAlignmentTransforms: dict[TargetType, dict[TargetAlignmentLocation, Transform3d]] = {
         TargetType.Reef: {
           TargetAlignmentLocation.Default: Transform3d(),

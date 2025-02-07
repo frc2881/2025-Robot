@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 from enum import Enum, auto
 from commands2 import Command, cmd
 from wpilib import SendableChooser, SmartDashboard
-from wpimath.geometry import Pose2d
+from wpimath.geometry import Pose2d, Transform2d
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.path import PathPlannerPath
 from lib import logger, utils
@@ -49,6 +49,12 @@ class AutoCommands:
 
   def getSelected(self) -> Command:
     return self._selectedAutoCommand
+  
+  def _reset(self, path: AutoPath) -> Command:
+    return cmd.sequence(
+      AutoBuilder.resetOdom(self._paths.get(path).getPathPoses()[0].transformBy(Transform2d(0, 0, self._paths.get(path).getInitialHeading()))),
+      cmd.waitSeconds(0.1)
+    )
 
   def _move(self, path: AutoPath) -> Command:
     return AutoBuilder.followPath(self._paths.get(path)).withTimeout(

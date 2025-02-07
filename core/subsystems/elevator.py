@@ -19,7 +19,7 @@ class ElevatorSubsystem(Subsystem):
 
     self._leadscrewModuleLower = PositionControlModule(self._constants.kLeadScrewModuleConfigLower)
     self._leadscrewModuleUpper = PositionControlModule(self._constants.kLeadScrewModuleConfigUpper)
-    
+
   def periodic(self) -> None:
     self._updateTelemetry()
   
@@ -43,7 +43,8 @@ class ElevatorSubsystem(Subsystem):
     ).withName("ElevatorSubsystem:AlignToPosition")
 
   def _setSpeed(self, speed: units.percent) -> None:
-    if math.fabs(self._leadscrewModuleUpper.getPosition() - (self._constants._leadscrewModuleUpperConstants.motorSoftLimitReverse if speed < 0 else self._constants._leadscrewModuleUpperConstants.motorSoftLimitForward)) < self._constants.kHeightAlignmentPositionTolerance:
+    # TODO: check this logic to see about optimization of travel and remove reaching into private module constants
+    if math.fabs(self._leadscrewModuleUpper.getPosition() - (self._leadscrewModuleUpper._config.constants.motorSoftLimitReverse if speed < 0 else self._leadscrewModuleUpper._config.constants.motorSoftLimitForward)) < self._constants.kHeightAlignmentPositionTolerance:
       self._leadscrewModuleLower.setSpeed(speed)
       self._leadscrewModuleUpper.setSpeed(0)
     else:

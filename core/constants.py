@@ -157,36 +157,6 @@ class Subsystems:
     kSuctionMaxCurrent: int = 60 # TODO: Update SuctionMaxCurrent
     kSuctionSolenoidPortId: int = 0
 
-  class Intake:
-    _leadscrewModuleConstants = PositionControlModuleConstants(
-      motorTravelDistance = 0.5,
-      motorControllerType = MotorControllerType.SparkMax,
-      motorCurrentLimit = 60,
-      motorReduction = 3.0,
-      motorPID = PID(0.1, 0, 0.01),
-      motorMotionMaxVelocityRate = 33.0,
-      motorMotionMaxAccelerationRate = 66.0,
-      allowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 22.50, # TODO: Update Intake soft limits
-      motorSoftLimitReverse = 0,
-      motorResetSpeed = 0.1
-    )
-
-    kStartingPosition: float = 0.0 # TODO: Update Intake Positions
-    kDefaultPosition: float = 0.0 # TODO: Update Intake Positions
-    kCoralIntakePosition: float = 0.0 # TODO: Update Intake Positions
-    kAlgaeIntakePosition:float  = 0.0 # TODO: Update Intake Positions
-
-    kLeadScrewModuleConfigRight = PositionControlModuleConfig("Launcher/Arm/Leadscrews/Right", 16, 17, _leadscrewModuleConstants)
-    kLeadScrewModuleConfigLeft = PositionControlModuleConfig("Launcher/Arm/Leadscrews/Left", 17, None, _leadscrewModuleConstants)
-
-    kRollerMotorCANId: int = 18
-    kRollerMotorCurrentLimit: int = 60
-
-    kTargetAlignmentPositionTolerance: float = 0.05
-
-    kInputLimit: units.percent = 0.5
-
 class Services:
   class Localization:
     kStateStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(5))
@@ -251,13 +221,6 @@ class Sensors:
       "Right": "http://10.28.81.7:1184/?action=stream",
       "Driver": "http://10.28.81.6:1186/?action=stream"
     }
-
-  class Distance:
-    class Intake:
-      kSensorName = "Intake"
-      kMinTargetDistance: units.millimeters = 1
-      kMaxTargetDistance: units.millimeters = 320
-
 
 class Controllers:
   kDriverControllerPort: int = 0

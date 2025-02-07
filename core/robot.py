@@ -14,7 +14,6 @@ from core.subsystems.elevator import ElevatorSubsystem
 from core.subsystems.arm import ArmSubsystem
 from core.subsystems.wrist import WristSubsystem
 from core.subsystems.hand import HandSubsystem
-from core.subsystems.intake import IntakeSubsystem
 from core.services.localization import LocalizationService
 from core.classes import TargetAlignmentLocation, TargetType
 import core.constants as constants
@@ -35,12 +34,6 @@ class RobotCore:
     self.objectSensor = ObjectSensor(constants.Sensors.Object.kObjectSensorConfig)
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
-    self.intakeDistanceSensor = DistanceSensor(
-      constants.Sensors.Distance.Intake.kSensorName,
-      constants.Sensors.Distance.Intake.kMinTargetDistance,
-      constants.Sensors.Distance.Intake.kMaxTargetDistance
-    )
-
     
   def _initSubsystems(self) -> None:
     self.driveSubsystem = DriveSubsystem(self.gyroSensor.getHeading)
@@ -48,10 +41,6 @@ class RobotCore:
     self.armSubsystem = ArmSubsystem()
     self.wristSubsystem = WristSubsystem()
     self.handSubsystem = HandSubsystem()
-    self.intakeSubsystem = IntakeSubsystem(
-      self.intakeDistanceSensor.hasTarget,
-      self.intakeDistanceSensor.getDistance
-    )
     
   def _initServices(self) -> None:
     self.localizationService = LocalizationService(self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions, self.poseSensors, self.objectSensor)

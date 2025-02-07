@@ -175,31 +175,31 @@ class Sensors:
     
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
       PoseSensorConfig(
-        "Front",
+        "FrontRight",
         Transform3d(
           Translation3d(units.inchesToMeters(9.62), units.inchesToMeters(4.12), units.inchesToMeters(21.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(24.2), units.degreesToRadians(0.0))
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-2), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
-        "Rear",
+        "FrontLeft",
         Transform3d(
           Translation3d(units.inchesToMeters(5.49), units.inchesToMeters(0.0), units.inchesToMeters(20.60)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-23.2), units.degreesToRadians(-180.0))
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
-        "Left",
+        "RearRight",
         Transform3d(
           Translation3d(units.inchesToMeters(8.24), units.inchesToMeters(12.40), units.inchesToMeters(17.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-29.4), units.degreesToRadians(90.0))
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
-        "Right",
+        "RearLeft",
         Transform3d(
           Translation3d(units.inchesToMeters(8.16), units.inchesToMeters(-12.375), units.inchesToMeters(17.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-21.2), units.degreesToRadians(-90.0))
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       )
     )
@@ -215,10 +215,10 @@ class Sensors:
 
   class Camera:
     kStreams: dict[str, str] = {
-      "Rear": "http://10.28.81.6:1182/?action=stream",
-      "Front": "http://10.28.81.6:1184/?action=stream",
-      "Left": "http://10.28.81.7:1186/?action=stream",
-      "Right": "http://10.28.81.7:1184/?action=stream",
+      "FrontRight": "http://10.28.81.6:1182/?action=stream",
+      "FrontLeft": "http://10.28.81.6:1184/?action=stream",
+      "RearRight": "http://10.28.81.7:1186/?action=stream",
+      "RearLeft": "http://10.28.81.7:1184/?action=stream",
       "Driver": "http://10.28.81.6:1186/?action=stream"
     }
 

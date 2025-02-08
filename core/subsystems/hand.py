@@ -12,7 +12,7 @@ class HandSubsystem(Subsystem):
     super().__init__()
     self._constants = constants.Subsystems.Hand
 
-    self._rollerMotor = SparkMax(self._constants.kRollerMotorCANId, SparkBase.MotorType.kBrushless)
+    self._rollerMotor = SparkMax(self._constants.kRollerMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkMaxConfig()
     (self._sparkConfig
      .smartCurrentLimit(self._constants.kHandMotorCurrentLimit)
@@ -25,7 +25,7 @@ class HandSubsystem(Subsystem):
       )
     )
 
-    self._suctionMotor = SparkMax(self._constants.kSuctionMotorCANId, SparkBase.MotorType.kBrushless)
+    self._suctionMotor = SparkMax(self._constants.kSuctionMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkMaxConfig()
     (self._sparkConfig
      .smartCurrentLimit(self._constants.kSuctionMotorCurrentLimit)

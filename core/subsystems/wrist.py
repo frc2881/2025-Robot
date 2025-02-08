@@ -11,7 +11,7 @@ class WristSubsystem(Subsystem):
     super().__init__()
     self._constants = constants.Subsystems.Wrist
 
-    self._wristMotor = SparkMax(self._constants.kWristMotorCANId, SparkBase.MotorType.kBrushless)
+    self._wristMotor = SparkMax(self._constants.kWristMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkMaxConfig()
     (self._sparkConfig
      .smartCurrentLimit(self._constants.kWristMotorCurrentLimit)

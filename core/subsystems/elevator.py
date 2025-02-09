@@ -23,7 +23,7 @@ class ElevatorSubsystem(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
   
-  def runCommand(self, getInput: Callable[[], units.percent]) -> Command:
+  def runCommand(self, getInput: Callable[[], units.percent], getArmPosition: Callable[[], float]) -> Command:
     return self.run(
       lambda: self._setSpeed(getInput() * self._constants.kInputLimit)
     ).beforeStarting(
@@ -57,6 +57,9 @@ class ElevatorSubsystem(Subsystem):
       and 
       (math.fabs(self._upperStageModule.getPosition() - elevatorPositions.upperStage) <= self._constants.kPositionsAlignmentPositionTolerance)
     )
+  
+  def getPositions(self) -> ElevatorPositions:
+    return ElevatorPositions(self._lowerStageModule.getPosition(), self._upperStageModule.getPosition())
 
   def isAlignedToPositions(self) -> bool:
     return self._isAlignedToPositions

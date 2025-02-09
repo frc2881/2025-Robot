@@ -1,7 +1,7 @@
 from typing import Callable
 from wpilib import SmartDashboard
 from wpimath import units
-from commands2 import Subsystem, Command
+from commands2 import Subsystem, Command, cmd
 from rev import SparkMax, SparkMaxConfig, SparkBase
 from lib import logger, utils
 import core.constants as constants
@@ -10,6 +10,8 @@ class WristSubsystem(Subsystem):
   def __init__(self):
     super().__init__()
     self._constants = constants.Subsystems.Wrist
+
+    self._isWristUp = False
 
     self._wristMotor = SparkMax(self._constants.kWristMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkMaxConfig()
@@ -28,13 +30,6 @@ class WristSubsystem(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
 
-  def runCommand(self, speed: units.percent) -> Command:
-    return self.run(
-      lambda: self._wristMotor.set(speed * self._constants.kWristInputLimit)
-    ).finallyDo(
-      lambda end: self.reset()
-    ).withName("WristSubsystem:Run")
-
   def moveUpCommand(self) -> Command:
     return self.run(
       lambda: self._wristMotor.set(self._constants.kWristMoveSpeedUp)
@@ -52,7 +47,10 @@ class WristSubsystem(Subsystem):
     ).until(
       lambda: self._wristMotor.getOutputCurrent() > self._constants.kWristMaxCurrent
     ).withName("WristSubsystem:MoveDown")
-
+  
+  def toggleCommand(self) -> Command:
+    return cmd.either(self.moveDownCommand(), self.moveUpCommand(), lambda: self._isWristUp)
+    
   def reset(self) -> None:
     self._wristMotor.stopMotor()
 

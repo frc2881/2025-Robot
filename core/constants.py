@@ -148,9 +148,12 @@ class Subsystems:
     kWristMaxCurrent: int = 20 # TODO: Update WristMaxCurrent
 
   class Hand:
-    kRollerMotorCANId: int = 14
-    kHandMotorCurrentLimit: int = 60
-    kHandInputLimit: units.percent = 1.0
+    kGripperMotorCANId: int = 14
+    kGripperMotorCurrentLimit: int = 20
+    kGripperMaxCurrent: int = 17
+    kGripperIntakeSpeed: units.percent = 1.0
+    kGripperHoldSpeed: units.percent = 0.2 # TODO: Tune with real mechanism
+    kGripperEjectSpeed: units.percent = -0.75
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 60
     kSuctionMotorSpeed: units.percent = 0.2
@@ -178,28 +181,28 @@ class Sensors:
       PoseSensorConfig(
         "FrontRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(-6.0), units.inchesToMeters(-6.0), units.inchesToMeters(24.0)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.0), units.degreesToRadians(0.0))
+          Translation3d(units.inchesToMeters(-4), units.inchesToMeters(-7.875), units.inchesToMeters(38.375)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.1), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "FrontLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-6.0), units.inchesToMeters(6.0), units.inchesToMeters(24.0)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(0.0))
+          Translation3d(units.inchesToMeters(-3.75), units.inchesToMeters(7.75), units.inchesToMeters(39.25)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-29.4), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "RearRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(-6.0), units.inchesToMeters(-6.0), units.inchesToMeters(24.0)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
+          Translation3d(units.inchesToMeters(-9), units.inchesToMeters(-7.25), units.inchesToMeters(36.25)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.5), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "RearLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-6.0), units.inchesToMeters(6.0), units.inchesToMeters(24.0)),
+          Translation3d(units.inchesToMeters(-8.75), units.inchesToMeters(7.25), units.inchesToMeters(36.625)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       )

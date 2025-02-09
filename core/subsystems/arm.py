@@ -5,6 +5,7 @@ from wpilib import SmartDashboard
 from wpimath import units
 from lib import logger, utils
 from lib.components.position_control_module import PositionControlModule
+from core.classes import ElevatorPositions
 import core.constants as constants
 
 class ArmSubsystem(Subsystem):
@@ -20,7 +21,7 @@ class ArmSubsystem(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
 
-  def runCommand(self, getInput: Callable[[], units.percent]) -> Command:
+  def runCommand(self, getInput: Callable[[], units.percent], getElevatorPosition: Callable[[], ElevatorPositions]) -> Command:
     return self.run(
       lambda: self._setSpeed(-getInput() * self._constants.kInputLimit)
     ).beforeStarting(
@@ -45,11 +46,11 @@ class ArmSubsystem(Subsystem):
   def _setPosition(self, position: float) -> None:
     self._armMotor.setPosition(position)
 
-  def _getPosition(self) -> float:
+  def getPosition(self) -> float:
     return self._armMotor.getPosition()
 
   def _setIsAlignedToPosition(self, position: float) -> None:
-    self._isAlignedToPosition = math.fabs(self._getPosition() - position) <= self._constants.kPositionAlignmentPositionTolerance
+    self._isAlignedToPosition = math.fabs(self.getPosition() - position) <= self._constants.kPositionAlignmentPositionTolerance
 
   def isAlignedToPosition(self) -> bool:
     return self._isAlignedToPosition
@@ -76,4 +77,4 @@ class ArmSubsystem(Subsystem):
     self.clearPositionAlignment()
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putNumber("Robot/Arm/Position", self._getPosition())
+    SmartDashboard.putNumber("Robot/Arm/Position", self.getPosition())

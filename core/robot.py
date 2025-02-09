@@ -101,17 +101,19 @@ class RobotCore:
 
     self.elevatorSubsystem.setDefaultCommand(
       self.elevatorSubsystem.runCommand(
-        self.operatorController.getLeftY
+        self.operatorController.getLeftY,
+        self.armSubsystem.getPosition
     ))
 
     self.armSubsystem.setDefaultCommand(
       self.armSubsystem.runCommand(
-        self.operatorController.getRightY
+        self.operatorController.getRightY,
+        self.elevatorSubsystem.getPositions
     ))
 
-    self.operatorController.rightTrigger().whileTrue(self.wristSubsystem.moveDownCommand())
+    self.operatorController.rightTrigger().onTrue(self.handSubsystem.toggleGripperCommand())
     # self.operatorController.rightBumper().whileTrue(cmd.none())
-    self.operatorController.leftTrigger().whileTrue(self.wristSubsystem.moveUpCommand())
+    # self.operatorController.leftTrigger().whileTrue(self.handSubsystem.toggleSuction())
     # self.operatorController.leftBumper().whileTrue(cmd.none())
     self.operatorController.povUp().and_((
         self.driverController.start()
@@ -129,10 +131,10 @@ class RobotCore:
         self.driverController.start()
       ).not_()
     ).whileTrue(cmd.none())
-    # self.operatorController.a().whileTrue(cmd.none())
+    # self.operatorController.a().whileTrue()
     # self.operatorController.b().whileTrue(cmd.none())
     # self.operatorController.y().whileTrue(cmd.none())
-    self.operatorController.x().whileTrue(self.handSubsystem.runRollerCommand(1.0))
+    self.operatorController.x().onTrue(self.wristSubsystem.toggleCommand())
 
     self.operatorController.start().and_((
         self.driverController.povLeft()

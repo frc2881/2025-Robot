@@ -14,7 +14,8 @@ class ElevatorSubsystem(Subsystem):
     super().__init__()
     self._constants = constants.Subsystems.Elevator
 
-    self._hasInitialZeroReset: bool = False
+    self._hasInitialZeroResetUpper: bool = False
+    self._hasInitialZeroResetLower: bool = False
     self._isAlignedToHeight: bool = False
 
     self._leadscrewModuleLower = PositionControlModule(self._constants.kLeadScrewModuleConfigLower)
@@ -44,7 +45,7 @@ class ElevatorSubsystem(Subsystem):
 
   def _setSpeed(self, speed: units.percent) -> None:
     # TODO: check this logic to see about optimization of travel and remove reaching into private module constants
-    if math.fabs(self._leadscrewModuleUpper.getPosition() - (self._leadscrewModuleUpper._config.constants.motorSoftLimitReverse if speed < 0 else self._leadscrewModuleUpper._config.constants.motorSoftLimitForward)) < self._constants.kHeightAlignmentPositionTolerance:
+    if math.fabs(self._leadscrewModuleUpper.getPosition() - (self._leadscrewModuleUpper._config.constants.motorSoftLimitReverse if speed < 0 else self._leadscrewModuleUpper._config.constants.motorSoftLimitForward)) < 0.1:
       self._leadscrewModuleLower.setSpeed(speed)
       self._leadscrewModuleUpper.setSpeed(0)
     else:
@@ -71,21 +72,31 @@ class ElevatorSubsystem(Subsystem):
   def clearHeightAlignment(self) -> None:
     self._isAlignedToHeight = False
 
-  def resetToZeroCommand(self) -> Command:
+  def resetToZeroCommandUpper(self) -> Command:
     return self.startEnd(
       lambda: [
-        self._leadscrewModuleLower.startZeroReset(),
         self._leadscrewModuleUpper.startZeroReset()
       ],
       lambda: [
-        self._leadscrewModuleLower.endZeroReset(),
         self._leadscrewModuleUpper.endZeroReset(),
-        setattr(self, "_hasInitialZeroReset", True)
+        setattr(self, "_hasInitialZeroResetUpper", True)
       ]
-    ).withName("ElevatorSubsystem:ResetToZero")
+    ).withName("ElevatorSubsystem:ResetToZeroUpper")
+  
+  def resetToZeroCommandLower(self) -> Command:
+    return self.startEnd(
+      lambda: [
+        self._leadscrewModuleLower.startZeroReset()
+      ],
+      lambda: [
+        self._leadscrewModuleLower.endZeroReset(),
+        setattr(self, "_hasInitialZeroResetLower", True)
+      ]
+    ).withName("ElevatorSubsystem:ResetToZeroLower")
 
   def hasInitialZeroReset(self) -> bool:
-    return self._hasInitialZeroReset
+    return self._hasInitialZeroResetUpper and self._hasInitialZeroResetLower
+  
 
   def reset(self) -> None:
     self._leadscrewModuleLower.reset()

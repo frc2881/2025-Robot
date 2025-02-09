@@ -18,10 +18,10 @@ PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
 
 class Subsystems:
   class Drive:
-    kTrackWidth: units.meters = units.inchesToMeters(21.5)
-    kWheelBase: units.meters = units.inchesToMeters(24.5)
+    kTrackWidth: units.meters = units.inchesToMeters(26)
+    kWheelBase: units.meters = units.inchesToMeters(26)
 
-    kTranslationSpeedMax: units.meters_per_second = 6.32
+    kTranslationSpeedMax: units.meters_per_second = 5.74
     kRotationSpeedMax: units.radians_per_second = 4 * math.pi
 
     kInputLimitDemo: units.percent = 0.5
@@ -30,7 +30,7 @@ class Subsystems:
     _swerveModuleConstants = SwerveModuleConstants(
       wheelDiameter = units.inchesToMeters(3.0),
       wheelBevelGearTeeth = 45,
-      wheelSpurGearTeeth = 20,
+      wheelSpurGearTeeth = 22,
       wheelBevelPinionTeeth = 15,
       drivingMotorPinionTeeth = 14,
       drivingMotorFreeSpeed = 6784,
@@ -72,33 +72,33 @@ class Subsystems:
     )
 
   class Elevator:
-    kLeadScrewModuleConfigLower = PositionControlModuleConfig("Elevator/Lower", 10, None, PositionControlModuleConstants(
+    kLeadScrewModuleConfigLower = PositionControlModuleConfig("Elevator/Lower", 10, None, False, PositionControlModuleConstants(
         motorTravelDistance = 0.5,
         motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
         motorType = SparkLowLevel.MotorType.kBrushless,
-        motorCurrentLimit = 60,
+        motorCurrentLimit = 80,
         motorReduction = 3.0,
         motorPID = PID(0.1, 0, 0.01),
         motorMotionMaxVelocityRate = 33.0,
         motorMotionMaxAccelerationRate = 66.0,
         allowedClosedLoopError = 0.1,
-        motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
-        motorSoftLimitReverse = 0,
-        motorResetSpeed = 0.1 
+        motorSoftLimitForward = 28.9, # TODO: Update Elevator soft limits
+        motorSoftLimitReverse = 0.5,
+        motorResetSpeed = 0.1
     ))
-    kLeadScrewModuleConfigUpper = PositionControlModuleConfig("Elevator/Upper", 11, None, PositionControlModuleConstants(
+    kLeadScrewModuleConfigUpper = PositionControlModuleConfig("Elevator/Upper", 11, None, False, PositionControlModuleConstants(
       motorTravelDistance = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
-      motorCurrentLimit = 60,
+      motorCurrentLimit = 80,
       motorReduction = 1.0,
       motorPID = PID(0.1, 0, 0.01),
       motorMotionMaxVelocityRate = 33.0,
       motorMotionMaxAccelerationRate = 66.0,
       allowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
-      motorSoftLimitReverse = 0,
-      motorResetSpeed = 0.1
+      motorSoftLimitForward = 20.0, # 30.0, # TODO: Update Elevator soft limits
+      motorSoftLimitReverse = 0.5,
+      motorResetSpeed = 0.12
     ))
 
     kHeightAlignmentPositionTolerance: float = 0.05
@@ -113,9 +113,9 @@ class Subsystems:
     }
 
   class Arm:
-    kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, PositionControlModuleConstants(
+    kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, True, PositionControlModuleConstants(
       motorTravelDistance = 1.0,
-      motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
+      motorControllerType = SparkLowLevel.SparkModel.kSparkMax,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 60,
       motorReduction = 1.0,
@@ -123,7 +123,7 @@ class Subsystems:
       motorMotionMaxVelocityRate = 33.0,
       motorMotionMaxAccelerationRate = 66.0,
       allowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 22.50, # TODO: Update Elevator soft limits
+      motorSoftLimitForward = 48, # TODO: Update Elevator soft limits
       motorSoftLimitReverse = 0,
       motorResetSpeed = 0.1
     ))
@@ -141,15 +141,16 @@ class Subsystems:
 
   class Wrist:
     kWristMotorCANId: int = 13
-    kWristMotorCurrentLimit: int = 60
+    kWristMotorCurrentLimit: int = 20
     kWristInputLimit: units.percent = 0.2
-    kWristMoveSpeed: units.percent = 0.1
-    kWristMaxCurrent: int = 60 # TODO: Update WristMaxCurrent
+    kWristMoveSpeedUp: units.percent = 0.3
+    kWristMoveSpeedDown: units.percent = 0.2
+    kWristMaxCurrent: int = 20 # TODO: Update WristMaxCurrent
 
   class Hand:
     kRollerMotorCANId: int = 14
     kHandMotorCurrentLimit: int = 60
-    kHandInputLimit: units.percent = 0.2
+    kHandInputLimit: units.percent = 1.0
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 60
     kSuctionMotorSpeed: units.percent = 0.2
@@ -204,14 +205,13 @@ class Sensors:
       )
     )
 
-  # TODO: update stream addresses and ports after photonvision configurations are applied
   class Camera:
     kStreams: dict[str, str] = {
       "FrontRight": "http://10.28.81.6:1182/?action=stream",
-      "FrontLeft": "http://10.28.81.6:1184/?action=stream",
-      "RearRight": "http://10.28.81.7:1186/?action=stream",
+      "FrontLeft": "http://10.28.81.7:1182/?action=stream",
+      "RearRight": "http://10.28.81.6:1184/?action=stream",
       "RearLeft": "http://10.28.81.7:1184/?action=stream",
-      "Driver": "http://10.28.81.6:1186/?action=stream"
+      "Driver": "http://10.28.81.6:1182/?action=stream"
     }
 
 class Controllers:

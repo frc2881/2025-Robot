@@ -77,9 +77,19 @@ class RobotCore:
     self.driverController.start().onTrue(self.gyroSensor.calibrateCommand())
     self.driverController.back().onTrue(self.gyroSensor.resetCommand())
 
-    # self.operatorController.rightTrigger().whileTrue(cmd.none())
+    self.elevatorSubsystem.setDefaultCommand(
+      self.elevatorSubsystem.runCommand(
+        self.operatorController.getLeftY
+    ))
+
+    self.armSubsystem.setDefaultCommand(
+      self.armSubsystem.runCommand(
+        self.operatorController.getRightY
+    ))
+
+    self.operatorController.rightTrigger().whileTrue(self.wristSubsystem.moveDownCommand())
     # self.operatorController.rightBumper().whileTrue(cmd.none())
-    # self.operatorController.leftTrigger().whileTrue(cmd.none())
+    self.operatorController.leftTrigger().whileTrue(self.wristSubsystem.moveUpCommand())
     # self.operatorController.leftBumper().whileTrue(cmd.none())
     # self.operatorController.povUp().whileTrue(cmd.none())
     # self.operatorController.povDown().whileTrue(cmd.none())
@@ -88,9 +98,11 @@ class RobotCore:
     # self.operatorController.a().whileTrue(cmd.none())
     # self.operatorController.b().whileTrue(cmd.none())
     # self.operatorController.y().whileTrue(cmd.none())
-    # self.operatorController.x().whileTrue(cmd.none())
-    # self.operatorController.start().whileTrue(cmd.none())
-    # self.operatorController.back().whileTrue(cmd.none())
+    self.operatorController.x().whileTrue(self.handSubsystem.runRollerCommand(1.0))
+    self.operatorController.start().whileTrue(self.armSubsystem.resetToZeroCommand())
+    self.operatorController.back().and_(self.operatorController.povLeft()).whileTrue(self.elevatorSubsystem.resetToZeroCommandLower())
+    self.operatorController.back().and_(self.operatorController.povUp()).whileTrue(self.elevatorSubsystem.resetToZeroCommandUpper())
+    self.operatorController.back().and_(self.operatorController.povRight()).whileTrue(self.armSubsystem.resetToZeroCommand())
 
   def _periodic(self) -> None:
     self._updateTelemetry()

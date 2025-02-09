@@ -23,7 +23,7 @@ class ArmSubsystem(Subsystem):
 
   def runCommand(self, getInput: Callable[[], units.percent]) -> Command:
     return self.run(
-      lambda: self._setSpeed(getInput() * self._constants.kInputLimit)
+      lambda: self._setSpeed(-getInput() * self._constants.kInputLimit)
     ).beforeStarting(
       lambda: self.clearPositionAlignment()
     ).finallyDo(

@@ -42,7 +42,7 @@ class HandSubsystem(Subsystem):
 
   def runRollerCommand(self, speed: units.percent) -> Command:
     return self.run(
-      lambda: self._rollerMotor.set(speed * self._constants.kHandInputLimit)
+      lambda: self._rollerMotor.set(speed)
     ).finallyDo(
       lambda end: self.resetRoller()
     ).withName("HandSubsystem:RunRoller")

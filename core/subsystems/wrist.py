@@ -36,7 +36,7 @@ class WristSubsystem(Subsystem):
 
   def moveUpCommand(self) -> Command:
     return self.run(
-      lambda: self._wristMotor.set(self._constants.kWristMoveSpeed)
+      lambda: self._wristMotor.set(self._constants.kWristMoveSpeedUp)
     ).finallyDo(
       lambda end: self.reset()
     ).until(
@@ -45,7 +45,7 @@ class WristSubsystem(Subsystem):
   
   def moveDownCommand(self) -> Command:
     return self.run(
-      lambda: self._wristMotor.set(-self._constants.kWristMoveSpeed)
+      lambda: self._wristMotor.set(-self._constants.kWristMoveSpeedDown)
     ).finallyDo(
       lambda end: self.reset()
     ).until(

@@ -14,8 +14,9 @@ class WristSubsystem(Subsystem):
     self._wristMotor = SparkMax(self._constants.kWristMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkMaxConfig()
     (self._sparkConfig
-     .smartCurrentLimit(self._constants.kWristMotorCurrentLimit)
-     .inverted(True))
+      .smartCurrentLimit(self._constants.kWristMotorCurrentLimit)
+      .secondaryCurrentLimit(self._constants.kWristMotorCurrentLimit)
+      .inverted(True))
     utils.setSparkConfig(
       self._wristMotor.configure(
         self._sparkConfig,

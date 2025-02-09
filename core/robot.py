@@ -66,15 +66,37 @@ class RobotCore:
     # self.driverController.rightBumper().whileTrue(cmd.none())
     # self.driverController.leftTrigger().whileTrue(cmd.none())
     # self.driverController.leftBumper().whileTrue(cmd.none())
-    self.driverController.povUp().whileTrue(self.autoCommands.moveToStartingPosition(2))
-    # self.driverController.povDown().whileTrue(cmd.none())
-    self.driverController.povLeft().whileTrue(self.autoCommands.moveToStartingPosition(1))
-    self.driverController.povRight().whileTrue(self.autoCommands.moveToStartingPosition(3))
+    self.driverController.povUp().and_((
+        self.driverController.start()
+      ).not_()
+    ).whileTrue(cmd.none())
+    self.driverController.povDown().and_((
+        self.driverController.start()
+      ).not_()
+    ).whileTrue(cmd.none())
+    self.driverController.povLeft().and_((
+        self.driverController.start()
+      ).not_()
+    ).whileTrue(cmd.none())
+    self.driverController.povRight().and_((
+        self.driverController.start()
+      ).not_()
+    ).whileTrue(cmd.none())
     # self.driverController.a().whileTrue(cmd.none())
     # self.driverController.b().whileTrue(cmd.none())
     # self.driverController.y().whileTrue(cmd.none())
     # self.driverController.x().whileTrue(cmd.none())
-    self.driverController.start().onTrue(self.gyroSensor.calibrateCommand())
+
+    self.driverController.start().and_((
+        self.driverController.povLeft()
+        .or_(self.driverController.povUp())
+        .or_(self.driverController.povRight())
+      ).not_()
+    ).onTrue(cmd.print_("Trigger:DriverController:Start"))
+    self.driverController.start().and_(self.driverController.povLeft()).whileTrue(self.autoCommands.moveToStartingPosition(1))
+    self.driverController.start().and_(self.driverController.povUp()).whileTrue(self.autoCommands.moveToStartingPosition(2))
+    self.driverController.start().and_(self.driverController.povRight()).whileTrue(self.autoCommands.moveToStartingPosition(3))
+
     self.driverController.back().onTrue(self.gyroSensor.resetCommand())
 
     self.elevatorSubsystem.setDefaultCommand(
@@ -91,18 +113,36 @@ class RobotCore:
     # self.operatorController.rightBumper().whileTrue(cmd.none())
     self.operatorController.leftTrigger().whileTrue(self.wristSubsystem.moveUpCommand())
     # self.operatorController.leftBumper().whileTrue(cmd.none())
-    # self.operatorController.povUp().whileTrue(cmd.none())
-    # self.operatorController.povDown().whileTrue(cmd.none())
-    # self.operatorController.povLeft().whileTrue(cmd.none())
-    # self.operatorController.povRight().whileTrue(cmd.none())
+    self.operatorController.povUp().and_((
+        self.driverController.start()
+      ).not_()
+    ).whileTrue(cmd.none())
+    self.operatorController.povDown().and_((
+        self.driverController.start()
+      ).not_()
+    ).whileTrue(cmd.none())
+    self.operatorController.povLeft().and_((
+        self.driverController.start()
+      ).not_()
+    ).whileTrue(cmd.none())
+    self.operatorController.povRight().and_((
+        self.driverController.start()
+      ).not_()
+    ).whileTrue(cmd.none())
     # self.operatorController.a().whileTrue(cmd.none())
     # self.operatorController.b().whileTrue(cmd.none())
     # self.operatorController.y().whileTrue(cmd.none())
     self.operatorController.x().whileTrue(self.handSubsystem.runRollerCommand(1.0))
-    self.operatorController.start().whileTrue(self.armSubsystem.resetToZeroCommand())
-    self.operatorController.back().and_(self.operatorController.povLeft()).whileTrue(self.elevatorSubsystem.resetToZeroCommandLower())
-    self.operatorController.back().and_(self.operatorController.povUp()).whileTrue(self.elevatorSubsystem.resetToZeroCommandUpper())
-    self.operatorController.back().and_(self.operatorController.povRight()).whileTrue(self.armSubsystem.resetToZeroCommand())
+
+    self.operatorController.start().and_((
+        self.driverController.povLeft()
+        .or_(self.driverController.povUp())
+        .or_(self.driverController.povRight())
+      ).not_()
+    ).whileTrue(cmd.print_("Trigger:OperatorController:Start"))
+    self.operatorController.start().and_(self.operatorController.povLeft()).whileTrue(self.elevatorSubsystem.resetToZeroLowerStageCommand())
+    self.operatorController.start().and_(self.operatorController.povUp()).whileTrue(self.elevatorSubsystem.resetToZeroUpperStageCommand())
+    self.operatorController.start().and_(self.operatorController.povRight()).whileTrue(self.armSubsystem.resetToZeroCommand())
 
   def _periodic(self) -> None:
     self._updateTelemetry()

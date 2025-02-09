@@ -35,6 +35,6 @@ class TargetAlignmentInfo:
   pitch: units.degrees
 
 @dataclass(frozen=True)
-class ElevatorStagePositions:
-  lower: float
-  upper: float
+class ElevatorPositions:
+  lowerStage: units.inches
+  upperStage: units.inches

@@ -1,9 +1,8 @@
-import math
 from typing import Callable
+import math
+from commands2 import Subsystem, Command
 from wpilib import SmartDashboard
 from wpimath import units
-from commands2 import Subsystem, Command
-from rev import SparkMax, SparkMaxConfig, SparkBase, SparkBaseConfig, ClosedLoopConfig
 from lib import logger, utils
 from lib.components.position_control_module import PositionControlModule
 import core.constants as constants

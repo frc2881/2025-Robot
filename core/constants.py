@@ -11,7 +11,7 @@ from photonlibpy.photonPoseEstimator import PoseStrategy
 from rev import SparkLowLevel
 from lib import logger, utils
 from lib.classes import Alliance, PID, Tolerance, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, PositionControlModuleConstants, PositionControlModuleConfig
-from core.classes import Target, TargetType, TargetAlignmentLocation, ReefLevel, ElevatorStagePositions
+from core.classes import Target, TargetType, TargetAlignmentLocation, ReefLevel, ElevatorPositions
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
@@ -72,7 +72,7 @@ class Subsystems:
     )
 
   class Elevator:
-    kLeadScrewModuleConfigLower = PositionControlModuleConfig("Elevator/Lower", 10, None, False, PositionControlModuleConstants(
+    kLowerStageModuleConfig = PositionControlModuleConfig("Elevator/Lower", 10, None, False, PositionControlModuleConstants(
         motorTravelDistance = 0.5,
         motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
         motorType = SparkLowLevel.MotorType.kBrushless,
@@ -86,7 +86,7 @@ class Subsystems:
         motorSoftLimitReverse = 0.5,
         motorResetSpeed = 0.1
     ))
-    kLeadScrewModuleConfigUpper = PositionControlModuleConfig("Elevator/Upper", 11, None, False, PositionControlModuleConstants(
+    kUpperStageModuleConfig = PositionControlModuleConfig("Elevator/Upper", 11, None, False, PositionControlModuleConstants(
       motorTravelDistance = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
@@ -101,15 +101,15 @@ class Subsystems:
       motorResetSpeed = 0.12
     ))
 
-    kHeightAlignmentPositionTolerance: float = 0.05
+    kPositionsAlignmentPositionTolerance: float = 0.05
 
     kInputLimit: units.percent = 0.5
 
-    kElevatorScoringPositions: dict[ReefLevel, ElevatorStagePositions] = {
-      ReefLevel.L1: ElevatorStagePositions(0, 0),
-      ReefLevel.L2: ElevatorStagePositions(0, 0),
-      ReefLevel.L3: ElevatorStagePositions(0, 0),
-      ReefLevel.L4: ElevatorStagePositions(0, 0)
+    kElevatorScoringPositions: dict[ReefLevel, ElevatorPositions] = {
+      ReefLevel.L1: ElevatorPositions(0, 0),
+      ReefLevel.L2: ElevatorPositions(0, 0),
+      ReefLevel.L3: ElevatorPositions(0, 0),
+      ReefLevel.L4: ElevatorPositions(0, 0)
     }
 
   class Arm:

@@ -15,8 +15,9 @@ class HandSubsystem(Subsystem):
     self._rollerMotor = SparkMax(self._constants.kRollerMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkMaxConfig()
     (self._sparkConfig
-     .smartCurrentLimit(self._constants.kHandMotorCurrentLimit)
-     .inverted(True))
+      .smartCurrentLimit(self._constants.kHandMotorCurrentLimit)
+      .secondaryCurrentLimit(self._constants.kHandMotorCurrentLimit)
+      .inverted(True))
     utils.setSparkConfig(
       self._rollerMotor.configure(
         self._sparkConfig,
@@ -28,8 +29,9 @@ class HandSubsystem(Subsystem):
     self._suctionMotor = SparkMax(self._constants.kSuctionMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkMaxConfig()
     (self._sparkConfig
-     .smartCurrentLimit(self._constants.kSuctionMotorCurrentLimit)
-     .inverted(True))
+      .smartCurrentLimit(self._constants.kSuctionMotorCurrentLimit)
+      .secondaryCurrentLimit(self._constants.kSuctionMotorCurrentLimit)
+      .inverted(True))
     utils.setSparkConfig(
       self._suctionMotor.configure(
         self._sparkConfig,

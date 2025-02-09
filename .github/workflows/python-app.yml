@@ -28,7 +28,7 @@ jobs:
     - name: Wait for installation to finalize
       uses: GuillaumeFalourd/wait-sleep-action@v1
       with:
-        time: "60"
+        time: "30"
     - name: Run PyFRC tests
       run: |
         python -m robotpy test

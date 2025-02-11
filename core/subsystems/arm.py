@@ -5,7 +5,6 @@ from wpilib import SmartDashboard
 from wpimath import units
 from lib import logger, utils
 from lib.components.position_control_module import PositionControlModule
-from core.classes import ElevatorPositions
 import core.constants as constants
 
 class ArmSubsystem(Subsystem):
@@ -21,41 +20,41 @@ class ArmSubsystem(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
 
-  def runCommand(self, getInput: Callable[[], units.percent], getElevatorPosition: Callable[[], ElevatorPositions]) -> Command:
+  def runCommand(self, getInput: Callable[[], units.percent]) -> Command:
     return self.run(
       lambda: self._setSpeed(-getInput() * self._constants.kInputLimit)
     ).beforeStarting(
-      lambda: self.clearPositionAlignment()
+      lambda: self.resetPositionAlignment()
     ).finallyDo(
       lambda end: self.reset()
     ).withName("ArmSubsystem:Run")
   
-  def alignToPositionCommand(self, position: float) -> Command:
+  def alignToPositionCommand(self, position: units.inches) -> Command:
     return self.run(
       lambda: [
         self._setPosition(position),
         self._setIsAlignedToPosition(position)
       ]
     ).beforeStarting(
-      lambda: self.clearPositionAlignment()
+      lambda: self.resetPositionAlignment()
     ).withName("ArmSubsystem:AlignToPosition")
   
   def _setSpeed(self, speed: units.percent) -> None:
     self._armMotor.setSpeed(speed)
 
-  def _setPosition(self, position: float) -> None:
+  def _setPosition(self, position: units.inches) -> None:
     self._armMotor.setPosition(position)
 
-  def getPosition(self) -> float:
+  def getPosition(self) -> units.inches:
     return self._armMotor.getPosition()
 
-  def _setIsAlignedToPosition(self, position: float) -> None:
-    self._isAlignedToPosition = math.fabs(self.getPosition() - position) <= self._constants.kPositionAlignmentPositionTolerance
-
+  def _setIsAlignedToPosition(self, position: units.inches) -> None:
+    self._isAlignedToPosition = math.isclose(self.getPosition(), position, abs_tol = self._constants.kPositionAlignmentPositionTolerance)
+  
   def isAlignedToPosition(self) -> bool:
     return self._isAlignedToPosition
   
-  def clearPositionAlignment(self) -> None:
+  def resetPositionAlignment(self) -> None:
     self._isAlignedToPosition = False
 
   def resetToZeroCommand(self) -> Command:
@@ -74,7 +73,8 @@ class ArmSubsystem(Subsystem):
 
   def reset(self) -> None:
     self._armMotor.reset()
-    self.clearPositionAlignment()
+    self.resetPositionAlignment()
 
   def _updateTelemetry(self) -> None:
+    SmartDashboard.putBoolean("Robot/Arm/IsAlignedToPosition", self._isAlignedToPosition)
     SmartDashboard.putNumber("Robot/Arm/Position", self.getPosition())

@@ -8,7 +8,7 @@ from pathplannerlib.path import PathPlannerPath
 from lib import logger, utils
 from lib.classes import Alliance, TargetAlignmentMode
 if TYPE_CHECKING: from core.robot import RobotCore
-from core.classes import TargetAlignmentLocation
+from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece
 import core.constants as constants
 
 class AutoPath(Enum):
@@ -61,6 +61,15 @@ class AutoCommands:
       constants.Game.Commands.kAutoMoveTimeout
     )
   
+  def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
+    return self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, targetAlignmentLocation)
+  
+  def _alignToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
+    return self._robot.gameCommands.alignRobotToTargetPositionCommand(targetPositionType)
+  
+  def _score(self) -> Command:
+    return self._robot.gameCommands.scoreCommand(GamePiece.Coral)
+  
   def _getStartingPose(self, position: int) -> Pose2d:
     match position:
       case 1:
@@ -73,27 +82,35 @@ class AutoCommands:
         return None
 
   def moveToStartingPosition(self, position: int) -> Command:
-    return AutoBuilder.pathfindToPose(self._getStartingPose(position), constants.Subsystems.Drive.kPathPlannerConstraints)
+    return AutoBuilder.pathfindToPose(
+      self._getStartingPose(position), 
+      constants.Subsystems.Drive.kPathPlannerConstraints
+    ).onlyIf(
+      lambda: not utils.isCompetitionMode()
+    ).withName("AutoCommands:MoveToStartingPosition")
 
-  def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
-    return self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, targetAlignmentLocation).withTimeout(
-      constants.Game.Commands.kAutoTargetAlignmentTimeout
-    )
+  # TODO: after mechanism testing, update move + alignment actions to parallel for faster execution if possible
 
   def auto_1_1(self) -> Command:
     return cmd.sequence(
       self._move(AutoPath.Start1_1),
-      self._alignToTarget(TargetAlignmentLocation.Left)
+      self._alignToTarget(TargetAlignmentLocation.Left),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
+      self._score()
     ).withName("AutoCommands:[1]_1")
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
       self._move(AutoPath.Start2_2),
-      self._alignToTarget(TargetAlignmentLocation.Left)
+      self._alignToTarget(TargetAlignmentLocation.Left),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
+      self._score()
     ).withName("AutoCommands:[2]_2")
   
   def auto_3_3(self) -> Command:
     return cmd.sequence(
       self._move(AutoPath.Start3_3),
-      self._alignToTarget(TargetAlignmentLocation.Left)
+      self._alignToTarget(TargetAlignmentLocation.Right),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
+      self._score()
     ).withName("AutoCommands:[3]_3")

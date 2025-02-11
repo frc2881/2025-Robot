@@ -4,8 +4,9 @@ from commands2 import Subsystem, Command
 from wpilib import SmartDashboard
 from wpimath import units
 from lib import logger, utils
+from lib.classes import MotorDirection
 from lib.components.position_control_module import PositionControlModule
-from core.classes import ElevatorPositions, ReefLevel
+from core.classes import ElevatorPosition
 import core.constants as constants
 
 class ElevatorSubsystem(Subsystem):
@@ -15,57 +16,56 @@ class ElevatorSubsystem(Subsystem):
 
     self._hasInitialZeroResetLowerStage: bool = False
     self._hasInitialZeroResetUpperStage: bool = False
-    self._isAlignedToPositions: bool = False
+    self._isAlignedToPosition: bool = False
 
     self._lowerStageModule = PositionControlModule(self._constants.kLowerStageModuleConfig)
     self._upperStageModule = PositionControlModule(self._constants.kUpperStageModuleConfig)
 
   def periodic(self) -> None:
     self._updateTelemetry()
-  
-  def runCommand(self, getInput: Callable[[], units.percent], getArmPosition: Callable[[], float]) -> Command:
+
+  def runCommand(self, getInput: Callable[[], units.percent]) -> Command:
     return self.run(
       lambda: self._setSpeed(getInput() * self._constants.kInputLimit)
     ).beforeStarting(
-      lambda: self.clearPositionsAlignment()
+      lambda: self.resetPositionAlignment()
     ).finallyDo(
       lambda end: self.reset()
     ).withName("ElevatorSubsystem:Run")
 
-  def alignToPositionsCommand(self, elevatorPositions: ElevatorPositions) -> Command:
+  def alignToPositionCommand(self, elevatorPosition: ElevatorPosition) -> Command:
     return self.run(
       lambda: [
-        self._setPositions(elevatorPositions),
-        self._setIsAlignedToPositions(elevatorPositions)
+        self._setPosition(elevatorPosition),
+        self._setIsAlignedToPosition(elevatorPosition)
       ]
     ).beforeStarting(
-      lambda: self.clearPositionsAlignment()
-    ).withName("ElevatorSubsystem:AlignToPositions")
+      lambda: self.resetPositionAlignment()
+    ).withName("ElevatorSubsystem:AlignToPosition")
 
   def _setSpeed(self, speed: units.percent) -> None:
-    isUpperStageAtSoftLimit = self._upperStageModule.isReverseSoftLimitReached if speed < 0 else self._upperStageModule.isForwardSoftLimitReached
-    self._lowerStageModule.setSpeed(speed if isUpperStageAtSoftLimit else 0)
-    self._upperStageModule.setSpeed(speed if not isUpperStageAtSoftLimit else 0)
+    self._upperStageModule.setSpeed(speed) 
+    self._lowerStageModule.setSpeed(speed if self._upperStageModule.isPositionAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse) else 0)
 
-  def _setPositions(self, elevatorPositions: ElevatorPositions) -> None:
-    self._lowerStageModule.setPosition(elevatorPositions.lowerStage)
-    self._upperStageModule.setPosition(elevatorPositions.upperStage)
+  def _setPosition(self, elevatorPosition: ElevatorPosition) -> None:
+    self._upperStageModule.setPosition(elevatorPosition.upperStage)
+    self._lowerStageModule.setPosition(elevatorPosition.lowerStage)
 
-  def _setIsAlignedToPositions(self, elevatorPositions: ElevatorPositions) -> None:
-    self._isAlignedToPositions = (
-      (math.fabs(self._lowerStageModule.getPosition() - elevatorPositions.lowerStage) <= self._constants.kPositionsAlignmentPositionTolerance) 
+  def _setIsAlignedToPosition(self, elevatorPosition: ElevatorPosition) -> None:
+    self._isAlignedToPosition = (
+      math.isclose(self._lowerStageModule.getPosition(), elevatorPosition.lowerStage, abs_tol = self._constants.kPositionAlignmentPositionTolerance)
       and 
-      (math.fabs(self._upperStageModule.getPosition() - elevatorPositions.upperStage) <= self._constants.kPositionsAlignmentPositionTolerance)
+      math.isclose(self._upperStageModule.getPosition(), elevatorPosition.upperStage, abs_tol = self._constants.kPositionAlignmentPositionTolerance)
     )
-  
-  def getPositions(self) -> ElevatorPositions:
-    return ElevatorPositions(self._lowerStageModule.getPosition(), self._upperStageModule.getPosition())
 
-  def isAlignedToPositions(self) -> bool:
-    return self._isAlignedToPositions
+  def getPosition(self) -> ElevatorPosition:
+    return ElevatorPosition(self._lowerStageModule.getPosition(), self._upperStageModule.getPosition())
+
+  def isAlignedToPosition(self) -> bool:
+    return self._isAlignedToPosition
   
-  def clearPositionsAlignment(self) -> None:
-    self._isAlignedToPositions = False
+  def resetPositionAlignment(self) -> None:
+    self._isAlignedToPosition = False
 
   def resetToZeroLowerStageCommand(self) -> Command:
     return self.startEnd(
@@ -95,9 +95,9 @@ class ElevatorSubsystem(Subsystem):
   def reset(self) -> None:
     self._lowerStageModule.reset()
     self._upperStageModule.reset()
-    self.clearPositionsAlignment()
+    self.resetPositionAlignment()
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putNumber("Robot/Elevator/LowerStage/Position", self._lowerStageModule.getPosition())
-    SmartDashboard.putNumber("Robot/Elevator/UpperStage/Position", self._upperStageModule.getPosition())
-    SmartDashboard.putBoolean("Robot/Elevator/IsAlignedToPositions", self._isAlignedToPositions)
+    SmartDashboard.putBoolean("Robot/Elevator/IsAlignedToPosition", self._isAlignedToPosition)
+    SmartDashboard.putNumber("Robot/Elevator/Position/LowerStage", self._lowerStageModule.getPosition())
+    SmartDashboard.putNumber("Robot/Elevator/Position/UpperStage", self._upperStageModule.getPosition())

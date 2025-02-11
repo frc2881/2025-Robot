@@ -11,10 +11,10 @@ from photonlibpy.photonPoseEstimator import PoseStrategy
 from rev import SparkLowLevel
 from lib import logger, utils
 from lib.classes import Alliance, PID, Tolerance, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, PositionControlModuleConstants, PositionControlModuleConfig
-from core.classes import Target, TargetType, TargetAlignmentLocation, ReefLevel, ElevatorPositions
+from core.classes import Target, TargetType, TargetAlignmentLocation, TargetPosition, TargetPositionType, ElevatorPosition, WristPosition
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
-PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
+PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings() # TODO: update all config measurements from physical robot metrics
 
 class Subsystems:
   class Drive:
@@ -73,19 +73,20 @@ class Subsystems:
 
   class Elevator:
     kLowerStageModuleConfig = PositionControlModuleConfig("Elevator/Lower", 10, None, False, PositionControlModuleConstants(
-        motorTravelDistance = 0.5,
-        motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
-        motorType = SparkLowLevel.MotorType.kBrushless,
-        motorCurrentLimit = 80,
-        motorReduction = 3.0,
-        motorPID = PID(0.1, 0, 0.01),
-        motorMotionMaxVelocityRate = 33.0,
-        motorMotionMaxAccelerationRate = 66.0,
-        allowedClosedLoopError = 0.1,
-        motorSoftLimitForward = 28.9, # TODO: Update Elevator soft limits
-        motorSoftLimitReverse = 0.5,
-        motorResetSpeed = 0.1
+      motorTravelDistance = 0.5,
+      motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
+      motorType = SparkLowLevel.MotorType.kBrushless,
+      motorCurrentLimit = 80,
+      motorReduction = 3.0,
+      motorPID = PID(0.1, 0, 0.01),
+      motorMotionMaxVelocityRate = 33.0,
+      motorMotionMaxAccelerationRate = 66.0,
+      motorMotionAllowedClosedLoopError = 0.1,
+      motorSoftLimitForward = 28.9, # TODO: Update elevator stage soft limits with testing
+      motorSoftLimitReverse = 0.5,
+      motorResetSpeed = 0.1
     ))
+
     kUpperStageModuleConfig = PositionControlModuleConfig("Elevator/Upper", 11, None, False, PositionControlModuleConstants(
       motorTravelDistance = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
@@ -95,22 +96,14 @@ class Subsystems:
       motorPID = PID(0.1, 0, 0.01),
       motorMotionMaxVelocityRate = 33.0,
       motorMotionMaxAccelerationRate = 66.0,
-      allowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 20.0, # 30.0, # TODO: Update Elevator soft limits
+      motorMotionAllowedClosedLoopError = 0.1,
+      motorSoftLimitForward = 20.0, # TODO: Update elevator stage soft limits with testing
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.12
     ))
 
-    kPositionsAlignmentPositionTolerance: float = 0.05
-
+    kPositionAlignmentPositionTolerance: float = 0.05
     kInputLimit: units.percent = 0.5
-
-    kElevatorScoringPositions: dict[ReefLevel, ElevatorPositions] = {
-      ReefLevel.L1: ElevatorPositions(0, 0),
-      ReefLevel.L2: ElevatorPositions(0, 0),
-      ReefLevel.L3: ElevatorPositions(0, 0),
-      ReefLevel.L4: ElevatorPositions(0, 0)
-    }
 
   class Arm:
     kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, True, PositionControlModuleConstants(
@@ -122,49 +115,40 @@ class Subsystems:
       motorPID = PID(0.1, 0, 0.01),
       motorMotionMaxVelocityRate = 33.0,
       motorMotionMaxAccelerationRate = 66.0,
-      allowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 48, # TODO: Update Elevator soft limits
+      motorMotionAllowedClosedLoopError = 0.1,
+      motorSoftLimitForward = 48, # TODO: Update arm soft limits with testing
       motorSoftLimitReverse = 0,
       motorResetSpeed = 0.1
     ))
 
-    kPositionAlignmentPositionTolerance: float = 0.5  
-
+    kPositionAlignmentPositionTolerance: units.inches = 0.5  
     kInputLimit: units.percent = 0.5
 
-    kArmScoringPositions: dict[ReefLevel, float] = {
-      ReefLevel.L1: 0.0,
-      ReefLevel.L2: 0.0,
-      ReefLevel.L3: 0.0,
-      ReefLevel.L4: 0.0
-    }
-
   class Wrist:
-    kWristMotorCANId: int = 13
-    kWristMotorCurrentLimit: int = 20
-    kWristInputLimit: units.percent = 0.2
-    kWristMoveSpeedUp: units.percent = 0.3
-    kWristMoveSpeedDown: units.percent = 0.2
-    kWristMaxCurrent: int = 20 # TODO: Update WristMaxCurrent
+    kMotorCANId: int = 13
+    kMotorCurrentLimit: int = 20
+    kMotorCurrentTrigger: int = 20 # TODO: Tune with real mechanism
+    kMotorUpSpeed: units.percent = 0.3
+    kMotorDownSpeed: units.percent = 0.2
+    kSetPositionTimeout: units.seconds = 2.0
 
   class Hand:
     kGripperMotorCANId: int = 14
-    kGripperMotorCurrentLimit: int = 20
-    kGripperMaxCurrent: int = 17
-    kGripperIntakeSpeed: units.percent = 1.0
-    kGripperHoldSpeed: units.percent = 0.2 # TODO: Tune with real mechanism
-    kGripperEjectSpeed: units.percent = -0.75
+    kGripperMotorCurrentLimit: int = 20 # TODO: Validate that current limit applies to brushed motor (REV docs say otherwise)
+    kGripperMotorCurrentTrigger: int = 17 # TODO: Tune with real mechanism
+    kGripperMotorIntakeSpeed: units.percent = 1.0
+    kGripperMotorHoldSpeed: units.percent = 0.2 # TODO: Tune with real mechanism
+    kGripperMotorReleaseSpeed: units.percent = -0.75
+
     kSuctionMotorCANId: int = 15
-    kSuctionMotorCurrentLimit: int = 60
-    kSuctionMotorSpeed: units.percent = 0.2
-    kSuctionMaxCurrent: int = 60 # TODO: Update SuctionMaxCurrent
-    kSuctionSolenoidPortId: int = 0
+    kSuctionMotorCurrentLimit: int = 20
+    kSuctionMotorCurrentTrigger: int = 15 # TODO: Tune with real mechanism
+    kSuctionMotorIntakeSpeed: units.percent = 0.2 # TODO: Tune with real mechanism
 
 class Services:
   class Localization:
     kStateStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(5))
-    kVisionMultiTagStandardDeviations: tuple[float, float, float] = (0.2, 0.2, units.degreesToRadians(10))
-    kVisionDefaultStandardDeviations: tuple[float, float, float] = (0.5, 0.5, units.degreesToRadians(25)) # TODO: update based on testing if single tag and multi tag should be equal weight
+    kVisionStandardDeviations: tuple[float, float, float] = (0.2, 0.2, units.degreesToRadians(10))
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 
@@ -176,7 +160,7 @@ class Sensors:
     _poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
     _fallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
     
-    # TODO: apply actual precise measurements for camera transforms after mounting to the robot (rought placehlders for now)
+    # TODO: validate all transform measurements against both CAD and physical install locations
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
       PoseSensorConfig(
         "FrontRight",
@@ -224,8 +208,9 @@ class Controllers:
 
 class Game:
   class Commands:
-    kAutoMoveTimeout: units.seconds = 4.0
-    kAutoTargetAlignmentTimeout: units.seconds = 2.0
+    kTargetAlignmentTimeout: units.seconds = 2.0 # TODO: tune this to actual mechanism performance
+    kTargetPositionAlignmentTimeout: units.seconds = 3.0 # TODO: tune this to actual mechanism performance
+    kAutoMoveTimeout: units.seconds = 4.0 # TODO: tune this to actual drive train and path planning performance
 
   class Field:
     kAprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT
@@ -236,9 +221,9 @@ class Game:
     class Targets:
       kTargets: dict[Alliance, dict[int, Target]] = {
         Alliance.Red: {
-          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(1).toPose2d()): Target(TargetType.Station, APRIL_TAG_FIELD_LAYOUT.getTagPose(1)),
-          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(2).toPose2d()): Target(TargetType.Station, APRIL_TAG_FIELD_LAYOUT.getTagPose(2)),
-          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(3).toPose2d()): Target(TargetType.Processor, APRIL_TAG_FIELD_LAYOUT.getTagPose(3)),
+          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(1).toPose2d()): Target(TargetType.CoralStation, APRIL_TAG_FIELD_LAYOUT.getTagPose(1)),
+          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(2).toPose2d()): Target(TargetType.CoralStation, APRIL_TAG_FIELD_LAYOUT.getTagPose(2)),
+          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(3).toPose2d()): Target(TargetType.AlgaeProcessor, APRIL_TAG_FIELD_LAYOUT.getTagPose(3)),
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(4).toPose2d()): Target(TargetType.Barge, APRIL_TAG_FIELD_LAYOUT.getTagPose(4)),
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(5).toPose2d()): Target(TargetType.Barge, APRIL_TAG_FIELD_LAYOUT.getTagPose(5)),
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(6).toPose2d()): Target(TargetType.Reef, APRIL_TAG_FIELD_LAYOUT.getTagPose(6)),
@@ -249,11 +234,11 @@ class Game:
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(11).toPose2d()): Target(TargetType.Reef, APRIL_TAG_FIELD_LAYOUT.getTagPose(11))
         },
         Alliance.Blue: {
-          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(12).toPose2d()): Target(TargetType.Station, APRIL_TAG_FIELD_LAYOUT.getTagPose(12)),
-          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(13).toPose2d()): Target(TargetType.Station, APRIL_TAG_FIELD_LAYOUT.getTagPose(13)),
+          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(12).toPose2d()): Target(TargetType.CoralStation, APRIL_TAG_FIELD_LAYOUT.getTagPose(12)),
+          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(13).toPose2d()): Target(TargetType.CoralStation, APRIL_TAG_FIELD_LAYOUT.getTagPose(13)),
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(14).toPose2d()): Target(TargetType.Barge, APRIL_TAG_FIELD_LAYOUT.getTagPose(14)),
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(15).toPose2d()): Target(TargetType.Barge, APRIL_TAG_FIELD_LAYOUT.getTagPose(15)),
-          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(16).toPose2d()): Target(TargetType.Processor, APRIL_TAG_FIELD_LAYOUT.getTagPose(16)),
+          utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(16).toPose2d()): Target(TargetType.AlgaeProcessor, APRIL_TAG_FIELD_LAYOUT.getTagPose(16)),
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(17).toPose2d()): Target(TargetType.Reef, APRIL_TAG_FIELD_LAYOUT.getTagPose(17)),
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(18).toPose2d()): Target(TargetType.Reef, APRIL_TAG_FIELD_LAYOUT.getTagPose(18)),
           utils.getTargetHash(APRIL_TAG_FIELD_LAYOUT.getTagPose(19).toPose2d()): Target(TargetType.Reef, APRIL_TAG_FIELD_LAYOUT.getTagPose(19)),
@@ -271,13 +256,13 @@ class Game:
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), units.inchesToMeters(-6.5), 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), units.inchesToMeters(6.5), 0, Rotation3d())
         },
-        TargetType.Station: {
+        TargetType.CoralStation: {
           TargetAlignmentLocation.Default: Transform3d(),
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(12), units.inchesToMeters(-24), 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(12), units.inchesToMeters(24), 0, Rotation3d())
         },
-        TargetType.Processor: {
+        TargetType.AlgaeProcessor: {
           TargetAlignmentLocation.Default: Transform3d(),
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
@@ -289,4 +274,19 @@ class Game:
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d())
         }
+      }
+
+      # TODO: calculate and test elevator, arm, and wrist positions for all the targets
+      kTargetPositions: dict[TargetPositionType, TargetPosition] = {
+        TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
+        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
+        TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
+        TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
+        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
+        TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
+        TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
+        TargetPositionType.Barge: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
+        TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
+        TargetPositionType.CageClimb: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up)
       }

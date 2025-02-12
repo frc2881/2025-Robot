@@ -8,6 +8,7 @@ from lib.sensors.pose_sensor import PoseSensor
 from lib import logger, utils
 from core.classes import Target, TargetAlignmentLocation, TargetType
 import core.constants as constants
+import ntcore
 
 class LocalizationService():
   def __init__(
@@ -34,7 +35,8 @@ class LocalizationService():
     self._robotPose = Pose2d()
     self._targets: dict[int, Target] = {}
     self._targetPoses: list[Pose2d] = []
-
+    
+    self._robotPosePublisher = ntcore.NetworkTableInstance.getDefault().getStructTopic("SmartDashboard/Robot/Localization/Pose", Pose2d).publish()
     SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
     SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
 
@@ -85,4 +87,4 @@ class LocalizationService():
     return False
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putNumberArray("Robot/Localization/Pose", [self._robotPose.X(), self._robotPose.Y(), self._robotPose.rotation().degrees()])
+    self._robotPosePublisher.set(self._robotPose)

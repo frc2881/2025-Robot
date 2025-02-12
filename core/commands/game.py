@@ -58,7 +58,7 @@ class GameCommands:
       lambda: gamePieceType == GamePiece.Coral
     ).andThen(
       self.rumbleControllersCommand(ControllerRumbleMode.Both, ControllerRumblePattern.Short)
-    )
+    ).withName("GameCommands:IntakeCommand")
   
   def scoreCommand(self, gamePieceType: GamePiece) -> Command:
     return cmd.either(
@@ -67,7 +67,7 @@ class GameCommands:
       lambda: gamePieceType == GamePiece.Coral
     ).andThen(
       self.rumbleControllersCommand(ControllerRumbleMode.Both, ControllerRumblePattern.Short)
-    )
+    ).withName("GameCommands:ScoreCommand")
 
   def rumbleControllersCommand(self, mode: ControllerRumbleMode, pattern: ControllerRumblePattern) -> Command:
     return cmd.parallel(

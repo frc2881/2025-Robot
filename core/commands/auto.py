@@ -68,6 +68,9 @@ class AutoCommands:
   def _alignToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
     return self._robot.gameCommands.alignRobotToTargetPositionCommand(targetPositionType)
   
+  def _intake(self) -> Command:
+    return self._robot.gameCommands.intakeCommand(GamePiece.Coral)
+
   def _score(self) -> Command:
     return self._robot.gameCommands.scoreCommand(GamePiece.Coral)
   

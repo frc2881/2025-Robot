@@ -52,7 +52,7 @@ class HandSubsystem(Subsystem):
         setattr(self, "_isGripperEnabled", True)
       ]
     ).withTimeout(
-      0.5
+      0.2
     ).andThen(
       lambda: self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed)
     ).until(
@@ -90,7 +90,7 @@ class HandSubsystem(Subsystem):
         setattr(self, "_isSuctionEnabled", True)
       ]
     ).withTimeout(
-      0.5
+      0.2
     ).andThen(
       lambda: self._suctionMotor.set(self._constants.kSuctionMotorIntakeSpeed)
     ).until(

@@ -55,11 +55,12 @@ class AutoCommands:
       AutoBuilder.resetOdom(self._paths.get(path).getPathPoses()[0].transformBy(Transform2d(0, 0, self._paths.get(path).getInitialHeading()))),
       cmd.waitSeconds(0.1)
     )
+  
+  def _init(self) -> Command:
+    return self._robot.gameCommands.intakeCommand(GamePiece.Coral)
 
   def _move(self, path: AutoPath) -> Command:
-    return AutoBuilder.followPath(self._paths.get(path)).withTimeout(
-      constants.Game.Commands.kAutoMoveTimeout
-    )
+    return AutoBuilder.followPath(self._paths.get(path)).withTimeout(constants.Game.Commands.kAutoMoveTimeout)
   
   def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, targetAlignmentLocation)
@@ -89,10 +90,11 @@ class AutoCommands:
       lambda: not utils.isCompetitionMode()
     ).withName("AutoCommands:MoveToStartingPosition")
 
-  # TODO: after mechanism testing, update move + alignment actions to parallel for faster execution if possible
+  # TODO: after mechanism testing, update init + move + alignment actions to parallel for faster execution if possible
 
   def auto_1_1(self) -> Command:
     return cmd.sequence(
+      self._init(),
       self._move(AutoPath.Start1_1),
       self._alignToTarget(TargetAlignmentLocation.Left),
       self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
@@ -101,6 +103,7 @@ class AutoCommands:
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
+      self._init(),
       self._move(AutoPath.Start2_2),
       self._alignToTarget(TargetAlignmentLocation.Left),
       self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
@@ -109,6 +112,7 @@ class AutoCommands:
   
   def auto_3_3(self) -> Command:
     return cmd.sequence(
+      self._init(),
       self._move(AutoPath.Start3_3),
       self._alignToTarget(TargetAlignmentLocation.Right),
       self._alignToTargetPosition(TargetPositionType.ReefCoralL4),

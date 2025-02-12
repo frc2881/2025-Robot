@@ -1,4 +1,5 @@
 from typing import Callable
+from ntcore import NetworkTableInstance
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d, Pose2d, Pose3d
 from wpimath.kinematics import SwerveModulePosition
@@ -8,7 +9,6 @@ from lib.sensors.pose_sensor import PoseSensor
 from lib import logger, utils
 from core.classes import Target, TargetAlignmentLocation, TargetType
 import core.constants as constants
-import ntcore
 
 class LocalizationService():
   def __init__(
@@ -36,7 +36,7 @@ class LocalizationService():
     self._targets: dict[int, Target] = {}
     self._targetPoses: list[Pose2d] = []
     
-    self._robotPosePublisher = ntcore.NetworkTableInstance.getDefault().getStructTopic("SmartDashboard/Robot/Localization/Pose", Pose2d).publish()
+    self._robotPosePublisher = NetworkTableInstance.getDefault().getStructTopic("SmartDashboard/Robot/Localization/Pose", Pose2d).publish()
     SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
     SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
 

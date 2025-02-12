@@ -56,7 +56,7 @@ class AutoCommands:
       cmd.waitSeconds(0.1)
     )
   
-  def _init(self) -> Command:
+  def _start(self) -> Command:
     return self._robot.gameCommands.intakeCommand(GamePiece.Coral)
 
   def _move(self, path: AutoPath) -> Command:
@@ -97,7 +97,7 @@ class AutoCommands:
 
   def auto_1_1(self) -> Command:
     return cmd.sequence(
-      self._init(),
+      self._start(),
       self._move(AutoPath.Start1_1),
       self._alignToTarget(TargetAlignmentLocation.Left),
       self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
@@ -106,7 +106,7 @@ class AutoCommands:
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
-      self._init(),
+      self._start(),
       self._move(AutoPath.Start2_2),
       self._alignToTarget(TargetAlignmentLocation.Left),
       self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
@@ -115,7 +115,7 @@ class AutoCommands:
   
   def auto_3_3(self) -> Command:
     return cmd.sequence(
-      self._init(),
+      self._start(),
       self._move(AutoPath.Start3_3),
       self._alignToTarget(TargetAlignmentLocation.Right),
       self._alignToTargetPosition(TargetPositionType.ReefCoralL4),

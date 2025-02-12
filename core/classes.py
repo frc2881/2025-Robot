@@ -27,16 +27,16 @@ class TargetPositionType(Enum):
   CageEntry = auto()
   CageClimb = auto()
 
-@dataclass(frozen=True, slots=True)
-class Target():
-  type: TargetType
-  pose: Pose3d
-
 class TargetAlignmentLocation(Enum):
   Default = auto()
   Center = auto()
   Left = auto()
   Right = auto()
+
+@dataclass(frozen=True, slots=True)
+class Target():
+  type: TargetType
+  pose: Pose3d
 
 @dataclass(frozen=False, slots=True)
 class TargetAlignmentInfo:

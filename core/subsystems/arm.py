@@ -15,7 +15,7 @@ class ArmSubsystem(Subsystem):
     self._hasInitialZeroReset: bool = False
     self._isAlignedToPosition: bool = False
 
-    self._armMotor = PositionControlModule(self._constants.kArmPositonControlModuleConfig)
+    self._armModule = PositionControlModule(self._constants.kArmPositonControlModuleConfig)
 
   def periodic(self) -> None:
     self._updateTelemetry()
@@ -40,13 +40,13 @@ class ArmSubsystem(Subsystem):
     ).withName("ArmSubsystem:AlignToPosition")
   
   def _setSpeed(self, speed: units.percent) -> None:
-    self._armMotor.setSpeed(speed)
+    self._armModule.setSpeed(speed)
 
   def _setPosition(self, position: units.inches) -> None:
-    self._armMotor.setPosition(position)
+    self._armModule.setPosition(position)
 
   def getPosition(self) -> units.inches:
-    return self._armMotor.getPosition()
+    return self._armModule.getPosition()
 
   def _setIsAlignedToPosition(self, position: units.inches) -> None:
     self._isAlignedToPosition = math.isclose(self.getPosition(), position, abs_tol = self._constants.kPositionAlignmentPositionTolerance)
@@ -60,10 +60,10 @@ class ArmSubsystem(Subsystem):
   def resetToZeroCommand(self) -> Command:
     return self.startEnd(
       lambda: [
-        self._armMotor.startZeroReset(),
+        self._armModule.startZeroReset(),
       ],
       lambda: [
-        self._armMotor.endZeroReset(),
+        self._armModule.endZeroReset(),
         setattr(self, "_hasInitialZeroReset", True)
       ]
     ).withName("ArmSubsystem:ResetToZero")
@@ -72,7 +72,7 @@ class ArmSubsystem(Subsystem):
     return self._hasInitialZeroReset
 
   def reset(self) -> None:
-    self._armMotor.reset()
+    self._armModule.reset()
     self.resetPositionAlignment()
 
   def _updateTelemetry(self) -> None:

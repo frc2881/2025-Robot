@@ -69,7 +69,7 @@ class HandSubsystem(Subsystem):
   
   def releaseGripperCommand(self) -> Command:
     return self.run(
-      lambda: self._gripperMotor.set(self._constants.kGripperMotorReleaseSpeed)
+      lambda: self._gripperMotor.set(-self._constants.kGripperMotorReleaseSpeed)
     ).withTimeout(
       0.5
     ).finallyDo(

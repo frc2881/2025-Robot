@@ -137,7 +137,7 @@ class Subsystems:
     kGripperMotorCurrentTrigger: int = 17 # TODO: Tune with real mechanism
     kGripperMotorIntakeSpeed: units.percent = 1.0
     kGripperMotorHoldSpeed: units.percent = 0.2 # TODO: Tune with real mechanism
-    kGripperMotorReleaseSpeed: units.percent = -0.75
+    kGripperMotorReleaseSpeed: units.percent = 0.75 # TODO: Tune with real mechanism
 
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20

@@ -31,4 +31,4 @@ jobs:
         time: "30"
     - name: Run PyFRC tests
       run: |
-        python -m robotpy test
+        python ./scripts/test.py

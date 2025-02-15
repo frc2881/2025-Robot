@@ -13,7 +13,7 @@ from lib import logger, utils
 from lib.classes import Alliance, PID, Tolerance, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, PositionControlModuleConstants, PositionControlModuleConfig
 from core.classes import Target, TargetType, TargetAlignmentLocation, TargetPosition, TargetPositionType, ElevatorPosition, WristPosition
 
-APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025Reefscape)
+APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025ReefscapeAndyMark)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings() # TODO: update all config measurements from physical robot metrics
 
 class Subsystems:

@@ -1,3 +1,3 @@
 import os
 
-os.system("python -m robotpy test -- -v -s --exitfirst")
+os.system("python -m robotpy test --isolated -- -v -s --exitfirst")

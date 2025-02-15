@@ -1,5 +1,5 @@
 from wpilib import SmartDashboard
-from commands2 import Subsystem, Command
+from commands2 import Subsystem, Command, cmd
 from rev import SparkMax, SparkMaxConfig, SparkBase
 from lib import logger, utils
 from core.classes import WristPosition
@@ -17,7 +17,7 @@ class WristSubsystem(Subsystem):
     self._sparkConfig = SparkMaxConfig()
     (self._sparkConfig
       .smartCurrentLimit(self._constants.kMotorCurrentLimit)
-      .inverted(True))
+      .inverted(False))
     utils.setSparkConfig(
       self._motor.configure(
         self._sparkConfig,
@@ -31,7 +31,7 @@ class WristSubsystem(Subsystem):
 
   def setPositionCommand(self, position: WristPosition) -> Command:
     return self.run(
-      lambda: self._motor.set(self._constants.kMotorUpSpeed if position != WristPosition.Up else -self._constants.kMotorDownSpeed)
+      lambda: self._motor.set(self._constants.kMotorUpSpeed if position == WristPosition.Up else -self._constants.kMotorDownSpeed)
     ).beforeStarting(
       lambda: self.resetPositionAlignment()
     ).until(
@@ -47,10 +47,12 @@ class WristSubsystem(Subsystem):
     ).withName("WristSubsystem:SetPosition")
   
   def togglePositionCommand(self) -> Command:
-    return self.setPositionCommand(
-      WristPosition.Up if self._position != WristPosition.Up else WristPosition.Down
-    ).withName("WristSubsystem:TogglePosition")
-    
+    return cmd.either(
+      self.setPositionCommand(WristPosition.Up), 
+      self.setPositionCommand(WristPosition.Down), 
+      lambda: self._position != WristPosition.Up
+    ).withName("WristSubsystem:Toggle")
+
   def getPosition(self) -> WristPosition:
     return self._position
 

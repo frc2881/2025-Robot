@@ -41,6 +41,7 @@ class HandSubsystem(Subsystem):
     )
 
     self._powerDistribution = PowerDistribution()
+    self._powerDistribution.setSwitchableChannel(False)
 
   def periodic(self) -> None:
     self._updateTelemetry()

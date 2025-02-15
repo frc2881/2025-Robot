@@ -158,7 +158,7 @@ class RobotCore:
       self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CoralStation)
     )
     # self.operatorController.b().whileTrue(cmd.none())
-    self.operatorController.y().whileTrue(
+    self.operatorController.y().onTrue(
       self.wristSubsystem.togglePositionCommand()
     )
     self.operatorController.x().whileTrue(

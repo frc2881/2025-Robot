@@ -108,7 +108,7 @@ class Subsystems:
   class Arm:
     kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, True, PositionControlModuleConstants(
       motorTravelDistance = 1.0,
-      motorControllerType = SparkLowLevel.SparkModel.kSparkMax,
+      motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 60,
       motorReduction = 1.0,
@@ -127,9 +127,9 @@ class Subsystems:
   class Wrist:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
-    kMotorCurrentTrigger: int = 20 # TODO: Tune with real mechanism
-    kMotorUpSpeed: units.percent = 0.3
-    kMotorDownSpeed: units.percent = 0.2
+    kMotorCurrentTrigger: int = 15 # TODO: Tune with real mechanism
+    kMotorUpSpeed: units.percent = 0.5
+    kMotorDownSpeed: units.percent = 0.5
     kSetPositionTimeout: units.seconds = 2.0
 
   class Hand:

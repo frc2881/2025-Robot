@@ -45,7 +45,7 @@ class ElevatorSubsystem(Subsystem):
 
   def _setSpeed(self, speed: units.percent) -> None:
     self._upperStageModule.setSpeed(speed) 
-    self._lowerStageModule.setSpeed(speed if self._upperStageModule.isPositionAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse) else 0)
+    self._lowerStageModule.setSpeed(speed if self._upperStageModule.isPositionAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse, self._constants.kPositionAlignmentPositionTolerance) else 0)
 
   def _setPosition(self, elevatorPosition: ElevatorPosition) -> None:
     self._upperStageModule.setPosition(elevatorPosition.upperStage)

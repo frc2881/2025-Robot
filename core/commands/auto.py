@@ -57,7 +57,7 @@ class AutoCommands:
     )
   
   def _start(self) -> Command:
-    return self._robot.gameCommands.intakeCommand(GamePiece.Coral)
+    return self._alignToTargetPosition(TargetPositionType.Start).alongWith(self._robot.gameCommands.intakeCommand(GamePiece.Coral))
 
   def _move(self, path: AutoPath) -> Command:
     return AutoBuilder.followPath(self._paths.get(path)).withTimeout(constants.Game.Commands.kAutoMoveTimeout)

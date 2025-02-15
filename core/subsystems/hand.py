@@ -114,6 +114,18 @@ class HandSubsystem(Subsystem):
       lambda: not self._isSuctionEnabled
     ).withName("HandSubsystem:ToggleSuction")
 
+  def isGripperEnabled(self) -> bool:
+    return self._isGripperEnabled
+  
+  def isGripperHolding(self) -> bool:
+    return self._isGripperHolding
+  
+  def isSuctionEnabled(self) -> bool:
+    return self._isSuctionEnabled
+  
+  def isSuctionHolding(self) -> bool:
+    return self._isSuctionHolding
+
   def _resetGripper(self) -> None:
     self._gripperMotor.stopMotor()
     self._isGripperHolding = False

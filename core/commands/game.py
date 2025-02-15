@@ -53,8 +53,8 @@ class GameCommands:
   
   def intakeCommand(self, gamePieceType: GamePiece) -> Command:
     return cmd.either(
-      self._robot.handSubsystem.runGripperCommand().until(lambda: self._robot.handSubsystem._isGripperHolding()),
-      self._robot.handSubsystem.runSuctionCommand().until(lambda: self._robot.handSubsystem._isSuctionHolding()),
+      self._robot.handSubsystem.runGripperCommand().until(lambda: self._robot.handSubsystem.isGripperHolding()),
+      self._robot.handSubsystem.runSuctionCommand().until(lambda: self._robot.handSubsystem.isSuctionHolding()),
       lambda: gamePieceType == GamePiece.Coral
     ).andThen(
       self.rumbleControllersCommand(ControllerRumbleMode.Both, ControllerRumblePattern.Short)
@@ -62,8 +62,8 @@ class GameCommands:
   
   def scoreCommand(self, gamePieceType: GamePiece) -> Command:
     return cmd.either(
-      self._robot.handSubsystem.releaseGripperCommand().until(lambda: not self._robot.handSubsystem._isGripperEnabled()),
-      self._robot.handSubsystem.releaseSuctionCommand().until(lambda: not self._robot.handSubsystem._isSuctionEnabled()),
+      self._robot.handSubsystem.releaseGripperCommand().until(lambda: not self._robot.handSubsystem.isGripperEnabled()),
+      self._robot.handSubsystem.releaseSuctionCommand().until(lambda: not self._robot.handSubsystem.isSuctionEnabled()),
       lambda: gamePieceType == GamePiece.Coral
     ).andThen(
       self.rumbleControllersCommand(ControllerRumbleMode.Both, ControllerRumblePattern.Short)

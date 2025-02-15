@@ -34,8 +34,6 @@ class WristSubsystem(Subsystem):
       lambda: self._motor.set(self._constants.kMotorUpSpeed if position == WristPosition.Up else -self._constants.kMotorDownSpeed)
     ).beforeStarting(
       lambda: self.resetPositionAlignment()
-    ).until(
-      lambda: self._motor.getOutputCurrent() >= self._constants.kMotorCurrentTrigger
     ).withTimeout(
       self._constants.kSetPositionTimeout
     ).finallyDo(
@@ -69,4 +67,3 @@ class WristSubsystem(Subsystem):
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Wrist/IsAlignedToPosition", self._isAlignedToPosition)
     SmartDashboard.putString("Robot/Wrist/Position", self._position.name)
-    SmartDashboard.putNumber("Robot/Wrist/Current", self._motor.getOutputCurrent())

@@ -127,10 +127,9 @@ class Subsystems:
   class Wrist:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
-    kMotorCurrentTrigger: int = 15 # TODO: Tune with real mechanism
-    kMotorUpSpeed: units.percent = 0.5
-    kMotorDownSpeed: units.percent = 0.5
-    kSetPositionTimeout: units.seconds = 2.0
+    kMotorUpSpeed: units.percent = 0.5 # TODO: tune with coral in gripper / algae on suction
+    kMotorDownSpeed: units.percent = 0.3 # TODO: tune with coral in gripper / algae on suction
+    kSetPositionTimeout: units.seconds = 2.0 # TODO: determine optimal timeout that works for both motor directions/speeds
 
   class Hand:
     kGripperMotorCANId: int = 14
@@ -278,6 +277,7 @@ class Game:
 
       # TODO: calculate and test elevator, arm, and wrist positions for all the targets
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
+        TargetPositionType.Start: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),

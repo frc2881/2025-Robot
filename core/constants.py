@@ -73,29 +73,29 @@ class Subsystems:
 
   class Elevator:
     kLowerStageModuleConfig = PositionControlModuleConfig("Elevator/Lower", 10, None, False, PositionControlModuleConstants(
-      motorTravelDistance = 0.5,
+      distancePerRotation = 0.5,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 80,
-      motorReduction = 3.0,
-      motorPID = PID(0.1, 0, 0.01),
-      motorMotionMaxVelocityRate = 100.0,
-      motorMotionMaxAccelerationRate = 100.0,
+      motorReduction = 3.0 / 1.0,
+      motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
+      motorMotionMaxVelocityRate = 33.0,
+      motorMotionMaxAccelerationRate = 66.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 28.9, # TODO: Update elevator stage soft limits with testing
+      motorSoftLimitForward = 28.75,
       motorSoftLimitReverse = 0.25,
       motorResetSpeed = 0.2
     ))
 
     kUpperStageModuleConfig = PositionControlModuleConfig("Elevator/Upper", 11, None, False, PositionControlModuleConstants(
-      motorTravelDistance = 1.0,
+      distancePerRotation = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 80,
-      motorReduction = 1.0,
-      motorPID = PID(0.1, 0, 0.01),
-      motorMotionMaxVelocityRate = 250.0,
-      motorMotionMaxAccelerationRate = 250.0,
+      motorReduction = 1.0 / 1.0,
+      motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
+      motorMotionMaxVelocityRate = 33.0,
+      motorMotionMaxAccelerationRate = 66.0,
       motorMotionAllowedClosedLoopError = 0.1,
       motorSoftLimitForward = 28.5,
       motorSoftLimitReverse = 0.25,
@@ -107,12 +107,12 @@ class Subsystems:
 
   class Arm:
     kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, True, PositionControlModuleConstants(
-      motorTravelDistance = 1.0,
+      distancePerRotation = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 60,
-      motorReduction = 1.0,
-      motorPID = PID(0.1, 0, 0.01),
+      motorReduction = 1.0 / 1.0,
+      motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
       motorMotionMaxVelocityRate = 33.0,
       motorMotionMaxAccelerationRate = 66.0,
       motorMotionAllowedClosedLoopError = 0.1,
@@ -121,7 +121,7 @@ class Subsystems:
       motorResetSpeed = 0.1
     ))
 
-    kPositionAlignmentPositionTolerance: units.inches = 0.5  
+    kPositionAlignmentPositionTolerance: units.inches = 0.05  
     kInputLimit: units.percent = 0.5
 
   class Wrist:
@@ -129,20 +129,18 @@ class Subsystems:
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.6
     kMotorDownSpeed: units.percent = 0.2
-    kSetPositionTimeout: units.seconds = 1.0
+    kSetPositionTimeout: units.seconds = 1.5
 
   class Hand:
     kGripperMotorCANId: int = 14
-    kGripperMotorCurrentLimit: int = 40
-    kGripperMotorCurrentTrigger: int = 35
-    kGripperMotorIntakeSpeed: units.percent = 1.0
-    kGripperMotorHoldSpeed: units.percent = 0.12 # TODO: Tune with real mechanism
-    kGripperMotorReleaseSpeed: units.percent = 1.0 # TODO: Tune with real mechanism
+    kGripperMotorCurrentLimit: int = 20
+    kGripperMotorCurrentTrigger: int = 18
+    kGripperMotorSpeed: units.percent = 1.0
 
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20
-    kSuctionMotorCurrentTrigger: int = 15 # TODO: Tune with real mechanism
-    kSuctionMotorIntakeSpeed: units.percent = 0.5 # TODO: Tune with real mechanism
+    kSuctionMotorCurrentTrigger: int = 15
+    kSuctionMotorSpeed: units.percent = 0.5
 
 class Services:
   class Localization:

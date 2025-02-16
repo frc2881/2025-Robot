@@ -10,9 +10,7 @@ class HandSubsystem(Subsystem):
     self._constants = constants.Subsystems.Hand
 
     self._isGripperEnabled = False
-    self._isGripperHolding = False
     self._isSuctionEnabled = False
-    self._isSuctionHolding = False
 
     self._gripperMotor = SparkMax(self._constants.kGripperMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkMaxConfig()
@@ -47,36 +45,27 @@ class HandSubsystem(Subsystem):
     self._updateTelemetry()
   
   def runGripperCommand(self) -> Command:
-    return self.run(
+    return self.runOnce(
       lambda: [
-        self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed),
+        self._gripperMotor.set(self._constants.kGripperMotorSpeed),
         setattr(self, "_isGripperEnabled", True)
       ]
-    ).withTimeout(
-      1.0
     ).andThen(
-      cmd.run(
-        lambda: [ 
-          self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed)
-        ]
+      cmd.waitSeconds(1.0)
+    ).andThen(
+      cmd.startEnd(
+        lambda: self._gripperMotor.set(self._constants.kGripperMotorSpeed),
+        lambda: self._resetGripper()
       ).until(
         lambda: self._gripperMotor.getOutputCurrent() >= self._constants.kGripperMotorCurrentTrigger
       )
-    ).finallyDo(
-      lambda end: [ 
-        self._gripperMotor.set(self._constants.kGripperMotorHoldSpeed),
-        setattr(self, "_isGripperHolding", True)
-      ]
     ).withName("HandSubsystem:RunGripper")
   
   def releaseGripperCommand(self) -> Command:
-    return self.run(
-      lambda: self._gripperMotor.set(-self._constants.kGripperMotorReleaseSpeed)
-    ).withTimeout(
-      0.5
-    ).finallyDo(
-      lambda end: self._resetGripper()
-    ).withName("HandSubsystem:ReleaseGripper")
+    return self.startEnd(
+      lambda: self._gripperMotor.set(-self._constants.kGripperMotorSpeed),
+      lambda: self._resetGripper()
+    ).withTimeout(1.0).withName("HandSubsystem:ReleaseGripper")
 
   def toggleGripperCommand(self) -> Command:
     return cmd.either(
@@ -85,36 +74,39 @@ class HandSubsystem(Subsystem):
       lambda: not self._isGripperEnabled
     ).withName("HandSubsystem:ToggleGripper")
 
+  def isGripperEnabled(self) -> bool:
+    return self._isGripperEnabled
+
+  def _resetGripper(self) -> None:
+    self._gripperMotor.stopMotor()
+    self._isGripperEnabled = False
+
   def runSuctionCommand(self) -> Command:
-    return self.run(
+    return self.runOnce(
       lambda: [
-        self._powerDistribution.setSwitchableChannel(False),
-        self._suctionMotor.set(self._constants.kSuctionMotorIntakeSpeed),
+        self._openSolenoid(False),
+        self._suctionMotor.set(self._constants.kSuctionMotorSpeed),
         setattr(self, "_isSuctionEnabled", True)
       ]
-    ).withTimeout(
-      0.2
     ).andThen(
-      lambda: self._suctionMotor.set(self._constants.kSuctionMotorIntakeSpeed)
-    ).until(
-      # TODO: possibly refine output current trigger logic with moving average and delta/spike detection
-      lambda: self._suctionMotor.getOutputCurrent() >= self._constants.kSuctionMotorCurrentTrigger
+      cmd.waitSeconds(1.0)
     ).andThen(
-      lambda: setattr(self, "_isSuctionHolding", True)
-      # TODO: consider adding logic that detects losing the suction hold
+      cmd.startEnd(
+        lambda: self._suctionMotor.set(self._constants.kSuctionMotorSpeed),
+        lambda: self._suctionMotor.stopMotor() # TODO: test if motor should keep running until suction is released
+      ).until(
+        lambda: self._suctionMotor.getOutputCurrent() >= self._constants.kSuctionMotorCurrentTrigger
+      )
     ).withName("HandSubsystem:RunSuction")
   
   def releaseSuctionCommand(self) -> Command:
-    return self.run(
-      lambda: [
+    return self.startEnd(
+      lambda: [ 
         self._suctionMotor.stopMotor(),
-        self._powerDistribution.setSwitchableChannel(True),
-      ]
-    ).withTimeout(
-      1.0
-    ).finallyDo(
-      lambda end: self._resetSuction()
-    ).withName("HandSubsystem:ReleaseSuction")
+        self._openSolenoid(True)
+      ],
+      lambda: self._resetSuction()
+    ).withTimeout(1.0).withName("HandSubsystem:ReleaseSuction")
 
   def toggleSuctionCommand(self) -> Command:
     return cmd.either(
@@ -123,27 +115,15 @@ class HandSubsystem(Subsystem):
       lambda: not self._isSuctionEnabled
     ).withName("HandSubsystem:ToggleSuction")
 
-  def isGripperEnabled(self) -> bool:
-    return self._isGripperEnabled
-  
-  def isGripperHolding(self) -> bool:
-    return self._isGripperHolding
-  
   def isSuctionEnabled(self) -> bool:
     return self._isSuctionEnabled
   
-  def isSuctionHolding(self) -> bool:
-    return self._isSuctionHolding
-
-  def _resetGripper(self) -> None:
-    self._gripperMotor.stopMotor()
-    self._isGripperHolding = False
-    self._isGripperEnabled = False
+  def _openSolenoid(self, isOpened: bool) -> None:
+    self._powerDistribution.setSwitchableChannel(isOpened)
 
   def _resetSuction(self) -> None:
     self._suctionMotor.stopMotor()
-    self._powerDistribution.setSwitchableChannel(False)
-    self._isSuctionHolding = False
+    self._openSolenoid(False)
     self._isSuctionEnabled = False
 
   def reset(self) -> None:
@@ -152,11 +132,9 @@ class HandSubsystem(Subsystem):
 
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Hand/Gripper/IsEnabled", self._isGripperEnabled)
-    SmartDashboard.putBoolean("Robot/Hand/Gripper/IsHolding", self._isGripperHolding)
     SmartDashboard.putNumber("Robot/Hand/Gripper/Speed", self._gripperMotor.get())
     SmartDashboard.putNumber("Robot/Hand/Gripper/Current", self._gripperMotor.getOutputCurrent()) 
     SmartDashboard.putBoolean("Robot/Hand/Suction/IsEnabled", self._isSuctionEnabled)
-    SmartDashboard.putBoolean("Robot/Hand/Suction/IsHolding", self._isSuctionHolding)
     SmartDashboard.putNumber("Robot/Hand/Suction/Speed", self._suctionMotor.get())
     SmartDashboard.putNumber("Robot/Hand/Suction/Current", self._suctionMotor.getOutputCurrent())
  

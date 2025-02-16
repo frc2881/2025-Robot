@@ -32,15 +32,6 @@ class ElevatorSubsystem(Subsystem):
     ).finallyDo(
       lambda end: self.reset()
     ).withName("ElevatorSubsystem:Run")
-  
-  def runLowerCommand(self, getInput: Callable[[], units.percent]) -> Command:
-    return self.run(
-      lambda: self._lowerStageModule.setSpeed(getInput() * self._constants.kInputLimit)
-    ).beforeStarting(
-      lambda: self.resetPositionAlignment()
-    ).finallyDo(
-      lambda end: self.reset()
-    ).withName("ElevatorSubsystem:RunLower")
 
   def alignToPositionCommand(self, elevatorPosition: ElevatorPosition) -> Command:
     return self.run(

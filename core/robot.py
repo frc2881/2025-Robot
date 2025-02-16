@@ -14,7 +14,7 @@ from core.subsystems.arm import ArmSubsystem
 from core.subsystems.wrist import WristSubsystem
 from core.subsystems.hand import HandSubsystem
 from core.services.localization import LocalizationService
-from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, LightsMode
+from core.classes import TargetAlignmentLocation, TargetPositionType, WristPosition, GamePiece, LightsMode
 import core.constants as constants
 
 class RobotCore:
@@ -114,7 +114,6 @@ class RobotCore:
       self.elevatorSubsystem.runCommand(
         self.operatorController.getLeftY
     ))
-    self.operatorController.back().whileTrue(self.elevatorSubsystem.runLowerCommand(self.operatorController.getLeftY))
     self.armSubsystem.setDefaultCommand(
       self.armSubsystem.runCommand(
         self.operatorController.getRightY
@@ -172,7 +171,7 @@ class RobotCore:
     #     .or_(self.operatorController.povDown())
     #   ).not_()
     # ).whileTrue(cmd.none())
-    self.operatorController.start().and_(self.operatorController.povLeft()).whileTrue(
+    self.operatorController.start().and_(self.operatorController.povDown()).whileTrue(
       self.elevatorSubsystem.resetToZeroLowerStageCommand()
     )
     self.operatorController.start().and_(self.operatorController.povUp()).whileTrue(
@@ -180,6 +179,9 @@ class RobotCore:
     )
     self.operatorController.start().and_(self.operatorController.povRight()).whileTrue(
       self.armSubsystem.resetToZeroCommand()
+    )
+    self.operatorController.start().and_(self.operatorController.povLeft()).whileTrue(
+      self.wristSubsystem.setPositionCommand(WristPosition.Up)
     )
     # self.operatorController.back().onTrue(cmd.none())
 

@@ -30,18 +30,18 @@ class WristSubsystem(Subsystem):
     self._updateTelemetry()
 
   def setPositionCommand(self, position: WristPosition) -> Command:
-    return self.run(
-      lambda: self._motor.set(self._constants.kMotorUpSpeed if position == WristPosition.Up else -self._constants.kMotorDownSpeed)
-    ).beforeStarting(
-      lambda: self.resetPositionAlignment()
-    ).withTimeout(
-      self._constants.kSetPositionTimeout
-    ).finallyDo(
-      lambda end: [
-        self.reset(),
+    return self.startEnd(
+      lambda: [
+        self.resetPositionAlignment(),
+        self._motor.set(self._constants.kMotorUpSpeed if position == WristPosition.Up else -self._constants.kMotorDownSpeed)
+      ],
+      lambda: [
+        self._motor.stopMotor(),
         setattr(self, "_position", position),
         setattr(self, "_isAlignedToPosition", True)
       ]
+    ).withTimeout(
+      self._constants.kSetPositionTimeout
     ).withName("WristSubsystem:SetPosition")
   
   def togglePositionCommand(self) -> Command:
@@ -49,7 +49,7 @@ class WristSubsystem(Subsystem):
       self.setPositionCommand(WristPosition.Up), 
       self.setPositionCommand(WristPosition.Down), 
       lambda: self._position != WristPosition.Up
-    ).withName("WristSubsystem:Toggle")
+    ).withName("WristSubsystem:TogglePosition")
 
   def getPosition(self) -> WristPosition:
     return self._position
@@ -59,6 +59,7 @@ class WristSubsystem(Subsystem):
 
   def resetPositionAlignment(self) -> None:
     self._isAlignedToPosition = False
+    self._position = WristPosition.Unknown
 
   def reset(self) -> None:
     self._motor.stopMotor()

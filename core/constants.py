@@ -79,12 +79,12 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 3.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorMotionMaxVelocityRate = 33.0,
-      motorMotionMaxAccelerationRate = 66.0,
+      motorMotionMaxVelocityRate = 100.0,
+      motorMotionMaxAccelerationRate = 100.0,
       motorMotionAllowedClosedLoopError = 0.1,
       motorSoftLimitForward = 28.9, # TODO: Update elevator stage soft limits with testing
-      motorSoftLimitReverse = 0.5,
-      motorResetSpeed = 0.1
+      motorSoftLimitReverse = 0.25,
+      motorResetSpeed = 0.2
     ))
 
     kUpperStageModuleConfig = PositionControlModuleConfig("Elevator/Upper", 11, None, False, PositionControlModuleConstants(
@@ -94,11 +94,11 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorMotionMaxVelocityRate = 33.0,
-      motorMotionMaxAccelerationRate = 66.0,
+      motorMotionMaxVelocityRate = 250.0,
+      motorMotionMaxAccelerationRate = 250.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 20.0, # TODO: Update elevator stage soft limits with testing
-      motorSoftLimitReverse = 0.5,
+      motorSoftLimitForward = 28.5,
+      motorSoftLimitReverse = 0.25,
       motorResetSpeed = 0.12
     ))
 
@@ -127,22 +127,22 @@ class Subsystems:
   class Wrist:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
-    kMotorUpSpeed: units.percent = 0.5 # TODO: tune with coral in gripper / algae on suction
-    kMotorDownSpeed: units.percent = 0.3 # TODO: tune with coral in gripper / algae on suction
-    kSetPositionTimeout: units.seconds = 2.0 # TODO: determine optimal timeout that works for both motor directions/speeds
+    kMotorUpSpeed: units.percent = 0.6
+    kMotorDownSpeed: units.percent = 0.2
+    kSetPositionTimeout: units.seconds = 1.0
 
   class Hand:
     kGripperMotorCANId: int = 14
-    kGripperMotorCurrentLimit: int = 20 # TODO: Validate that current limit applies to brushed motor (REV docs say otherwise)
-    kGripperMotorCurrentTrigger: int = 17 # TODO: Tune with real mechanism
+    kGripperMotorCurrentLimit: int = 40
+    kGripperMotorCurrentTrigger: int = 35
     kGripperMotorIntakeSpeed: units.percent = 1.0
-    kGripperMotorHoldSpeed: units.percent = 0.2 # TODO: Tune with real mechanism
-    kGripperMotorReleaseSpeed: units.percent = 0.75 # TODO: Tune with real mechanism
+    kGripperMotorHoldSpeed: units.percent = 0.12 # TODO: Tune with real mechanism
+    kGripperMotorReleaseSpeed: units.percent = 1.0 # TODO: Tune with real mechanism
 
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20
     kSuctionMotorCurrentTrigger: int = 15 # TODO: Tune with real mechanism
-    kSuctionMotorIntakeSpeed: units.percent = 0.2 # TODO: Tune with real mechanism
+    kSuctionMotorIntakeSpeed: units.percent = 0.5 # TODO: Tune with real mechanism
 
 class Services:
   class Localization:
@@ -257,9 +257,9 @@ class Game:
         },
         TargetType.CoralStation: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(12), units.inchesToMeters(-24), 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(12), units.inchesToMeters(24), 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(21), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(21), units.inchesToMeters(-23.5), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(21), units.inchesToMeters(23.5), 0, Rotation3d())
         },
         TargetType.AlgaeProcessor: {
           TargetAlignmentLocation.Default: Transform3d(),
@@ -269,22 +269,22 @@ class Game:
         },
         TargetType.Barge: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(12), 0, 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d())
         }
       }
 
       # TODO: calculate and test elevator, arm, and wrist positions for all the targets
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
-        TargetPositionType.Start: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
-        TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
+        TargetPositionType.Start: TargetPosition(ElevatorPosition(5.0, 0.0), 0.0, WristPosition.Up),
+        TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.9, 28.7), 0.0, WristPosition.Down),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
-        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(0.0, 0.847), 2.5, WristPosition.Up),
         TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.Barge: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
         TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),

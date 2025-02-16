@@ -67,3 +67,5 @@ class WristSubsystem(Subsystem):
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Wrist/IsAlignedToPosition", self._isAlignedToPosition)
     SmartDashboard.putString("Robot/Wrist/Position", self._position.name)
+    SmartDashboard.putNumber("Robot/Wrist/Speed", self._motor.get())
+    SmartDashboard.putNumber("Robot/Wrist/Current", self._motor.getOutputCurrent())

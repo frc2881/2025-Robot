@@ -24,6 +24,7 @@ class Robot(TimedCommandRobot):
 
   def disabledInit(self) -> None:
     logger.mode(RobotMode.Disabled)
+    self._robotCore.disabledInit()
 
   def disabledPeriodic(self) -> None:
     pass

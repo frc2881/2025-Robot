@@ -53,18 +53,20 @@ class HandSubsystem(Subsystem):
         setattr(self, "_isGripperEnabled", True)
       ]
     ).withTimeout(
-      0.2
+      1.0
     ).andThen(
-      lambda: self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed)
-    ).until(
-      # TODO: possibly refine output current trigger logic with moving average and delta/spike detection
-      lambda: self._gripperMotor.getOutputCurrent() >= self._constants.kGripperMotorCurrentTrigger
-    ).andThen(
-      lambda: [ 
+      cmd.run(
+        lambda: [ 
+          self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed)
+        ]
+      ).until(
+        lambda: self._gripperMotor.getOutputCurrent() >= self._constants.kGripperMotorCurrentTrigger
+      )
+    ).finallyDo(
+      lambda end: [ 
         self._gripperMotor.set(self._constants.kGripperMotorHoldSpeed),
         setattr(self, "_isGripperHolding", True)
       ]
-      # TODO: consider adding logic that detects losing the gripper hold
     ).withName("HandSubsystem:RunGripper")
   
   def releaseGripperCommand(self) -> Command:
@@ -103,8 +105,15 @@ class HandSubsystem(Subsystem):
     ).withName("HandSubsystem:RunSuction")
   
   def releaseSuctionCommand(self) -> Command:
-    return self.runOnce(
-      lambda: self._resetSuction()
+    return self.run(
+      lambda: [
+        self._suctionMotor.stopMotor(),
+        self._powerDistribution.setSwitchableChannel(True),
+      ]
+    ).withTimeout(
+      1.0
+    ).finallyDo(
+      lambda end: self._resetSuction()
     ).withName("HandSubsystem:ReleaseSuction")
 
   def toggleSuctionCommand(self) -> Command:
@@ -133,7 +142,7 @@ class HandSubsystem(Subsystem):
 
   def _resetSuction(self) -> None:
     self._suctionMotor.stopMotor()
-    self._powerDistribution.setSwitchableChannel(True)
+    self._powerDistribution.setSwitchableChannel(False)
     self._isSuctionHolding = False
     self._isSuctionEnabled = False
 

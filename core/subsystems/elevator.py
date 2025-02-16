@@ -32,6 +32,15 @@ class ElevatorSubsystem(Subsystem):
     ).finallyDo(
       lambda end: self.reset()
     ).withName("ElevatorSubsystem:Run")
+  
+  def runLowerCommand(self, getInput: Callable[[], units.percent]) -> Command:
+    return self.run(
+      lambda: self._lowerStageModule.setSpeed(getInput() * self._constants.kInputLimit)
+    ).beforeStarting(
+      lambda: self.resetPositionAlignment()
+    ).finallyDo(
+      lambda end: self.reset()
+    ).withName("ElevatorSubsystem:RunLower")
 
   def alignToPositionCommand(self, elevatorPosition: ElevatorPosition) -> Command:
     return self.run(
@@ -45,7 +54,7 @@ class ElevatorSubsystem(Subsystem):
 
   def _setSpeed(self, speed: units.percent) -> None:
     self._upperStageModule.setSpeed(speed) 
-    self._lowerStageModule.setSpeed(speed if self._upperStageModule.isPositionAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse, self._constants.kPositionAlignmentPositionTolerance) else 0)
+    self._lowerStageModule.setSpeed(speed if self._upperStageModule.isPositionAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse, 1.0) else 0)
 
   def _setPosition(self, elevatorPosition: ElevatorPosition) -> None:
     self._upperStageModule.setPosition(elevatorPosition.upperStage)

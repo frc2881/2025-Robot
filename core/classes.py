@@ -15,6 +15,7 @@ class TargetType(Enum):
   Barge = auto()
 
 class TargetPositionType(Enum):
+  Default = auto()
   Start = auto()
   ReefCoralL4 = auto()
   ReefAlgaeL3 = auto()

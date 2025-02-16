@@ -114,6 +114,7 @@ class RobotCore:
       self.elevatorSubsystem.runCommand(
         self.operatorController.getLeftY
     ))
+    self.operatorController.back().whileTrue(self.elevatorSubsystem.runLowerCommand(self.operatorController.getLeftY))
     self.armSubsystem.setDefaultCommand(
       self.armSubsystem.runCommand(
         self.operatorController.getRightY
@@ -155,7 +156,7 @@ class RobotCore:
       self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.Barge)
     )
     self.operatorController.a().whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CoralStation)
+      self.gameCommands.intakeCoralCommand()
     )
     # self.operatorController.b().whileTrue(cmd.none())
     self.operatorController.y().onTrue(
@@ -217,8 +218,15 @@ class RobotCore:
   def testInit(self) -> None:
     self.resetRobot()
 
+  def disabledInit(self) -> None:
+    self.resetRobot()
+
   def resetRobot(self) -> None:
     self.driveSubsystem.reset()
+    self.elevatorSubsystem.reset()
+    self.armSubsystem.reset()
+    self.wristSubsystem.reset()
+    self.handSubsystem.reset()
 
   def _robotHasInitialZeroResets(self) -> bool:
     return utils.isCompetitionMode() or (

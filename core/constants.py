@@ -79,8 +79,8 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 3.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
-      motorMotionMaxVelocityRate = 33.0,
-      motorMotionMaxAccelerationRate = 66.0,
+      motorMotionMaxVelocityRate = 100.0,
+      motorMotionMaxAccelerationRate = 200.0,
       motorMotionAllowedClosedLoopError = 0.1,
       motorSoftLimitForward = 28.75,
       motorSoftLimitReverse = 0.25,
@@ -94,15 +94,15 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
-      motorMotionMaxVelocityRate = 33.0,
-      motorMotionMaxAccelerationRate = 66.0,
+      motorMotionMaxVelocityRate = 150.0,
+      motorMotionMaxAccelerationRate = 250.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 28.5,
+      motorSoftLimitForward = 28.75,
       motorSoftLimitReverse = 0.25,
-      motorResetSpeed = 0.12
+      motorResetSpeed = 0.1
     ))
 
-    kPositionAlignmentPositionTolerance: float = 0.05
+    kPositionAlignmentPositionTolerance: float = 0.5
     kInputLimit: units.percent = 0.5
 
   class Arm:
@@ -113,15 +113,15 @@ class Subsystems:
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
-      motorMotionMaxVelocityRate = 33.0,
-      motorMotionMaxAccelerationRate = 66.0,
+      motorMotionMaxVelocityRate = 100.0,
+      motorMotionMaxAccelerationRate = 200.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 48, # TODO: Update arm soft limits with testing
-      motorSoftLimitReverse = 0,
+      motorSoftLimitForward = 69.0,
+      motorSoftLimitReverse = 1.5,
       motorResetSpeed = 0.1
     ))
 
-    kPositionAlignmentPositionTolerance: units.inches = 0.05  
+    kPositionAlignmentPositionTolerance: units.inches = 0.5 
     kInputLimit: units.percent = 0.5
 
   class Wrist:
@@ -129,13 +129,14 @@ class Subsystems:
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.6
     kMotorDownSpeed: units.percent = 0.2
-    kSetPositionTimeout: units.seconds = 1.5
+    kSetPositionTimeout: units.seconds = 1.25
 
   class Hand:
     kGripperMotorCANId: int = 14
-    kGripperMotorCurrentLimit: int = 20
-    kGripperMotorCurrentTrigger: int = 18
+    kGripperMotorCurrentLimit: int = 30
+    kGripperMotorCurrentTrigger: int = 25
     kGripperMotorSpeed: units.percent = 1.0
+    kGripperIntakeTimeout: units.seconds = 2.0
 
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20
@@ -205,9 +206,9 @@ class Controllers:
 
 class Game:
   class Commands:
-    kTargetAlignmentTimeout: units.seconds = 2.0 # TODO: tune this to actual mechanism performance
-    kTargetPositionAlignmentTimeout: units.seconds = 3.0 # TODO: tune this to actual mechanism performance
     kAutoMoveTimeout: units.seconds = 4.0 # TODO: tune this to actual drive train and path planning performance
+    kAutoTargetAlignmentTimeout: units.seconds = 2.0 # TODO: tune this to actual mechanism performance
+    kAUtoTargetPositionAlignmentTimeout: units.seconds = 3.0 # TODO: tune this to actual mechanism performance
 
   class Field:
     kAprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT
@@ -276,7 +277,8 @@ class Game:
       # TODO: calculate and test elevator, arm, and wrist positions for all the targets
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
         TargetPositionType.Start: TargetPosition(ElevatorPosition(5.0, 0.0), 0.0, WristPosition.Up),
-        TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.9, 28.7), 0.0, WristPosition.Down),
+        TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, 0.0), 0, WristPosition.Up),
+        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.7, WristPosition.Down),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
@@ -285,6 +287,6 @@ class Game:
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(0.0, 0.847), 2.5, WristPosition.Up),
         TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
         TargetPositionType.Barge: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
-        TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
-        TargetPositionType.CageClimb: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up)
+        TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, 29.0), 69.0, WristPosition.Up),
+        TargetPositionType.CageClimb: TargetPosition(ElevatorPosition(0.0, 29.0), 69.0, WristPosition.Up)
       }

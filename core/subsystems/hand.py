@@ -51,13 +51,18 @@ class HandSubsystem(Subsystem):
         setattr(self, "_isGripperEnabled", True)
       ]
     ).andThen(
-      cmd.waitSeconds(1.0)
+      cmd.waitSeconds(self._constants.kGripperIntakeTimeout)
     ).andThen(
-      cmd.startEnd(
+      cmd.run(
         lambda: self._gripperMotor.set(self._constants.kGripperMotorSpeed),
-        lambda: self._resetGripper()
       ).until(
         lambda: self._gripperMotor.getOutputCurrent() >= self._constants.kGripperMotorCurrentTrigger
+      )
+    ).andThen(
+      cmd.waitSeconds(1.0)
+    ).andThen(
+      cmd.runOnce(
+        lambda: self._resetGripper()
       )
     ).withName("HandSubsystem:RunGripper")
   

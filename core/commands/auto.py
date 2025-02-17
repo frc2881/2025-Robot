@@ -63,16 +63,16 @@ class AutoCommands:
     return AutoBuilder.followPath(self._paths.get(path)).withTimeout(constants.Game.Commands.kAutoMoveTimeout)
   
   def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
-    return self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, targetAlignmentLocation)
+    return self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, targetAlignmentLocation).withTimeout(constants.Game.Commands.kAutoTargetAlignmentTimeout)
   
   def _alignToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
-    return self._robot.gameCommands.alignRobotToTargetPositionCommand(targetPositionType)
+    return self._robot.gameCommands.alignRobotToTargetPositionCommand(targetPositionType).withTimeout(constants.Game.Commands.kAUtoTargetPositionAlignmentTimeout)
   
   def _intake(self) -> Command:
     return self._robot.gameCommands.intakeCommand(GamePiece.Coral)
 
   def _score(self) -> Command:
-    return self._robot.gameCommands.scoreCommand(GamePiece.Coral)
+    return self._robot.gameCommands.ejectCommand(GamePiece.Coral)
   
   def _getStartingPose(self, position: int) -> Pose2d:
     match position:
@@ -99,8 +99,9 @@ class AutoCommands:
     return cmd.sequence(
       self._start(),
       self._move(AutoPath.Start1_1),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Ready),
       self._alignToTarget(TargetAlignmentLocation.Left),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Score),
       self._score()
     ).withName("AutoCommands:[1]_1")
   
@@ -108,8 +109,9 @@ class AutoCommands:
     return cmd.sequence(
       self._start(),
       self._move(AutoPath.Start2_2),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Ready),
       self._alignToTarget(TargetAlignmentLocation.Left),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Score),
       self._score()
     ).withName("AutoCommands:[2]_2")
   
@@ -117,7 +119,8 @@ class AutoCommands:
     return cmd.sequence(
       self._start(),
       self._move(AutoPath.Start3_3),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Ready),
       self._alignToTarget(TargetAlignmentLocation.Right),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4),
+      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Score),
       self._score()
     ).withName("AutoCommands:[3]_3")

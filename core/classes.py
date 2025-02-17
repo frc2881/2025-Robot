@@ -17,7 +17,8 @@ class TargetType(Enum):
 class TargetPositionType(Enum):
   Default = auto()
   Start = auto()
-  ReefCoralL4 = auto()
+  ReefCoralL4Ready = auto()
+  ReefCoralL4Score = auto()
   ReefAlgaeL3 = auto()
   ReefCoralL3 = auto()
   ReefAlgaeL2 = auto()

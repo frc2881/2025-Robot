@@ -122,16 +122,16 @@ class RobotCore:
       self.gameCommands.intakeCommand(GamePiece.Coral)
     )
     self.operatorController.rightTrigger().onTrue(
-      self.gameCommands.scoreCommand(GamePiece.Coral)
+      self.gameCommands.ejectCommand(GamePiece.Coral)
     )
     self.operatorController.leftBumper().whileTrue(
       self.gameCommands.intakeCommand(GamePiece.Algae)
     )
     self.operatorController.rightBumper().onTrue(
-      self.gameCommands.scoreCommand(GamePiece.Algae)
+      self.gameCommands.ejectCommand(GamePiece.Algae)
     )
     self.operatorController.povUp().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.ReefCoralL4)
+      self.gameCommands.alignRobotToTargetPositionReefCoralL4Command()
     )
     self.operatorController.povRight().and_((self.operatorController.start()).not_()).whileTrue(
       self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.ReefCoralL3)
@@ -178,10 +178,10 @@ class RobotCore:
       self.elevatorSubsystem.resetToZeroUpperStageCommand()
     )
     self.operatorController.start().and_(self.operatorController.povRight()).whileTrue(
-      self.armSubsystem.resetToZeroCommand()
+      self.wristSubsystem.setPositionCommand(WristPosition.Up)
     )
     self.operatorController.start().and_(self.operatorController.povLeft()).whileTrue(
-      self.wristSubsystem.setPositionCommand(WristPosition.Up)
+      self.armSubsystem.resetToZeroCommand()
     )
     # self.operatorController.back().onTrue(cmd.none())
 

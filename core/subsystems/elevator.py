@@ -52,7 +52,10 @@ class ElevatorSubsystem(Subsystem):
     self._lowerStageModule.setPosition(elevatorPosition.lowerStage)
 
   def _setIsAlignedToPosition(self, elevatorPosition: ElevatorPosition) -> None:
-    self._isAlignedToPosition = (
+    self._isAlignedToPosition = self.getIsAlignedToPosition(elevatorPosition)
+
+  def getIsAlignedToPosition(self,  elevatorPosition: ElevatorPosition) -> bool:
+    return (
       math.isclose(self._lowerStageModule.getPosition(), elevatorPosition.lowerStage, abs_tol = self._constants.kPositionAlignmentPositionTolerance)
       and 
       math.isclose(self._upperStageModule.getPosition(), elevatorPosition.upperStage, abs_tol = self._constants.kPositionAlignmentPositionTolerance)

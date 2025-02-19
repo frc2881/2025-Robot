@@ -37,8 +37,8 @@ class LocalizationService():
     self._targetPoses: list[Pose2d] = []
     
     self._robotPosePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Robot/Localization/Pose", Pose2d).publish()
-    SmartDashboard.putNumber("Robot/Game/Field/Length", constants.Game.Field.kLength)
-    SmartDashboard.putNumber("Robot/Game/Field/Width", constants.Game.Field.kWidth)
+    SmartDashboard.putNumber("Game/Field/Length", constants.Game.Field.kLength)
+    SmartDashboard.putNumber("Game/Field/Width", constants.Game.Field.kWidth)
 
     utils.addRobotPeriodic(self._periodic)
 

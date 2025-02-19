@@ -19,7 +19,7 @@ class Robot(TimedCommandRobot):
       CommandScheduler.getInstance().run()
     except:
       CommandScheduler.getInstance().cancelAll()
-      self._robotCore.resetRobot()
+      self._robotCore.reset()
       logger.exception()
 
   def disabledInit(self) -> None:
@@ -32,7 +32,7 @@ class Robot(TimedCommandRobot):
   def autonomousInit(self) -> None:
     logger.mode(RobotMode.Auto)
     self._robotCore.autoInit()
-    self._autoCommand = self._robotCore.getAutoCommand()
+    self._autoCommand = self._robotCore.autoCommands.getSelected()
     if self._autoCommand is not None:
       self._autoCommand.schedule()
 
@@ -60,7 +60,7 @@ class Robot(TimedCommandRobot):
     pass
 
   def _simulationInit(self) -> None:
-    pass
+    self._robotCore.simulationInit()
 
   def _simulationPeriodic(self) -> None:
     pass

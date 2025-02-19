@@ -170,14 +170,11 @@ class DriveSubsystem(Subsystem):
       targetAlignmentLocation: TargetAlignmentLocation,
       targetType: TargetType
     ) -> Command:
-    return self.run(
+    return self.startRun(
+      lambda: self._initTargetAlignment(getRobotPose(), getTargetPose(targetAlignmentLocation, targetType), targetAlignmentMode),
       lambda: self._runTargetAlignment(getRobotPose(), targetAlignmentMode)
-    ).beforeStarting(
-      lambda: self._initTargetAlignment(getRobotPose(), getTargetPose(targetAlignmentLocation, targetType), targetAlignmentMode)
     ).onlyIf(
       lambda: self._lockState != LockState.Locked
-    ).until(
-      lambda: self._isAlignedToTarget
     ).withName("DriveSubsystem:AlignToTarget")
   
   def _initTargetAlignment(

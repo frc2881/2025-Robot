@@ -10,16 +10,38 @@ from pathplannerlib.pathfinding import PathConstraints
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from rev import SparkLowLevel
 from lib import logger, utils
-from lib.classes import Alliance, PID, Tolerance, SwerveModuleConstants, SwerveModuleConfig, SwerveModuleLocation, PoseSensorConfig, DriftCorrectionConstants, TargetAlignmentConstants, PositionControlModuleConstants, PositionControlModuleConfig
-from core.classes import Target, TargetType, TargetAlignmentLocation, TargetPosition, TargetPositionType, ElevatorPosition, WristPosition
+from lib.classes import (
+  Alliance, 
+  PID, 
+  Tolerance, 
+  Position, 
+  Range,
+  Value,
+  SwerveModuleConstants, 
+  SwerveModuleConfig, 
+  SwerveModuleLocation, 
+  PoseSensorConfig, 
+  DriftCorrectionConstants, 
+  TargetAlignmentConstants, 
+  PositionControlModuleConstants, 
+  PositionControlModuleConfig 
+)
+from core.classes import (
+  Target, 
+  TargetType, 
+  TargetAlignmentLocation, 
+  TargetPosition, 
+  TargetPositionType, 
+  ElevatorPosition
+)
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025ReefscapeAndyMark)
-PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings() # TODO: update all config measurements from physical robot metrics
+PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings() # TODO: update/validate all config measurements from physical robot metrics
 
 class Subsystems:
   class Drive:
-    kTrackWidth: units.meters = units.inchesToMeters(26)
-    kWheelBase: units.meters = units.inchesToMeters(26)
+    kTrackWidth: units.meters = units.inchesToMeters(26.0)
+    kWheelBase: units.meters = units.inchesToMeters(26.0)
 
     kTranslationSpeedMax: units.meters_per_second = 5.74
     kRotationSpeedMax: units.radians_per_second = 4 * math.pi
@@ -72,76 +94,79 @@ class Subsystems:
     )
 
   class Elevator:
-    kLowerStageModuleConfig = PositionControlModuleConfig("Elevator/Lower", 10, None, False, PositionControlModuleConstants(
+    kLowerStageConfig = PositionControlModuleConfig("Elevator/LowerStage", 10, None, False, PositionControlModuleConstants(
       distancePerRotation = 0.5,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 80,
       motorReduction = 3.0 / 1.0,
-      motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
-      motorMotionMaxVelocityRate = 100.0,
-      motorMotionMaxAccelerationRate = 200.0,
-      motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 28.75,
-      motorSoftLimitReverse = 0.25,
+      motorPID = PID(0.1, 0, 0.01),
+      motorOutputRange = Range(1.0, 0.75), # TODO: tune output range with vertical mechanism (slower going down)
+      motorMotionMaxVelocity = 33.0, # TODO: retune with mechanism updates
+      motorMotionMaxAcceleration = 66.0, # TODO: retune with mechanism updates
+      motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 28.75, # TODO: retune with mechanism updates
+      motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
       motorResetSpeed = 0.2
     ))
 
-    kUpperStageModuleConfig = PositionControlModuleConfig("Elevator/Upper", 11, None, False, PositionControlModuleConstants(
+    kUpperStageConfig = PositionControlModuleConfig("Elevator/UpperStage", 11, None, False, PositionControlModuleConstants(
       distancePerRotation = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
-      motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
-      motorMotionMaxVelocityRate = 150.0,
-      motorMotionMaxAccelerationRate = 250.0,
-      motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 28.75,
-      motorSoftLimitReverse = 0.25,
+      motorPID = PID(0.1, 0, 0.01),
+      motorOutputRange = Range(1.0, 0.75), # TODO: tune output range with vertical mechanism (slower going down)
+      motorMotionMaxVelocity = 80.0, # TODO: retune with mechanism updates
+      motorMotionMaxAcceleration = 100.0, # TODO: retune with mechanism updates
+      motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 28.75, # TODO: retune with mechanism updates
+      motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
       motorResetSpeed = 0.1
     ))
 
-    kPositionAlignmentPositionTolerance: float = 0.5
+    kUpperStageSoftLimitBuffer: units.inches = 1.5
     kInputLimit: units.percent = 0.5
 
   class Arm:
-    kArmPositonControlModuleConfig = PositionControlModuleConfig("Arm/Motor", 12, None, True, PositionControlModuleConstants(
+    kArmConfig = PositionControlModuleConfig("Arm", 12, None, True, PositionControlModuleConstants(
       distancePerRotation = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
-      motorPID = PID(0.1, 0, 0.01), # TODO: retune PID
-      motorMotionMaxVelocityRate = 100.0,
-      motorMotionMaxAccelerationRate = 200.0,
-      motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 69.0,
-      motorSoftLimitReverse = 1.5,
+      motorPID = PID(0.1, 0, 0.01),
+      motorOutputRange = Range(1.0, 0.75), # TODO: tune output range with vertical mechanism (slower going down)
+      motorMotionMaxVelocity = 33.0, # TODO: retune with mechanism updates
+      motorMotionMaxAcceleration = 66.0, # TODO: retune with mechanism updates
+      motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 69.0, # TODO: retune with mechanism updates
+      motorSoftLimitReverse = 1.5, # TODO: retune with mechanism updates
       motorResetSpeed = 0.1
     ))
 
-    kPositionAlignmentPositionTolerance: units.inches = 0.5 
     kInputLimit: units.percent = 0.5
 
   class Wrist:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
-    kMotorUpSpeed: units.percent = 0.6
-    kMotorDownSpeed: units.percent = 0.2
-    kSetPositionTimeout: units.seconds = 1.25
+    kMotorUpSpeed: units.percent = 0.66
+    kMotorDownSpeed: units.percent = 0.33
+    kSetPositionTimeout: units.seconds = 1.0
 
   class Hand:
     kGripperMotorCANId: int = 14
     kGripperMotorCurrentLimit: int = 30
-    kGripperMotorCurrentTrigger: int = 25
+    kGripperMotorCurrentTrigger: int = 25 # TODO: tune gripper motor current trigger value
     kGripperMotorSpeed: units.percent = 1.0
-    kGripperIntakeTimeout: units.seconds = 2.0
+    kGripperReleaseTimeout: units.seconds = 1.0
 
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20
-    kSuctionMotorCurrentTrigger: int = 15
+    kSuctionMotorCurrentTrigger: int = 15 # TODO: tune suction motor current trigger value
     kSuctionMotorSpeed: units.percent = 0.5
+    kSuctionReleaseTimeout: units.seconds = 2.0
 
 class Services:
   class Localization:
@@ -206,9 +231,8 @@ class Controllers:
 
 class Game:
   class Commands:
-    kAutoMoveTimeout: units.seconds = 4.0 # TODO: tune this to actual drive train and path planning performance
-    kAutoTargetAlignmentTimeout: units.seconds = 2.0 # TODO: tune this to actual mechanism performance
-    kAUtoTargetPositionAlignmentTimeout: units.seconds = 3.0 # TODO: tune this to actual mechanism performance
+    kTargetAlignmentTimeout: units.seconds = 2.0 
+    kAutoMoveTimeout: units.seconds = 4.0
 
   class Field:
     kAprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT
@@ -276,17 +300,19 @@ class Game:
 
       # TODO: calculate and test elevator, arm, and wrist positions for all the targets
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
-        TargetPositionType.Start: TargetPosition(ElevatorPosition(5.0, 0.0), 0.0, WristPosition.Up),
-        TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, 0.0), 0, WristPosition.Up),
-        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.7, WristPosition.Down),
-        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
-        TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
-        TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
-        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
-        TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
-        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(0.0, 0.847), 2.5, WristPosition.Up),
-        TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Down),
-        TargetPositionType.Barge: TargetPosition(ElevatorPosition(0.0, 0.0), 0.0, WristPosition.Up),
-        TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, 29.0), 69.0, WristPosition.Up),
-        TargetPositionType.CageClimb: TargetPosition(ElevatorPosition(0.0, 29.0), 69.0, WristPosition.Up)
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, 0.85), 2.5, Position.Up),
+        TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, Value.min), Value.min, Position.Up),
+        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.75, Position.Down),
+        TargetPositionType.ReefCoralL3Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),
+        TargetPositionType.ReefCoralL3Score: TargetPosition(ElevatorPosition(Value.min, 27.5), 6.75, Position.Down),
+        TargetPositionType.ReefCoralL2Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),
+        TargetPositionType.ReefCoralL2Score: TargetPosition(ElevatorPosition(Value.min, 12.25), 6.75, Position.Down),
+        TargetPositionType.ReefCoralL1Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),
+        TargetPositionType.ReefCoralL1Score: TargetPosition(ElevatorPosition(Value.min, 14.5), 18.0, Position.Down),
+        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
+        TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
+        TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
+        TargetPositionType.Barge: TargetPosition(ElevatorPosition(Value.max, Value.max), 0.0, Position.Up),
+        TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up),
+        TargetPositionType.CageClimb: TargetPosition(ElevatorPosition(Value.min, Value.max), Value.max, Position.Up)
       }

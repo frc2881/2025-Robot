@@ -1,12 +1,11 @@
 from typing import Callable
-import math
 from commands2 import Subsystem, Command
 from wpilib import SmartDashboard
 from wpimath import units
 from lib import logger, utils
 from lib.classes import MotorDirection
 from lib.components.position_control_module import PositionControlModule
-from core.classes import ElevatorPosition
+from core.classes import ElevatorPosition, ElevatorStage
 import core.constants as constants
 
 class ElevatorSubsystem(Subsystem):
@@ -14,93 +13,61 @@ class ElevatorSubsystem(Subsystem):
     super().__init__()
     self._constants = constants.Subsystems.Elevator
 
-    self._hasInitialZeroResetLowerStage: bool = False
-    self._hasInitialZeroResetUpperStage: bool = False
-    self._isAlignedToPosition: bool = False
+    self._hasInitialZeroReset: bool = False
 
-    self._lowerStageModule = PositionControlModule(self._constants.kLowerStageModuleConfig)
-    self._upperStageModule = PositionControlModule(self._constants.kUpperStageModuleConfig)
+    self._lowerStage = PositionControlModule(self._constants.kLowerStageConfig)
+    self._upperStage = PositionControlModule(self._constants.kUpperStageConfig)
 
   def periodic(self) -> None:
     self._updateTelemetry()
 
-  def runCommand(self, getInput: Callable[[], units.percent]) -> Command:
-    return self.run(
-      lambda: self._setSpeed(getInput() * self._constants.kInputLimit)
-    ).beforeStarting(
-      lambda: self.resetPositionAlignment()
-    ).finallyDo(
-      lambda end: self.reset()
+  def runCommand(self, getInput: Callable[[], units.percent], elevatorStage: ElevatorStage = ElevatorStage.Both) -> Command:
+    return self.runEnd(
+      lambda: self._setSpeed(getInput() * self._constants.kInputLimit, elevatorStage),
+      lambda: self.reset()
     ).withName("ElevatorSubsystem:Run")
-
+  
   def alignToPositionCommand(self, elevatorPosition: ElevatorPosition) -> Command:
     return self.run(
-      lambda: [
-        self._setPosition(elevatorPosition),
-        self._setIsAlignedToPosition(elevatorPosition)
-      ]
-    ).beforeStarting(
-      lambda: self.resetPositionAlignment()
+      lambda: self._setPosition(elevatorPosition)
     ).withName("ElevatorSubsystem:AlignToPosition")
 
-  def _setSpeed(self, speed: units.percent) -> None:
-    self._upperStageModule.setSpeed(speed) 
-    self._lowerStageModule.setSpeed(speed if self._upperStageModule.isPositionAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse, 1.0) else 0)
+  def _setSpeed(self, speed: units.percent, elevatorStage: ElevatorStage) -> None:
+    if elevatorStage != elevatorStage.Upper:
+      self._lowerStage.setSpeed(
+        speed 
+        if elevatorStage == ElevatorStage.Lower 
+        or self._upperStage.isAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse, self._constants.kUpperStageSoftLimitBuffer) 
+        else 0
+      )
+    if elevatorStage != elevatorStage.Lower:
+      self._upperStage.setSpeed(speed)
 
   def _setPosition(self, elevatorPosition: ElevatorPosition) -> None:
-    self._upperStageModule.setPosition(elevatorPosition.upperStage)
-    self._lowerStageModule.setPosition(elevatorPosition.lowerStage)
-
-  def _setIsAlignedToPosition(self, elevatorPosition: ElevatorPosition) -> None:
-    self._isAlignedToPosition = self.getIsAlignedToPosition(elevatorPosition)
-
-  def getIsAlignedToPosition(self,  elevatorPosition: ElevatorPosition) -> bool:
-    return (
-      math.isclose(self._lowerStageModule.getPosition(), elevatorPosition.lowerStage, abs_tol = self._constants.kPositionAlignmentPositionTolerance)
-      and 
-      math.isclose(self._upperStageModule.getPosition(), elevatorPosition.upperStage, abs_tol = self._constants.kPositionAlignmentPositionTolerance)
-    )
+    self._lowerStage.setPosition(elevatorPosition.lowerStage)
+    self._upperStage.setPosition(elevatorPosition.upperStage)
 
   def getPosition(self) -> ElevatorPosition:
-    return ElevatorPosition(self._lowerStageModule.getPosition(), self._upperStageModule.getPosition())
+    return ElevatorPosition(self._lowerStage.getPosition(), self._upperStage.getPosition())
 
   def isAlignedToPosition(self) -> bool:
-    return self._isAlignedToPosition
+    return self._lowerStage.isAtTargetPosition() and self._upperStage.isAtTargetPosition()
   
-  def resetPositionAlignment(self) -> None:
-    self._isAlignedToPosition = False
+  def suspendSoftLimitsCommand(self) -> Command:
+    return self._lowerStage.suspendSoftLimitsCommand().alongWith(self._upperStage.suspendSoftLimitsCommand()).withName("ElevatorSubsystem:SuspendSoftLimitsCommand")
 
-  def resetToZeroLowerStageCommand(self) -> Command:
-    return self.startEnd(
-      lambda: [
-        self._lowerStageModule.startZeroReset()
-      ],
-      lambda: [
-        self._lowerStageModule.endZeroReset(),
-        setattr(self, "_hasInitialZeroResetLowerStage", True)
-      ]
-    ).withName("ElevatorSubsystem:ResetToZeroLower")
+  def resetLowerStageToZeroCommand(self) -> Command:
+    return self._lowerStage.resetToZeroCommand().withName("ElevatorSubsystem:ResetLowerStageToZero")
 
-  def resetToZeroUpperStageCommand(self) -> Command:
-    return self.startEnd(
-      lambda: [
-        self._upperStageModule.startZeroReset()
-      ],
-      lambda: [
-        self._upperStageModule.endZeroReset(),
-        setattr(self, "_hasInitialZeroResetUpperStage", True)
-      ]
-    ).withName("ElevatorSubsystem:ResetToZeroUpper")
+  def resetUpperStageToZeroCommand(self) -> Command:
+    return self._upperStage.resetToZeroCommand().withName("ElevatorSubsystem:ResetUpperStageToZero")
   
   def hasInitialZeroReset(self) -> bool:
-    return self._hasInitialZeroResetLowerStage and self._hasInitialZeroResetUpperStage
+    return self._lowerStage.hasInitialZeroReset() and self._upperStage.hasInitialZeroReset()
   
   def reset(self) -> None:
-    self._lowerStageModule.reset()
-    self._upperStageModule.reset()
-    self.resetPositionAlignment()
+    self._lowerStage.reset()
+    self._upperStage.reset()
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putBoolean("Robot/Elevator/IsAlignedToPosition", self._isAlignedToPosition)
-    SmartDashboard.putNumber("Robot/Elevator/Position/LowerStage", self._lowerStageModule.getPosition())
-    SmartDashboard.putNumber("Robot/Elevator/Position/UpperStage", self._upperStageModule.getPosition())
+    SmartDashboard.putBoolean("Robot/Elevator/IsAlignedToPosition", self.isAlignedToPosition())

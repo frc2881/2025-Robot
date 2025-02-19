@@ -56,23 +56,23 @@ class AutoCommands:
       cmd.waitSeconds(0.1)
     )
   
-  def _start(self) -> Command:
-    return self._alignToTargetPosition(TargetPositionType.Start).alongWith(self._robot.gameCommands.intakeCommand(GamePiece.Coral))
-
   def _move(self, path: AutoPath) -> Command:
     return AutoBuilder.followPath(self._paths.get(path)).withTimeout(constants.Game.Commands.kAutoMoveTimeout)
   
   def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
-    return self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, targetAlignmentLocation).withTimeout(constants.Game.Commands.kAutoTargetAlignmentTimeout)
+    return self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, targetAlignmentLocation)
   
-  def _alignToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
-    return self._robot.gameCommands.alignRobotToTargetPositionCommand(targetPositionType).withTimeout(constants.Game.Commands.kAUtoTargetPositionAlignmentTimeout)
+  def _alignForScoring(self) -> Command:
+    return self._robot.gameCommands.alignRobotForScoringCommand(
+      TargetPositionType.ReefCoralL4Ready, 
+      TargetPositionType.ReefCoralL4Score
+    )
   
   def _intake(self) -> Command:
-    return self._robot.gameCommands.intakeCommand(GamePiece.Coral)
+    return self._robot.gameCommands.intakeCoralCommand()
 
   def _score(self) -> Command:
-    return self._robot.gameCommands.ejectCommand(GamePiece.Coral)
+    return self._robot.gameCommands.scoreCommand(GamePiece.Coral)
   
   def _getStartingPose(self, position: int) -> Pose2d:
     match position:
@@ -93,34 +93,38 @@ class AutoCommands:
       lambda: not utils.isCompetitionMode()
     ).withName("AutoCommands:MoveToStartingPosition")
 
-  # TODO: after mechanism testing, update init + move + alignment actions to parallel for faster execution if possible
-
   def auto_1_1(self) -> Command:
     return cmd.sequence(
-      self._start(),
-      self._move(AutoPath.Start1_1),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Ready),
-      self._alignToTarget(TargetAlignmentLocation.Left),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Score),
+      cmd.parallel(
+        cmd.sequence(
+          self._move(AutoPath.Start1_1),
+          self._alignToTarget(TargetAlignmentLocation.Left)
+        ),
+        self._alignForScoring()
+      ),
       self._score()
     ).withName("AutoCommands:[1]_1")
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
-      self._start(),
-      self._move(AutoPath.Start2_2),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Ready),
-      self._alignToTarget(TargetAlignmentLocation.Left),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Score),
+      cmd.parallel(
+        cmd.sequence(
+          self._move(AutoPath.Start2_2),
+          self._alignToTarget(TargetAlignmentLocation.Left)
+        ),
+        self._alignForScoring()
+      ),
       self._score()
     ).withName("AutoCommands:[2]_2")
   
   def auto_3_3(self) -> Command:
     return cmd.sequence(
-      self._start(),
-      self._move(AutoPath.Start3_3),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Ready),
-      self._alignToTarget(TargetAlignmentLocation.Right),
-      self._alignToTargetPosition(TargetPositionType.ReefCoralL4Score),
+      cmd.parallel(
+        cmd.sequence(
+          self._move(AutoPath.Start3_3),
+          self._alignToTarget(TargetAlignmentLocation.Right)
+        ),
+        self._alignForScoring()
+      ),
       self._score()
     ).withName("AutoCommands:[3]_3")

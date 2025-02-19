@@ -2,6 +2,7 @@ from enum import Enum, auto
 from dataclasses import dataclass
 from wpimath import units
 from wpimath.geometry import Pose2d, Pose3d
+from lib.classes import Position
 
 class GamePiece(Enum):
   Coral = auto()
@@ -15,16 +16,17 @@ class TargetType(Enum):
   Barge = auto()
 
 class TargetPositionType(Enum):
-  Default = auto()
-  Start = auto()
+  CoralStation = auto()
   ReefCoralL4Ready = auto()
   ReefCoralL4Score = auto()
+  ReefCoralL3Ready = auto()
+  ReefCoralL3Score = auto()
+  ReefCoralL2Ready = auto()
+  ReefCoralL2Score = auto()
+  ReefCoralL1Ready = auto()
+  ReefCoralL1Score = auto()
   ReefAlgaeL3 = auto()
-  ReefCoralL3 = auto()
   ReefAlgaeL2 = auto()
-  ReefCoralL2 = auto()
-  ReefCoralL1 = auto()
-  CoralStation = auto()
   AlgaeProcessor = auto()
   Barge = auto()
   CageEntry = auto()
@@ -53,16 +55,16 @@ class ElevatorPosition:
   lowerStage: units.inches
   upperStage: units.inches
 
-class WristPosition(Enum):
-  Unknown = auto()
-  Up = auto()
-  Down = auto()
+class ElevatorStage(Enum):
+  Both = auto()
+  Upper = auto()
+  Lower = auto()
 
 @dataclass(frozen=False, slots=True)
 class TargetPosition:
   elevator: ElevatorPosition
   arm: units.inches
-  wrist: WristPosition
+  wrist: Position
 
 class LightsMode(Enum):
   Default = auto()

@@ -1,7 +1,7 @@
 from commands2 import Command, cmd
 from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
-from lib.classes import RobotState, TargetAlignmentMode
+from lib.classes import RobotState, Position, TargetAlignmentMode
 from lib.controllers.game_controller import GameController
 from lib.controllers.lights_controller import LightsController
 from lib.sensors.gyro_sensor_navx2 import GyroSensor_NAVX2
@@ -14,7 +14,7 @@ from core.subsystems.arm import ArmSubsystem
 from core.subsystems.wrist import WristSubsystem
 from core.subsystems.hand import HandSubsystem
 from core.services.localization import LocalizationService
-from core.classes import TargetAlignmentLocation, TargetPositionType, WristPosition, GamePiece, LightsMode
+from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, LightsMode, ElevatorStage
 import core.constants as constants
 
 class RobotCore:
@@ -58,11 +58,8 @@ class RobotCore:
 
   def _setupDriverControls(self) -> None:
     self.driveSubsystem.setDefaultCommand(
-      self.driveSubsystem.driveCommand(
-        self.driverController.getLeftY,
-        self.driverController.getLeftX,
-        self.driverController.getRightX
-    ))
+      self.driveSubsystem.driveCommand(self.driverController.getLeftY, self.driverController.getLeftX, self.driverController.getRightX)
+    )
     self.driverController.rightStick().and_((self.driverController.rightBumper().or_(self.driverController.leftBumper())).not_()).whileTrue(
       self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center)
     )
@@ -87,7 +84,9 @@ class RobotCore:
     # self.driverController.b().whileTrue(cmd.none())
     # self.driverController.y().whileTrue(cmd.none())
     self.driverController.x().whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CageClimb)
+      self.elevatorSubsystem.suspendSoftLimitsCommand().andThen(
+        self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CageClimb)
+      )
     )
     # self.driverController.start().and_((
     #     self.driverController.povLeft()
@@ -111,42 +110,40 @@ class RobotCore:
 
   def _setupOperatorControls(self) -> None:
     self.elevatorSubsystem.setDefaultCommand(
-      self.elevatorSubsystem.runCommand(
-        self.operatorController.getLeftY
-    ))
+      self.elevatorSubsystem.runCommand(self.operatorController.getLeftY)
+    )
     self.armSubsystem.setDefaultCommand(
-      self.armSubsystem.runCommand(
-        self.operatorController.getRightY
-    ))
-    self.operatorController.leftTrigger().onTrue(
+      self.armSubsystem.runCommand(self.operatorController.getRightY)
+    )
+    self.operatorController.leftTrigger().whileTrue(
       self.gameCommands.intakeCommand(GamePiece.Coral)
     )
     self.operatorController.rightTrigger().onTrue(
-      self.gameCommands.ejectCommand(GamePiece.Coral)
+      self.gameCommands.scoreCommand(GamePiece.Coral)
     )
     self.operatorController.leftBumper().whileTrue(
       self.gameCommands.intakeCommand(GamePiece.Algae)
     )
     self.operatorController.rightBumper().onTrue(
-      self.gameCommands.ejectCommand(GamePiece.Algae)
+      self.gameCommands.scoreCommand(GamePiece.Algae)
     )
     self.operatorController.povUp().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotToTargetPositionReefCoralL4Command()
+      self.gameCommands.alignRobotForScoringCommand(TargetPositionType.ReefCoralL4Ready, TargetPositionType.ReefCoralL4Score)
     )
     self.operatorController.povRight().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.ReefCoralL3)
+      self.gameCommands.alignRobotForScoringCommand(TargetPositionType.ReefCoralL3Ready, TargetPositionType.ReefCoralL3Score)
     )
     self.operatorController.povDown().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.ReefCoralL2)
+      self.gameCommands.alignRobotForScoringCommand(TargetPositionType.ReefCoralL2Ready, TargetPositionType.ReefCoralL2Score)
     )
     self.operatorController.povLeft().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.ReefCoralL1)
+      self.gameCommands.alignRobotForScoringCommand(TargetPositionType.ReefCoralL1Ready, TargetPositionType.ReefCoralL1Score)
     )
     self.operatorController.povUpRight().whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.ReefAlgaeL3)
+      self.gameCommands.intakeAlgaeCommand(TargetPositionType.ReefAlgaeL3)
     )
     self.operatorController.povDownRight().whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.ReefAlgaeL2)
+      self.gameCommands.intakeAlgaeCommand(TargetPositionType.ReefAlgaeL2)
     )
     self.operatorController.povDownLeft().whileTrue(
       self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.AlgaeProcessor)
@@ -162,28 +159,34 @@ class RobotCore:
       self.wristSubsystem.togglePositionCommand()
     )
     self.operatorController.x().whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CageEntry)
+      self.elevatorSubsystem.suspendSoftLimitsCommand().andThen(
+        self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CageEntry)
+      ) 
     )
-    # self.operatorController.start().and_((
-    #     self.operatorController.povLeft()
-    #     .or_(self.operatorController.povUp())
-    #     .or_(self.operatorController.povRight())
-    #     .or_(self.operatorController.povDown())
-    #   ).not_()
-    # ).whileTrue(cmd.none())
     self.operatorController.start().and_(self.operatorController.povDown()).whileTrue(
-      self.elevatorSubsystem.resetToZeroLowerStageCommand()
+      self.elevatorSubsystem.resetLowerStageToZeroCommand()
     )
     self.operatorController.start().and_(self.operatorController.povUp()).whileTrue(
-      self.elevatorSubsystem.resetToZeroUpperStageCommand()
+      self.elevatorSubsystem.resetUpperStageToZeroCommand()
     )
     self.operatorController.start().and_(self.operatorController.povRight()).whileTrue(
-      self.wristSubsystem.setPositionCommand(WristPosition.Up)
+      self.wristSubsystem.setPositionCommand(Position.Up)
     )
     self.operatorController.start().and_(self.operatorController.povLeft()).whileTrue(
       self.armSubsystem.resetToZeroCommand()
     )
-    # self.operatorController.back().onTrue(cmd.none())
+    self.operatorController.start().and_((
+        self.operatorController.povLeft()
+        .or_(self.operatorController.povUp())
+        .or_(self.operatorController.povRight())
+        .or_(self.operatorController.povDown())
+      ).not_()
+    ).whileTrue(
+      self.elevatorSubsystem.runCommand(self.operatorController.getLeftY, ElevatorStage.Upper)
+    )
+    self.operatorController.back().whileTrue(
+      self.elevatorSubsystem.runCommand(self.operatorController.getLeftY, ElevatorStage.Lower)
+    )
 
   def _setupLightsControls(self) -> None:
     self.lightsController = LightsController()
@@ -205,25 +208,25 @@ class RobotCore:
   def _periodic(self) -> None:
     self._updateTelemetry()
 
-  def getAutoCommand(self) -> Command:
-    return self.autoCommands.getSelected()
+  def disabledInit(self) -> None:
+    self.reset()
 
   def autoInit(self) -> None:
-    self.resetRobot()
+    self.reset()
 
   def autoExit(self) -> None: 
     self.gyroSensor.resetRobotToField(self.localizationService.getRobotPose())
 
   def teleopInit(self) -> None:
-    self.resetRobot()
+    self.reset()
 
   def testInit(self) -> None:
-    self.resetRobot()
+    self.reset()
 
-  def disabledInit(self) -> None:
-    self.resetRobot()
+  def simulationInit(self) -> None:
+    self.reset()
 
-  def resetRobot(self) -> None:
+  def reset(self) -> None:
     self.driveSubsystem.reset()
     self.elevatorSubsystem.reset()
     self.armSubsystem.reset()
@@ -236,4 +239,4 @@ class RobotCore:
     )
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putBoolean("Robot/HasInitialZeroResets", self._robotHasInitialZeroResets())
+    SmartDashboard.putBoolean("Robot/Status/HasInitialZeroResets", self._robotHasInitialZeroResets())

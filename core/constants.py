@@ -101,9 +101,9 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 3.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(1.0, 0.75), # TODO: tune output range with vertical mechanism (slower going down)
-      motorMotionMaxVelocity = 33.0, # TODO: retune with mechanism updates
-      motorMotionMaxAcceleration = 66.0, # TODO: retune with mechanism updates
+      motorOutputRange = Range(-0.75, 1.0), # TODO: tune output range with vertical mechanism (slower going down)
+      motorMotionMaxVelocity = 150.0, # TODO: retune with mechanism updates
+      motorMotionMaxAcceleration = 200.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
       motorSoftLimitForward = 28.75, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
@@ -117,9 +117,9 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(1.0, 0.75), # TODO: tune output range with vertical mechanism (slower going down)
-      motorMotionMaxVelocity = 80.0, # TODO: retune with mechanism updates
-      motorMotionMaxAcceleration = 100.0, # TODO: retune with mechanism updates
+      motorOutputRange = Range(-0.5, 1.0), # TODO: tune output range with vertical mechanism (slower going down)
+      motorMotionMaxVelocity = 400.0, # TODO: retune with mechanism updates
+      motorMotionMaxAcceleration = 200.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
       motorSoftLimitForward = 28.75, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
@@ -137,13 +137,13 @@ class Subsystems:
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(1.0, 0.75), # TODO: tune output range with vertical mechanism (slower going down)
-      motorMotionMaxVelocity = 33.0, # TODO: retune with mechanism updates
-      motorMotionMaxAcceleration = 66.0, # TODO: retune with mechanism updates
+      motorOutputRange = Range(-0.75, 1.0), # TODO: tune output range with vertical mechanism (slower going down)
+      motorMotionMaxVelocity = 200, # TODO: retune with mechanism updates
+      motorMotionMaxAcceleration = 300.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
-      motorSoftLimitForward = 69.0, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 65.0, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 1.5, # TODO: retune with mechanism updates
-      motorResetSpeed = 0.1
+      motorResetSpeed = 0.3
     ))
 
     kInputLimit: units.percent = 0.5

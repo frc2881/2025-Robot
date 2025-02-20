@@ -54,9 +54,8 @@ class GameCommands:
       readyTargetPositionType: TargetPositionType, 
       scoreTargetPositionType: TargetPositionType
     ) -> Command:
-    return cmd.sequence(
-      self.alignRobotToTargetPositionCommand(readyTargetPositionType).onlyIf(lambda: not self._robot.driveSubsystem.isAlignedToTarget()),
-      cmd.waitUntil(lambda: self._robot.driveSubsystem.isAlignedToTarget()),
+    return cmd.either(
+      self.alignRobotToTargetPositionCommand(readyTargetPositionType),
       self.alignRobotToTargetPositionCommand(scoreTargetPositionType).deadlineFor(
         self._robot.handSubsystem.runGripperCommand().onlyIf(
           lambda: scoreTargetPositionType in [ 
@@ -67,6 +66,8 @@ class GameCommands:
           ]
         )
       ),
+      lambda: not self._robot.driveSubsystem.isAlignedToTarget()
+    ).andThen(
       self.rumbleControllersCommand(ControllerRumbleMode.Operator)
     ).withName("GameCommands:AlignRobotToTargetPositionReefCoral")
   

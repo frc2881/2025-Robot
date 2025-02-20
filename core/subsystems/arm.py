@@ -42,7 +42,7 @@ class ArmSubsystem(Subsystem):
     return self._arm.isAtTargetPosition()
   
   def resetToZeroCommand(self) -> Command:
-    return self._arm.resetToZeroCommand().withName("ArmSubsystem:ResetToZero")
+    return self._arm.resetToZeroCommand(self).withName("ArmSubsystem:ResetToZero")
 
   def hasInitialZeroReset(self) -> bool:
     return self._arm.hasInitialZeroReset()

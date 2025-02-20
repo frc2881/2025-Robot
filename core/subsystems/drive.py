@@ -129,7 +129,7 @@ class DriveSubsystem(Subsystem):
         ChassisSpeeds.discretize(chassisSpeeds, 0.02)
       )
     )
-    if chassisSpeeds.vx > 0 or chassisSpeeds.vy > 0:
+    if chassisSpeeds.vx != 0 or chassisSpeeds.vy != 0:
       self.resetTargetAlignment()
 
   def _setSwerveModuleStates(self, swerveModuleStates: tuple[SwerveModuleState, ...]) -> None:

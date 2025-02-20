@@ -57,10 +57,10 @@ class ElevatorSubsystem(Subsystem):
     return self._lowerStage.suspendSoftLimitsCommand().alongWith(self._upperStage.suspendSoftLimitsCommand()).withName("ElevatorSubsystem:SuspendSoftLimitsCommand")
 
   def resetLowerStageToZeroCommand(self) -> Command:
-    return self._lowerStage.resetToZeroCommand().withName("ElevatorSubsystem:ResetLowerStageToZero")
+    return self._lowerStage.resetToZeroCommand(self).withName("ElevatorSubsystem:ResetLowerStageToZero")
 
   def resetUpperStageToZeroCommand(self) -> Command:
-    return self._upperStage.resetToZeroCommand().withName("ElevatorSubsystem:ResetUpperStageToZero")
+    return self._upperStage.resetToZeroCommand(self).withName("ElevatorSubsystem:ResetUpperStageToZero")
   
   def hasInitialZeroReset(self) -> bool:
     return self._lowerStage.hasInitialZeroReset() and self._upperStage.hasInitialZeroReset()

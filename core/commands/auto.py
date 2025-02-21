@@ -96,35 +96,32 @@ class AutoCommands:
   def auto_1_1(self) -> Command:
     return cmd.sequence(
       cmd.parallel(
-        cmd.sequence(
-          self._move(AutoPath.Start1_1),
-          self._alignToTarget(TargetAlignmentLocation.Left)
-        ),
+        self._move(AutoPath.Start1_1),
         self._alignForScoring()
       ),
+      self._alignToTarget(TargetAlignmentLocation.Left),
+      self._alignForScoring(),
       self._score()
     ).withName("AutoCommands:[1]_1")
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
       cmd.parallel(
-        cmd.sequence(
-          self._move(AutoPath.Start2_2),
-          self._alignToTarget(TargetAlignmentLocation.Left)
-        ),
+        self._move(AutoPath.Start2_2),
         self._alignForScoring()
       ),
+      self._alignToTarget(TargetAlignmentLocation.Left),
+      self._alignForScoring(),
       self._score()
     ).withName("AutoCommands:[2]_2")
   
   def auto_3_3(self) -> Command:
     return cmd.sequence(
       cmd.parallel(
-        cmd.sequence(
-          self._move(AutoPath.Start3_3),
-          self._alignToTarget(TargetAlignmentLocation.Right)
-        ),
+        self._move(AutoPath.Start3_3),
         self._alignForScoring()
       ),
+      self._alignToTarget(TargetAlignmentLocation.Right),
+      self._alignForScoring(),
       self._score()
     ).withName("AutoCommands:[3]_3")

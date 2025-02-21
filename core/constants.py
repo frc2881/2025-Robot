@@ -143,7 +143,7 @@ class Subsystems:
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
       motorSoftLimitForward = 65.0, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 1.5, # TODO: retune with mechanism updates
-      motorResetSpeed = 0.3
+      motorResetSpeed = 0.2
     ))
 
     kInputLimit: units.percent = 0.5
@@ -151,9 +151,9 @@ class Subsystems:
   class Wrist:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
-    kMotorUpSpeed: units.percent = 0.66
-    kMotorDownSpeed: units.percent = 0.33
-    kSetPositionTimeout: units.seconds = 1.0
+    kMotorUpSpeed: units.percent = 0.8
+    kMotorDownSpeed: units.percent = 0.5
+    kSetPositionTimeout: units.seconds = 0.5
 
   class Hand:
     kGripperMotorCANId: int = 14

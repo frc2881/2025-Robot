@@ -3,7 +3,7 @@ import math
 from commands2 import Command, cmd
 from wpilib import RobotBase
 from lib import logger, utils
-from lib.classes import Position, TargetAlignmentMode, ControllerRumbleMode, ControllerRumblePattern
+from lib.classes import Position, Value, TargetAlignmentMode, ControllerRumbleMode, ControllerRumblePattern
 if TYPE_CHECKING: from core.robot import RobotCore
 from core.classes import TargetAlignmentLocation, TargetType, TargetPositionType, GamePiece
 import core.constants as constants
@@ -36,17 +36,31 @@ class GameCommands:
     ).withName("GameCommands:AlignRobotToTarget")
   
   def alignRobotToTargetPositionCommand(self, targetPositionType: TargetPositionType) -> Command:
-    # TODO: potentially optimize after testing with arm and wrist moving in parallel
-    return cmd.sequence(
-      self._robot.elevatorSubsystem.alignToPositionCommand(
-        constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator
-      ).until(lambda: self._robot.elevatorSubsystem.isAlignedToPosition()),
-      self._robot.armSubsystem.alignToPositionCommand(
-        constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm
-      ).until(lambda: self._robot.armSubsystem.isAlignedToPosition()),
-      self._robot.wristSubsystem.setPositionCommand(
-        constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist
-      ).until(lambda: self._robot.wristSubsystem.isAlignedToPosition())
+    return cmd.parallel(
+      self._robot.wristSubsystem.setPositionCommand(Position.Up),
+      self._robot.armSubsystem.alignToPositionCommand(Value.min)
+    ).until(
+      lambda: (self._robot.wristSubsystem.isAlignedToPosition() and self._robot.armSubsystem.isAlignedToPosition())
+    ).andThen(
+      cmd.parallel(
+        self._robot.elevatorSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
+        cmd.waitSeconds(1.0).andThen(
+          cmd.parallel(
+            cmd.waitUntil(lambda: self._robot.elevatorSubsystem.isAlignedToPosition()).andThen(
+              self._robot.armSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
+            ),
+            cmd.waitUntil(lambda: self._robot.armSubsystem.isAlignedToPosition()).andThen(
+              self._robot.wristSubsystem.setPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
+            )
+          )
+        )
+      ).until(
+        lambda: (
+          self._robot.elevatorSubsystem.isAlignedToPosition() and 
+          self._robot.armSubsystem.isAlignedToPosition() and 
+          self._robot.wristSubsystem.isAlignedToPosition()
+        )
+      )
     ).withName("GameCommands:AlignRobotToTargetPosition")
   
   def alignRobotForScoringCommand(

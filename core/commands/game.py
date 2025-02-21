@@ -36,30 +36,30 @@ class GameCommands:
     ).withName("GameCommands:AlignRobotToTarget")
   
   def alignRobotToTargetPositionCommand(self, targetPositionType: TargetPositionType) -> Command:
-    return cmd.parallel(
-      self._robot.wristSubsystem.setPositionCommand(Position.Up),
-      self._robot.armSubsystem.alignToPositionCommand(Value.min)
-    ).until(
-      lambda: (self._robot.wristSubsystem.isAlignedToPosition() and self._robot.armSubsystem.isAlignedToPosition())
-    ).andThen(
+    return cmd.sequence(
+      cmd.runOnce(
+        lambda: [
+          self._robot.elevatorSubsystem.resetPositionAlignment(),
+          self._robot.armSubsystem.resetPositionAlignment(),
+          self._robot.wristSubsystem.resetPositionAlignment()
+        ]
+      ),
       cmd.parallel(
-        self._robot.elevatorSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
-        cmd.waitSeconds(1.0).andThen(
-          cmd.parallel(
-            cmd.waitUntil(lambda: self._robot.elevatorSubsystem.isAlignedToPosition()).andThen(
-              self._robot.armSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
-            ),
-            cmd.waitUntil(lambda: self._robot.armSubsystem.isAlignedToPosition()).andThen(
-              self._robot.wristSubsystem.setPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
-            )
-          )
-        )
+        self._robot.wristSubsystem.setPositionCommand(Position.Up),
+        self._robot.armSubsystem.alignToPositionCommand(Value.min)
       ).until(
-        lambda: (
-          self._robot.elevatorSubsystem.isAlignedToPosition() and 
-          self._robot.armSubsystem.isAlignedToPosition() and 
-          self._robot.wristSubsystem.isAlignedToPosition()
-        )
+        lambda: (self._robot.wristSubsystem.isAlignedToPosition() and self._robot.armSubsystem.isAlignedToPosition())
+      ),
+      cmd.runOnce(
+        lambda: [
+          self._robot.armSubsystem.resetPositionAlignment(),
+          self._robot.wristSubsystem.resetPositionAlignment()
+        ]
+      ),
+      cmd.sequence(
+        self._robot.elevatorSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator).until(lambda: self._robot.elevatorSubsystem.isAlignedToPosition()),
+        self._robot.armSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm).until(lambda: self._robot.armSubsystem.isAlignedToPosition()),
+        self._robot.wristSubsystem.setPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
       )
     ).withName("GameCommands:AlignRobotToTargetPosition")
   

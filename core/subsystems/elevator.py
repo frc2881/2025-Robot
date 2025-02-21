@@ -51,7 +51,11 @@ class ElevatorSubsystem(Subsystem):
     return ElevatorPosition(self._lowerStage.getPosition(), self._upperStage.getPosition())
 
   def isAlignedToPosition(self) -> bool:
-    return self._lowerStage.isAtTargetPosition() and self._upperStage.isAtTargetPosition()
+    return self._lowerStage.isAlignedToPosition() and self._upperStage.isAlignedToPosition()
+  
+  def resetPositionAlignment(self) -> None:
+    self._lowerStage.resetPositionAlignment()
+    self._upperStage.resetPositionAlignment()
   
   def suspendSoftLimitsCommand(self) -> Command:
     return self._lowerStage.suspendSoftLimitsCommand().alongWith(self._upperStage.suspendSoftLimitsCommand()).withName("ElevatorSubsystem:SuspendSoftLimitsCommand")

@@ -118,10 +118,12 @@ class AutoCommands:
   def auto_3_3(self) -> Command:
     return cmd.sequence(
       cmd.parallel(
-        self._move(AutoPath.Start3_3),
+        cmd.sequence(
+          self._move(AutoPath.Start3_3),
+          self._alignToTarget(TargetAlignmentLocation.Right)
+        ),
         self._alignForScoring()
       ),
-      self._alignToTarget(TargetAlignmentLocation.Right),
       self._alignForScoring(),
       self._score()
     ).withName("AutoCommands:[3]_3")

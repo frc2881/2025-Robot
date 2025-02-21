@@ -39,7 +39,10 @@ class ArmSubsystem(Subsystem):
     return self._arm.getPosition()
 
   def isAlignedToPosition(self) -> bool:
-    return self._arm.isAtTargetPosition()
+    return self._arm.isAlignedToPosition()
+  
+  def resetPositionAlignment(self) -> None:
+    self._arm.resetPositionAlignment()
   
   def resetToZeroCommand(self) -> Command:
     return self._arm.resetToZeroCommand(self).withName("ArmSubsystem:ResetToZero")

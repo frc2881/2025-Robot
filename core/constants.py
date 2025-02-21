@@ -300,9 +300,9 @@ class Game:
 
       # TODO: calculate and test elevator, arm, and wrist positions for all the targets
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
-        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, 0.85), 2.5, Position.Up),
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(0.6, Value.min), Value.min, Position.Up),
         TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, Value.min), Value.min, Position.Up),
-        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.75, Position.Down),
+        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.0, Position.Down),
         TargetPositionType.ReefCoralL3Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),
         TargetPositionType.ReefCoralL3Score: TargetPosition(ElevatorPosition(Value.min, 27.5), 6.75, Position.Down),
         TargetPositionType.ReefCoralL2Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),

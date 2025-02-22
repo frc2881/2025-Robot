@@ -41,20 +41,8 @@ class Game:
       self._robot.arm.setPosition(Value.min).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
       ),
-      self._robot.wrist.setPosition(
-        (
-          Position.Down 
-          if targetPositionType in [ 
-            TargetPositionType.AlgaeProcessor,
-            TargetPositionType.ReefAlgaeL3,
-            TargetPositionType.ReefAlgaeL2,
-            TargetPositionType.Barge,
-            TargetPositionType.ReefCoralL3Score,
-            TargetPositionType.ReefCoralL3Ready
-          ] else 
-          Position.Up
-        )
-      ).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
+      cmd.waitSeconds(0.3).andThen(
+        self._robot.wrist.setPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist).until(lambda: self._robot.elevator.isAlignedToPosition())).andThen(
         self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
       )
     ).withName("Game:AlignRobotToTargetPosition")

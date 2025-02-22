@@ -8,40 +8,40 @@ if TYPE_CHECKING: from core.robot import RobotCore
 from core.classes import TargetAlignmentLocation, TargetType, TargetPositionType, GamePiece
 import core.constants as constants
 
-class GameCommands:
+class Game:
   def __init__(
       self,
       robot: "RobotCore"
     ) -> None:
     self._robot = robot
 
-  def alignRobotToTargetCommand(
+  def alignRobotToTarget(
       self, 
       targetAlignmentMode: TargetAlignmentMode, 
       targetAlignmentLocation: TargetAlignmentLocation = TargetAlignmentLocation.Default, 
       targetType: TargetType = TargetType.Default
     ) -> Command:
-    return self._robot.driveSubsystem.alignToTargetCommand(
-      self._robot.localizationService.getRobotPose, 
-      self._robot.localizationService.getTargetPose,
+    return self._robot.drive.alignToTarget(
+      self._robot.localization.getRobotPose, 
+      self._robot.localization.getTargetPose,
       targetAlignmentMode,
       targetAlignmentLocation,
       targetType
     ).until(
-      lambda: self._robot.driveSubsystem.isAlignedToTarget()
+      lambda: self._robot.drive.isAlignedToTarget()
     ).withTimeout(
       constants.Game.Commands.kTargetAlignmentTimeout
     ).andThen(
-      self.rumbleControllersCommand(ControllerRumbleMode.Driver)
-    ).withName("GameCommands:AlignRobotToTarget")
+      self.rumbleControllers(ControllerRumbleMode.Driver)
+    ).withName("Game:AlignRobotToTarget")
   
-  def alignRobotToTargetPositionCommand(self, targetPositionType: TargetPositionType) -> Command:
+  def alignRobotToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
     return cmd.parallel(
-      self._robot.elevatorSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
-      self._robot.armSubsystem.setPositionCommand(Value.min).until(lambda: self._robot.elevatorSubsystem.isAlignedToPosition()).andThen(
-        self._robot.armSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
+      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
+      self._robot.arm.setPosition(Value.min).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
+        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
       ),
-      self._robot.wristSubsystem.setPositionCommand(
+      self._robot.wrist.setPosition(
         (
           Position.Down 
           if targetPositionType in [ 
@@ -54,20 +54,20 @@ class GameCommands:
           ] else 
           Position.Up
         )
-      ).until(lambda: self._robot.elevatorSubsystem.isAlignedToPosition()).andThen(
-        self._robot.wristSubsystem.alignToPositionCommand(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
+      ).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
+        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
       )
-    ).withName("GameCommands:AlignRobotToTargetPosition")
+    ).withName("Game:AlignRobotToTargetPosition")
   
-  def alignRobotForScoringCommand(
+  def alignRobotForScoring(
       self, 
       readyTargetPositionType: TargetPositionType, 
       scoreTargetPositionType: TargetPositionType
     ) -> Command:
     return cmd.either(
-      self.alignRobotToTargetPositionCommand(readyTargetPositionType),
-      self.alignRobotToTargetPositionCommand(scoreTargetPositionType).deadlineFor(
-        self._robot.handSubsystem.runGripperCommand().onlyIf(
+      self.alignRobotToTargetPosition(readyTargetPositionType),
+      self.alignRobotToTargetPosition(scoreTargetPositionType).deadlineFor(
+        self._robot.hand.runGripper().onlyIf(
           lambda: scoreTargetPositionType in [ 
             TargetPositionType.ReefCoralL4Score,
             TargetPositionType.ReefCoralL3Score,
@@ -76,59 +76,59 @@ class GameCommands:
           ]
         )
       ),
-      lambda: not self._robot.driveSubsystem.isAlignedToTarget()
+      lambda: not self._robot.drive.isAlignedToTarget()
     ).deadlineFor(
       cmd.waitUntil(
         lambda: (
-          self._robot.elevatorSubsystem.isAlignedToPosition() and
-          self._robot.armSubsystem.isAlignedToPosition() and
-          self._robot.wristSubsystem.isAlignedToPosition()
+          self._robot.elevator.isAlignedToPosition() and
+          self._robot.arm.isAlignedToPosition() and
+          self._robot.wrist.isAlignedToPosition()
         )
       ).andThen(
-        self.rumbleControllersCommand(ControllerRumbleMode.Operator)
+        self.rumbleControllers(ControllerRumbleMode.Operator)
       )
-    ).withName("GameCommands:AlignRobotForScoring")
+    ).withName("Game:AlignRobotForScoring")
   
-  def intakeCommand(self, gamePiece: GamePiece) -> Command:
+  def intake(self, gamePiece: GamePiece) -> Command:
     return cmd.either(
-      self._robot.handSubsystem.runGripperCommand().until(lambda: self._robot.handSubsystem.isGripperHolding()),
-      self._robot.handSubsystem.runSuctionCommand().until(lambda: self._robot.handSubsystem.isSuctionHolding()),
+      self._robot.hand.runGripper().until(lambda: self._robot.hand.isGripperHolding()),
+      self._robot.hand.runSuction().until(lambda: self._robot.hand.isSuctionHolding()),
       lambda: gamePiece == GamePiece.Coral
     ).andThen(
-      self.rumbleControllersCommand(ControllerRumbleMode.Both)
-    ).withName("GameCommands:Intake")
+      self.rumbleControllers(ControllerRumbleMode.Both)
+    ).withName("Game:Intake")
 
-  def intakeCoralCommand(self) -> Command:
-    return self.alignRobotToTargetPositionCommand(
+  def intakeCoral(self) -> Command:
+    return self.alignRobotToTargetPosition(
       TargetPositionType.CoralStation
     ).alongWith(
-      self.intakeCommand(GamePiece.Coral)
-    ).withName("GameCommands:IntakeCoral")
+      self.intake(GamePiece.Coral)
+    ).withName("Game:IntakeCoral")
 
-  def intakeAlgaeCommand(self, targetPositionType: TargetPositionType) -> Command: 
-    return self.alignRobotToTargetPositionCommand(
+  def intakeAlgae(self, targetPositionType: TargetPositionType) -> Command: 
+    return self.alignRobotToTargetPosition(
       targetPositionType
     ).alongWith(
-      self.intakeCommand(GamePiece.Algae)
-    ).withName("GameCommands:IntakeAlgae")
+      self.intake(GamePiece.Algae)
+    ).withName("Game:IntakeAlgae")
 
-  def scoreCommand(self, gamePiece: GamePiece) -> Command:
+  def score(self, gamePiece: GamePiece) -> Command:
     return cmd.either(
-      self._robot.handSubsystem.releaseGripperCommand(),
-      self._robot.handSubsystem.releaseSuctionCommand(),
+      self._robot.hand.releaseGripper(),
+      self._robot.hand.releaseSuction(),
       lambda: gamePiece == GamePiece.Coral
     ).andThen(
-      self.rumbleControllersCommand(ControllerRumbleMode.Driver)
-    ).withName("GameCommands:Score")
+      self.rumbleControllers(ControllerRumbleMode.Driver)
+    ).withName("Game:Score")
   
-  def rumbleControllersCommand(
+  def rumbleControllers(
       self, 
       mode: ControllerRumbleMode = ControllerRumbleMode.Both, 
       pattern: ControllerRumblePattern = ControllerRumblePattern.Short
     ) -> Command:
     return cmd.parallel(
-      self._robot.driverController.rumbleCommand(pattern).onlyIf(lambda: mode != ControllerRumbleMode.Operator),
-      self._robot.operatorController.rumbleCommand(pattern).onlyIf(lambda: mode != ControllerRumbleMode.Driver)
+      self._robot.driver.rumble(pattern).onlyIf(lambda: mode != ControllerRumbleMode.Operator),
+      self._robot.operator.rumble(pattern).onlyIf(lambda: mode != ControllerRumbleMode.Driver)
     ).onlyIf(
       lambda: RobotBase.isReal() and not utils.isAutonomousMode()
-    ).withName("GameCommands:RumbleControllers")
+    ).withName("Game:RumbleControllers")

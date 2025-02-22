@@ -13,7 +13,7 @@ from lib.components.swerve_module import SwerveModule
 from core.classes import TargetAlignmentLocation, TargetType
 import core.constants as constants
 
-class DriveSubsystem(Subsystem):
+class Drive(Subsystem):
   def __init__(
       self, 
       getGyroHeading: Callable[[], units.degrees]
@@ -45,31 +45,31 @@ class DriveSubsystem(Subsystem):
     self._inputRotationFilter = SlewRateLimiter(self._constants.kInputRateLimitDemo)
 
     self._speedMode: SpeedMode = SpeedMode.Competition
-    speedModeChooser = SendableChooser()
-    speedModeChooser.setDefaultOption(SpeedMode.Competition.name, SpeedMode.Competition)
-    speedModeChooser.addOption(SpeedMode.Demo.name, SpeedMode.Demo)
-    speedModeChooser.onChange(lambda speedMode: setattr(self, "_speedMode", speedMode))
-    SmartDashboard.putData("Robot/Drive/SpeedMode", speedModeChooser)
+    speedMode = SendableChooser()
+    speedMode.setDefaultOption(SpeedMode.Competition.name, SpeedMode.Competition)
+    speedMode.addOption(SpeedMode.Demo.name, SpeedMode.Demo)
+    speedMode.onChange(lambda speedMode: setattr(self, "_speedMode", speedMode))
+    SmartDashboard.putData("Robot/Drive/SpeedMode", speedMode)
 
     self._orientation: DriveOrientation = DriveOrientation.Field
-    orientationChooser = SendableChooser()
-    orientationChooser.setDefaultOption(DriveOrientation.Field.name, DriveOrientation.Field)
-    orientationChooser.addOption(DriveOrientation.Robot.name, DriveOrientation.Robot)
-    orientationChooser.onChange(lambda orientation: setattr(self, "_orientation", orientation))
-    SmartDashboard.putData("Robot/Drive/Orientation", orientationChooser)
+    orientation = SendableChooser()
+    orientation.setDefaultOption(DriveOrientation.Field.name, DriveOrientation.Field)
+    orientation.addOption(DriveOrientation.Robot.name, DriveOrientation.Robot)
+    orientation.onChange(lambda orientation: setattr(self, "_orientation", orientation))
+    SmartDashboard.putData("Robot/Drive/Orientation", orientation)
 
     self._driftCorrection: OptionState = OptionState.Enabled
-    driftCorrectionChooser = SendableChooser()
-    driftCorrectionChooser.setDefaultOption(OptionState.Enabled.name, OptionState.Enabled)
-    driftCorrectionChooser.addOption(OptionState.Disabled.name, OptionState.Disabled)
-    driftCorrectionChooser.onChange(lambda driftCorrection: setattr(self, "_driftCorrection", driftCorrection))
-    SmartDashboard.putData("Robot/Drive/DriftCorrection", driftCorrectionChooser)
+    driftCorrection = SendableChooser()
+    driftCorrection.setDefaultOption(OptionState.Enabled.name, OptionState.Enabled)
+    driftCorrection.addOption(OptionState.Disabled.name, OptionState.Disabled)
+    driftCorrection.onChange(lambda driftCorrection: setattr(self, "_driftCorrection", driftCorrection))
+    SmartDashboard.putData("Robot/Drive/DriftCorrection", driftCorrection)
 
-    idleModeChooser = SendableChooser()
-    idleModeChooser.setDefaultOption(MotorIdleMode.Brake.name, MotorIdleMode.Brake)
-    idleModeChooser.addOption(MotorIdleMode.Coast.name, MotorIdleMode.Coast)
-    idleModeChooser.onChange(lambda idleMode: self._setIdleMode(idleMode))
-    SmartDashboard.putData("Robot/Drive/IdleMode", idleModeChooser)
+    idleMode = SendableChooser()
+    idleMode.setDefaultOption(MotorIdleMode.Brake.name, MotorIdleMode.Brake)
+    idleMode.addOption(MotorIdleMode.Coast.name, MotorIdleMode.Coast)
+    idleMode.onChange(lambda idleMode: self._setIdleMode(idleMode))
+    SmartDashboard.putData("Robot/Drive/IdleMode", idleMode)
 
     self._lockState: LockState = LockState.Unlocked
 
@@ -80,7 +80,7 @@ class DriveSubsystem(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
 
-  def driveCommand(
+  def default(
       self, 
       getInputX: Callable[[], units.percent], 
       getInputY: Callable[[], units.percent], 
@@ -90,7 +90,7 @@ class DriveSubsystem(Subsystem):
       lambda: self._drive(getInputX(), getInputY(), getInputRotation())
     ).onlyIf(
       lambda: self._lockState != LockState.Locked
-    ).withName("DriveSubsystem:Drive")
+    ).withName("Drive:Run")
 
   def _drive(self, inputX: units.percent, inputY: units.percent, inputRotation: units.percent) -> None:
     if self._driftCorrection == OptionState.Enabled:
@@ -144,11 +144,11 @@ class DriveSubsystem(Subsystem):
     for m in self._swerveModules: m.setIdleMode(idleMode)
     SmartDashboard.putString("Robot/Drive/IdleMode/selected", idleMode.name)
 
-  def lockCommand(self) -> Command:
+  def lock(self) -> Command:
     return self.startEnd(
       lambda: self._setLockState(LockState.Locked),
       lambda: self._setLockState(LockState.Unlocked)
-    ).withName("DriveSubsystem:Lock")
+    ).withName("Drive:Lock")
   
   def _setLockState(self, lockState: LockState) -> None:
     self._lockState = lockState
@@ -156,7 +156,7 @@ class DriveSubsystem(Subsystem):
       for i, m in enumerate(self._swerveModules): 
         m.setTargetState(SwerveModuleState(0, Rotation2d.fromDegrees(45 if i in { 0, 3 } else -45)))
 
-  def alignToTargetCommand(
+  def alignToTarget(
       self, 
       getRobotPose: Callable[[], Pose2d], 
       getTargetPose: Callable[[TargetAlignmentLocation], Pose3d], 
@@ -169,7 +169,7 @@ class DriveSubsystem(Subsystem):
       lambda: self._runTargetAlignment(getRobotPose(), targetAlignmentMode)
     ).onlyIf(
       lambda: self._lockState != LockState.Locked
-    ).withName("DriveSubsystem:AlignToTarget")
+    ).withName("Drive:AlignToTarget")
   
   def _initTargetAlignment(
       self, 

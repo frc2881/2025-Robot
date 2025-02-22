@@ -5,9 +5,7 @@ from lib import logger, utils
 from lib.classes import Position
 import core.constants as constants
 
-import math
-
-class WristSubsystem(Subsystem):
+class Wrist(Subsystem):
   def __init__(self):
     super().__init__()
     self._constants = constants.Subsystems.Wrist
@@ -29,12 +27,14 @@ class WristSubsystem(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
     
-  def alignToPositionCommand(self, position: Position) -> Command:
-    return self.setPositionCommand(position).deadlineFor(
+  def alignToPosition(self, position: Position) -> Command:
+    return self.setPosition(position).deadlineFor(
       cmd.waitUntil(lambda: self._position != Position.Unknown).andThen(cmd.runOnce(lambda: setattr(self, "_isAlignedToPosition", True)))
-    ).beforeStarting(lambda: self._resetPositionAlignment()).withName("WristSubsystem:AlignToPosition")
+    ).beforeStarting(
+      lambda: self._resetPositionAlignment()
+    ).withName("Wrist:AlignToPosition")
 
-  def setPositionCommand(self, position: Position) -> Command:
+  def setPosition(self, position: Position) -> Command:
     return self.startEnd(
       lambda: [
         self._resetPositionAlignment(),
@@ -47,23 +47,23 @@ class WristSubsystem(Subsystem):
     ).withTimeout(
       self._constants.kSetPositionTimeout
     ).andThen(
-      self._holdPositionCommand(position)
+      self._holdPosition(position)
     ).finallyDo(
       lambda end: self._motor.stopMotor()
-    ).withName("WristSubsystem:SetPosition")
+    ).withName("Wrist:SetPosition")
 
-  def _holdPositionCommand(self, position: Position) -> Command:
+  def _holdPosition(self, position: Position) -> Command:
     return self.startEnd(
       lambda: self._motor.set(self._constants.kMotorHoldSpeed if position == Position.Up else -self._constants.kMotorHoldSpeed),
       lambda: self._motor.stopMotor()
     )
 
-  def togglePositionCommand(self) -> Command:
+  def togglePosition(self) -> Command:
     return cmd.either(
-      self.alignToPositionCommand(Position.Up), 
-      self.alignToPositionCommand(Position.Down), 
+      self.alignToPosition(Position.Up), 
+      self.alignToPosition(Position.Down), 
       lambda: self._position != Position.Up
-    ).withName("WristSubsystem:TogglePosition")
+    ).withName("Wrist:TogglePosition")
 
   def getPosition(self) -> Position:
     return self._position

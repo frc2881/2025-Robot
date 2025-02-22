@@ -16,7 +16,7 @@ class AutoPath(Enum):
   Start2_2 = auto()
   Start3_3 = auto()
 
-class AutoCommands:
+class Auto:
   def __init__(
       self,
       robot: "RobotCore"
@@ -24,31 +24,31 @@ class AutoCommands:
     self._robot = robot
 
     self._paths = { path: PathPlannerPath.fromPathFile(path.name) for path in AutoPath }
-    self._selectedAutoCommand = cmd.none()
+    self._auto = cmd.none()
 
     AutoBuilder.configure(
-      self._robot.localizationService.getRobotPose, 
-      self._robot.localizationService.resetRobotPose, 
-      self._robot.driveSubsystem.getChassisSpeeds, 
-      self._robot.driveSubsystem.drive, 
+      self._robot.localization.getRobotPose, 
+      self._robot.localization.resetRobotPose, 
+      self._robot.drive.getChassisSpeeds, 
+      self._robot.drive.drive, 
       constants.Subsystems.Drive.kPathPlannerController,
       constants.Subsystems.Drive.kPathPlannerRobotConfig,
       lambda: utils.getAlliance() == Alliance.Red,
-      self._robot.driveSubsystem
+      self._robot.drive
     )
 
-    self._autoCommandChooser = SendableChooser()
-    self._autoCommandChooser.setDefaultOption("None", cmd.none)
+    self._autos = SendableChooser()
+    self._autos.setDefaultOption("None", cmd.none)
     
-    self._autoCommandChooser.addOption("[1]_1", self.auto_1_1)
-    self._autoCommandChooser.addOption("[2]_2", self.auto_2_2)
-    self._autoCommandChooser.addOption("[3]_3", self.auto_3_3)
+    self._autos.addOption("[1]_1", self.auto_1_1)
+    self._autos.addOption("[2]_2", self.auto_2_2)
+    self._autos.addOption("[3]_3", self.auto_3_3)
 
-    self._autoCommandChooser.onChange(lambda autoCommand: setattr(self, "_selectedAutoCommand", autoCommand()))
-    SmartDashboard.putData("Robot/Auto/Command", self._autoCommandChooser)
+    self._autos.onChange(lambda auto: setattr(self, "_auto", auto()))
+    SmartDashboard.putData("Robot/Auto", self._autos)
 
-  def getSelected(self) -> Command:
-    return self._selectedAutoCommand
+  def get(self) -> Command:
+    return self._auto
   
   def _reset(self, path: AutoPath) -> Command:
     return cmd.sequence(
@@ -60,22 +60,22 @@ class AutoCommands:
     return AutoBuilder.followPath(self._paths.get(path)).withTimeout(constants.Game.Commands.kAutoMoveTimeout)
   
   def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
-    return self._robot.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, targetAlignmentLocation)
+    return self._robot.game.alignRobotToTarget(TargetAlignmentMode.Translation, targetAlignmentLocation)
   
   def _alignForScoring(self) -> Command:
-    return self._robot.gameCommands.alignRobotForScoringCommand(
+    return self._robot.game.alignRobotForScoring(
       TargetPositionType.ReefCoralL4Ready, 
       TargetPositionType.ReefCoralL4Score
     ).until(
       lambda: (
-        self._robot.elevatorSubsystem.isAlignedToPosition() and
-        self._robot.armSubsystem.isAlignedToPosition() and
-        self._robot.wristSubsystem.isAlignedToPosition()
+        self._robot.elevator.isAlignedToPosition() and
+        self._robot.arm.isAlignedToPosition() and
+        self._robot.wrist.isAlignedToPosition()
       )
     )
   
   def _score(self) -> Command:
-    return self._robot.gameCommands.scoreCommand(GamePiece.Coral)
+    return self._robot.game.score(GamePiece.Coral)
   
   def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return (
@@ -98,19 +98,19 @@ class AutoCommands:
       constants.Subsystems.Drive.kPathPlannerConstraints
     ).onlyIf(
       lambda: not utils.isCompetitionMode()
-    ).withName("AutoCommands:MoveToStartingPosition")
+    ).withName("Auto:MoveToStartingPosition")
 
   def auto_1_1(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Left)
-    ).withName("AutoCommands:[1]_1")
+    ).withName("Auto:[1]_1")
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start2_2, TargetAlignmentLocation.Left)
-    ).withName("AutoCommands:[2]_2")
+    ).withName("Auto:[2]_2")
   
   def auto_3_3(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Right)
-    ).withName("AutoCommands:[3]_3")
+    ).withName("Auto:[3]_3")

@@ -5,7 +5,7 @@ from lib import logger, utils
 from lib.classes import Position
 import core.constants as constants
 
-class HandSubsystem(Subsystem):
+class Hand(Subsystem):
   def __init__(self):
     super().__init__()
     self._constants = constants.Subsystems.Hand
@@ -47,7 +47,7 @@ class HandSubsystem(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
   
-  def runGripperCommand(self) -> Command:
+  def runGripper(self) -> Command:
     return self.startEnd(
       lambda: [
         self._gripperMotor.set(self._constants.kGripperMotorSpeed),
@@ -64,15 +64,15 @@ class HandSubsystem(Subsystem):
         cmd.waitUntil(lambda: self._gripperMotor.getOutputCurrent() >= self._constants.kGripperMotorCurrentTrigger),
         cmd.runOnce(lambda: setattr(self, "_isGripperHolding", True))
       )
-    ).withName("HandSubsystem:RunGripper")
+    ).withName("Hand:RunGripper")
   
-  def releaseGripperCommand(self) -> Command:
+  def releaseGripper(self) -> Command:
     return self.startEnd(
       lambda: self._gripperMotor.set(-self._constants.kGripperMotorSpeed),
       lambda: self._resetGripper()
     ).withTimeout(
       self._constants.kGripperReleaseTimeout
-    ).withName("HandSubsystem:ReleaseGripper")
+    ).withName("Hand:ReleaseGripper")
 
   def isGripperEnabled(self) -> bool:
     return self._isGripperEnabled
@@ -85,7 +85,7 @@ class HandSubsystem(Subsystem):
     self._isGripperEnabled = False
     self._isGripperHolding = False
 
-  def runSuctionCommand(self) -> Command:
+  def runSuction(self) -> Command:
     return self.startEnd(
       lambda: [
         self._setSolenoidPosition(Position.Closed),
@@ -103,9 +103,9 @@ class HandSubsystem(Subsystem):
         cmd.waitUntil(lambda: self._suctionMotor.getOutputCurrent() >= self._constants.kSuctionMotorCurrentTrigger),
         cmd.runOnce(lambda: setattr(self, "_isSuctionHolding", True))
       )
-    ).withName("HandSubsystem:RunSuction")
+    ).withName("Hand:RunSuction")
 
-  def releaseSuctionCommand(self) -> Command:
+  def releaseSuction(self) -> Command:
     return self.startEnd(
       lambda: [ 
         self._suctionMotor.stopMotor(),
@@ -114,7 +114,7 @@ class HandSubsystem(Subsystem):
       lambda: self._resetSuction()
     ).withTimeout(
       self._constants.kSuctionReleaseTimeout
-    ).withName("HandSubsystem:ReleaseSuction")
+    ).withName("Hand:ReleaseSuction")
 
   def isSuctionEnabled(self) -> bool:
     return self._isSuctionEnabled

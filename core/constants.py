@@ -36,7 +36,7 @@ from core.classes import (
 )
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025ReefscapeAndyMark)
-PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings() # TODO: update/validate all config measurements from physical robot metrics
+PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
 
 class Subsystems:
   class Drive:

@@ -2,18 +2,18 @@ from commands2 import Command, cmd
 from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
 from lib.classes import RobotState, Position, TargetAlignmentMode
-from lib.controllers.game_controller import GameController
-from lib.controllers.lights_controller import LightsController
-from lib.sensors.gyro_sensor_navx2 import GyroSensor_NAVX2
-from lib.sensors.pose_sensor import PoseSensor
-from core.commands.auto import AutoCommands
-from core.commands.game import GameCommands
-from core.subsystems.drive import DriveSubsystem
-from core.subsystems.elevator import ElevatorSubsystem
-from core.subsystems.arm import ArmSubsystem
-from core.subsystems.wrist import WristSubsystem
-from core.subsystems.hand import HandSubsystem
-from core.services.localization import LocalizationService
+from lib.controllers.xbox import Xbox
+from lib.controllers.lights import Lights
+from lib.sensors.gyro_navx2 import Gyro_NAVX2
+from lib.sensors.pose import PoseSensor
+from core.commands.auto import Auto
+from core.commands.game import Game
+from core.subsystems.drive import Drive
+from core.subsystems.elevator import Elevator
+from core.subsystems.arm import Arm
+from core.subsystems.wrist import Wrist
+from core.subsystems.hand import Hand
+from core.services.localization import Localization
 from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, LightsMode, ElevatorStage
 import core.constants as constants
 
@@ -28,178 +28,180 @@ class RobotCore:
     utils.addRobotPeriodic(self._periodic)
 
   def _initSensors(self) -> None:
-    self.gyroSensor = GyroSensor_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
+    self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
   def _initSubsystems(self) -> None:
-    self.driveSubsystem = DriveSubsystem(self.gyroSensor.getHeading)
-    self.elevatorSubsystem = ElevatorSubsystem()
-    self.armSubsystem = ArmSubsystem()
-    self.wristSubsystem = WristSubsystem()
-    self.handSubsystem = HandSubsystem()
+    self.drive = Drive(self.gyro.getHeading)
+    self.elevator = Elevator()
+    self.arm = Arm()
+    self.wrist = Wrist()
+    self.hand = Hand()
     
   def _initServices(self) -> None:
-    self.localizationService = LocalizationService(self.gyroSensor.getRotation, self.driveSubsystem.getModulePositions, self.poseSensors)
+    self.localization = Localization(self.gyro.getRotation, self.drive.getModulePositions, self.poseSensors)
     
   def _initControllers(self) -> None:
-    self.driverController = GameController(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)
-    self.operatorController = GameController(constants.Controllers.kOperatorControllerPort, constants.Controllers.kInputDeadband)
+    self.driver = Xbox(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)
+    self.operator = Xbox(constants.Controllers.kOperatorControllerPort, constants.Controllers.kInputDeadband)
     DriverStation.silenceJoystickConnectionWarning(True)
 
   def _initCommands(self) -> None:
-    self.gameCommands = GameCommands(self)
-    self.autoCommands = AutoCommands(self)
+    self.game = Game(self)
+    self.auto = Auto(self)
 
   def _initTriggers(self) -> None:
-    self._setupDriverControls()
-    self._setupOperatorControls()
-    self._setupLightsControls()
+    self._setupDriver()
+    self._setupOperator()
+    self._setupLights()
 
-  def _setupDriverControls(self) -> None:
-    self.driveSubsystem.setDefaultCommand(
-      self.driveSubsystem.driveCommand(self.driverController.getLeftY, self.driverController.getLeftX, self.driverController.getRightX)
+  def _setupDriver(self) -> None:
+    self.drive.setDefaultCommand(
+      self.drive.default(self.driver.getLeftY, self.driver.getLeftX, self.driver.getRightX)
     )
-    self.driverController.rightStick().and_((self.driverController.rightBumper().or_(self.driverController.leftBumper())).not_()).whileTrue(
-      self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center)
+    self.driver.rightStick().and_((self.driver.rightBumper().or_(self.driver.leftBumper())).not_()).whileTrue(
+      self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center)
     )
-    self.driverController.rightStick().and_(self.driverController.rightBumper()).whileTrue(
-      self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Right)
+    self.driver.rightStick().and_(self.driver.rightBumper()).whileTrue(
+      self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Right)
     )
-    self.driverController.rightStick().and_(self.driverController.leftBumper()).whileTrue(
-      self.gameCommands.alignRobotToTargetCommand(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left)
+    self.driver.rightStick().and_(self.driver.leftBumper()).whileTrue(
+      self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left)
     )
-    self.driverController.leftStick().whileTrue(
-      self.driveSubsystem.lockCommand()
+    self.driver.leftStick().whileTrue(
+      self.drive.lock()
     )
-    # self.driverController.rightTrigger().whileTrue(cmd.none())
-    # self.driverController.leftTrigger().whileTrue(cmd.none())
-    # self.driverController.rightBumper().whileTrue(cmd.none())
-    # self.driverController.leftBumper().whileTrue(cmd.none())
-    # self.driverController.povUp().and_((self.driverController.start()).not_()).whileTrue(cmd.none())
-    # self.driverController.povDown().and_((self.driverController.start()).not_()).whileTrue(cmd.none())
-    # self.driverController.povLeft().and_((self.driverController.start()).not_()).whileTrue(cmd.none())
-    # self.driverController.povRight().and_((self.driverController.start()).not_()).whileTrue(cmd.none())
-    # self.driverController.a().whileTrue(cmd.none())
-    # self.driverController.b().whileTrue(cmd.none())
-    # self.driverController.y().whileTrue(cmd.none())
-    self.driverController.x().whileTrue(
-      self.elevatorSubsystem.runCommand(lambda: -0.5, ElevatorStage.Lower) # TODO: test/validate cage climb speed and move into constant value
+    # self.driver.rightTrigger().whileTrue(cmd.none())
+    # self.driver.leftTrigger().whileTrue(cmd.none())
+    # self.driver.rightBumper().whileTrue(cmd.none())
+    # self.driver.leftBumper().whileTrue(cmd.none())
+    # self.driver.povUp().and_((self.driver.start()).not_()).whileTrue(cmd.none())
+    # self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(cmd.none())
+    # self.driver.povLeft().and_((self.driver.start()).not_()).whileTrue(cmd.none())
+    # self.driver.povRight().and_((self.driver.start()).not_()).whileTrue(cmd.none())
+    # self.driver.a().whileTrue(cmd.none())
+    # self.driver.b().whileTrue(cmd.none())
+    self.driver.y().whileTrue(
+      self.elevator.default(lambda: 0.5, ElevatorStage.Lower)
     )
-    # self.driverController.start().and_((
-    #     self.driverController.povLeft()
-    #     .or_(self.driverController.povUp())
-    #     .or_(self.driverController.povRight())
-    #     .or_(self.driverController.povDown())
+    self.driver.x().whileTrue(
+      self.elevator.default(lambda: -0.5, ElevatorStage.Lower)
+    )
+    # self.driver.start().and_((
+    #     self.driver.povLeft()
+    #     .or_(self.driver.povUp())
+    #     .or_(self.driver.povRight())
+    #     .or_(self.driver.povDown())
     #   ).not_()
     # ).onTrue(cmd.none())
-    self.driverController.start().and_(self.driverController.povLeft()).whileTrue(
-      self.autoCommands.moveToStartingPosition(1)
+    self.driver.start().and_(self.driver.povLeft()).whileTrue(
+      self.auto.moveToStartingPosition(1)
     )
-    self.driverController.start().and_(self.driverController.povUp()).whileTrue(
-      self.autoCommands.moveToStartingPosition(2)
+    self.driver.start().and_(self.driver.povUp()).whileTrue(
+      self.auto.moveToStartingPosition(2)
     )
-    self.driverController.start().and_(self.driverController.povRight()).whileTrue(
-      self.autoCommands.moveToStartingPosition(3)
+    self.driver.start().and_(self.driver.povRight()).whileTrue(
+      self.auto.moveToStartingPosition(3)
     )
-    self.driverController.back().onTrue(
-      self.gyroSensor.resetCommand()
+    self.driver.back().onTrue(
+      self.gyro.reset()
     )
 
-  def _setupOperatorControls(self) -> None:
-    self.elevatorSubsystem.setDefaultCommand(
-      self.elevatorSubsystem.runCommand(self.operatorController.getLeftY)
+  def _setupOperator(self) -> None:
+    self.elevator.setDefaultCommand(
+      self.elevator.default(self.operator.getLeftY)
     )
-    self.armSubsystem.setDefaultCommand(
-      self.armSubsystem.runCommand(self.operatorController.getRightY)
+    self.arm.setDefaultCommand(
+      self.arm.default(self.operator.getRightY)
     )
-    self.operatorController.leftTrigger().whileTrue(
-      self.gameCommands.intakeCommand(GamePiece.Coral)
+    self.operator.leftTrigger().whileTrue(
+      self.game.intake(GamePiece.Coral)
     )
-    self.operatorController.rightTrigger().onTrue(
-      self.gameCommands.scoreCommand(GamePiece.Coral)
+    self.operator.rightTrigger().onTrue(
+      self.game.score(GamePiece.Coral)
     )
-    self.operatorController.leftBumper().whileTrue(
-      self.gameCommands.intakeCommand(GamePiece.Algae)
+    self.operator.leftBumper().whileTrue(
+      self.game.intake(GamePiece.Algae)
     )
-    self.operatorController.rightBumper().onTrue(
-      self.gameCommands.scoreCommand(GamePiece.Algae)
+    self.operator.rightBumper().onTrue(
+      self.game.score(GamePiece.Algae)
     )
-    self.operatorController.povUp().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotForScoringCommand(TargetPositionType.ReefCoralL4Ready, TargetPositionType.ReefCoralL4Score)
+    self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
+      self.game.alignRobotForScoring(TargetPositionType.ReefCoralL4Ready, TargetPositionType.ReefCoralL4Score)
     )
-    self.operatorController.povRight().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotForScoringCommand(TargetPositionType.ReefCoralL3Ready, TargetPositionType.ReefCoralL3Score)
+    self.operator.povRight().and_((self.operator.start()).not_()).whileTrue(
+      self.game.alignRobotForScoring(TargetPositionType.ReefCoralL3Ready, TargetPositionType.ReefCoralL3Score)
     )
-    self.operatorController.povDown().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotForScoringCommand(TargetPositionType.ReefCoralL2Ready, TargetPositionType.ReefCoralL2Score)
+    self.operator.povDown().and_((self.operator.start()).not_()).whileTrue(
+      self.game.alignRobotForScoring(TargetPositionType.ReefCoralL2Ready, TargetPositionType.ReefCoralL2Score)
     )
-    self.operatorController.povLeft().and_((self.operatorController.start()).not_()).whileTrue(
-      self.gameCommands.alignRobotForScoringCommand(TargetPositionType.ReefCoralL1Ready, TargetPositionType.ReefCoralL1Score)
+    self.operator.povLeft().and_((self.operator.start()).not_()).whileTrue(
+      self.game.alignRobotForScoring(TargetPositionType.ReefCoralL1Ready, TargetPositionType.ReefCoralL1Score)
     )
-    self.operatorController.povUpRight().whileTrue(
-      self.gameCommands.intakeAlgaeCommand(TargetPositionType.ReefAlgaeL3)
+    self.operator.povUpRight().whileTrue(
+      self.game.intakeAlgae(TargetPositionType.ReefAlgaeL3)
     )
-    self.operatorController.povDownRight().whileTrue(
-      self.gameCommands.intakeAlgaeCommand(TargetPositionType.ReefAlgaeL2)
+    self.operator.povDownRight().whileTrue(
+      self.game.intakeAlgae(TargetPositionType.ReefAlgaeL2)
     )
-    self.operatorController.povDownLeft().whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.AlgaeProcessor)
+    self.operator.povDownLeft().whileTrue(
+      self.game.alignRobotToTargetPosition(TargetPositionType.AlgaeProcessor)
     )
-    self.operatorController.povUpLeft().whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.Barge)
+    self.operator.povUpLeft().whileTrue(
+      self.game.alignRobotToTargetPosition(TargetPositionType.Barge)
     )
-    self.operatorController.a().whileTrue(
-      self.gameCommands.intakeCoralCommand()
+    self.operator.a().whileTrue(
+      self.game.intakeCoral()
     )
-    # self.operatorController.b().whileTrue(cmd.none())
-    self.operatorController.y().whileTrue(
-      self.wristSubsystem.togglePositionCommand()
+    # self.operator.b().whileTrue(cmd.none())
+    self.operator.y().whileTrue(
+      self.wrist.togglePosition()
     )
-    self.operatorController.x().whileTrue(
-      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CageEntry)
+    self.operator.x().whileTrue(
+      self.game.alignRobotToTargetPosition(TargetPositionType.CageEntry)
     )
-    self.operatorController.start().and_(self.operatorController.povDown()).whileTrue(
-      self.elevatorSubsystem.resetLowerStageToZeroCommand()
+    self.operator.start().and_(self.operator.povDown()).whileTrue(
+      self.elevator.resetLowerStageToZero()
     )
-    self.operatorController.start().and_(self.operatorController.povUp()).whileTrue(
-      self.elevatorSubsystem.resetUpperStageToZeroCommand()
+    self.operator.start().and_(self.operator.povUp()).whileTrue(
+      self.elevator.resetUpperStageToZero()
     )
-    self.operatorController.start().and_(self.operatorController.povRight()).whileTrue(
-      self.wristSubsystem.alignToPositionCommand(Position.Up)
+    self.operator.start().and_(self.operator.povRight()).whileTrue(
+      self.wrist.alignToPosition(Position.Up)
     )
-    self.operatorController.start().and_(self.operatorController.povLeft()).whileTrue(
-      self.armSubsystem.resetToZeroCommand()
+    self.operator.start().and_(self.operator.povLeft()).whileTrue(
+      self.arm.resetToZero()
     )
-    self.operatorController.start().and_((
-        self.operatorController.povLeft()
-        .or_(self.operatorController.povUp())
-        .or_(self.operatorController.povRight())
-        .or_(self.operatorController.povDown())
+    self.operator.start().and_((
+        self.operator.povLeft()
+        .or_(self.operator.povUp())
+        .or_(self.operator.povRight())
+        .or_(self.operator.povDown())
       ).not_()
     ).whileTrue(
-      self.elevatorSubsystem.runCommand(self.operatorController.getLeftY, ElevatorStage.Upper)
+      self.elevator.default(self.operator.getLeftY, ElevatorStage.Upper)
     )
-    self.operatorController.back().whileTrue(
-      self.elevatorSubsystem.runCommand(self.operatorController.getLeftY, ElevatorStage.Lower)
+    self.operator.back().whileTrue(
+      self.elevator.default(self.operator.getLeftY, ElevatorStage.Lower)
     )
 
-  def _setupLightsControls(self) -> None:
-    self.lightsController = LightsController()
+  def _setupLights(self) -> None:
+    self.lightsController = Lights()
     utils.addRobotPeriodic(self._updateLights)
 
   def _updateLights(self) -> None:
     lightsMode = LightsMode.Default
     match utils.getRobotState():
       case RobotState.Disabled:
-        if not self._robotHasInitialZeroResets():
+        if not self._hasZeroResets():
           lightsMode = LightsMode.RobotNotReady
-        elif not self.localizationService.hasVisionTarget():
+        elif not self.localization.hasVisionTarget():
           lightsMode = LightsMode.VisionNotReady
       case RobotState.Enabled:
         # TODO: add additional modes as needed for game/robot state visualization for drive team
         pass
-    self.lightsController.setLightsMode(lightsMode.name)
+    self.lightsController.setMode(lightsMode.name)
 
   def _periodic(self) -> None:
     self._updateTelemetry()
@@ -211,7 +213,7 @@ class RobotCore:
     self.reset()
 
   def autoExit(self) -> None: 
-    self.gyroSensor.resetRobotToField(self.localizationService.getRobotPose())
+    self.gyro.resetRobotToField(self.localization.getRobotPose())
 
   def teleopInit(self) -> None:
     self.reset()
@@ -223,16 +225,16 @@ class RobotCore:
     self.reset()
 
   def reset(self) -> None:
-    self.driveSubsystem.reset()
-    self.elevatorSubsystem.reset()
-    self.armSubsystem.reset()
-    self.wristSubsystem.reset()
-    self.handSubsystem.reset()
+    self.drive.reset()
+    self.elevator.reset()
+    self.arm.reset()
+    self.wrist.reset()
+    self.hand.reset()
 
-  def _robotHasInitialZeroResets(self) -> bool:
+  def _hasZeroResets(self) -> bool:
     return utils.isCompetitionMode() or (
-      self.elevatorSubsystem.hasInitialZeroReset() and self.armSubsystem.hasInitialZeroReset()
+      self.elevator.hasZeroReset() and self.arm.hasZeroReset()
     )
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putBoolean("Robot/Status/HasInitialZeroResets", self._robotHasInitialZeroResets())
+    SmartDashboard.putBoolean("Robot/Status/HasZeroResets", self._hasZeroResets())

@@ -8,7 +8,7 @@ from lib.components.position_control_module import PositionControlModule
 from core.classes import ElevatorPosition, ElevatorStage
 import core.constants as constants
 
-class ElevatorSubsystem(Subsystem):
+class Elevator(Subsystem):
   def __init__(self):
     super().__init__()
     self._constants = constants.Subsystems.Elevator
@@ -21,11 +21,11 @@ class ElevatorSubsystem(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
 
-  def runCommand(self, getInput: Callable[[], units.percent], elevatorStage: ElevatorStage = ElevatorStage.Both) -> Command:
+  def default(self, getInput: Callable[[], units.percent], elevatorStage: ElevatorStage = ElevatorStage.Both) -> Command:
     return self.runEnd(
       lambda: self._setSpeed(getInput() * self._constants.kInputLimit, elevatorStage),
       lambda: self.reset()
-    ).withName("ElevatorSubsystem:Run")
+    ).withName("Elevator:Run")
   
   def _setSpeed(self, speed: units.percent, elevatorStage: ElevatorStage) -> None:
     if elevatorStage != elevatorStage.Upper:
@@ -38,13 +38,13 @@ class ElevatorSubsystem(Subsystem):
     if elevatorStage != elevatorStage.Lower:
       self._upperStage.setSpeed(speed)
 
-  def alignToPositionCommand(self, elevatorPosition: ElevatorPosition) -> Command:
+  def alignToPosition(self, elevatorPosition: ElevatorPosition) -> Command:
     return self.run(
       lambda: [
         self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
         self._upperStage.alignToPosition(elevatorPosition.upperStage)
       ]
-    ).withName("ElevatorSubsystem:AlignToPosition")
+    ).withName("Elevator:AlignToPosition")
 
   def setPosition(self, elevatorPosition: ElevatorPosition) -> Command:
     return self.run(
@@ -52,7 +52,7 @@ class ElevatorSubsystem(Subsystem):
         self._lowerStage.setPosition(elevatorPosition.lowerStage),
         self._upperStage.setPosition(elevatorPosition.upperStage)
       ]
-    ).withName("ElevatorSubsystem:SetPosition")
+    ).withName("Elevator:SetPosition")
 
   def getPosition(self) -> ElevatorPosition:
     return ElevatorPosition(self._lowerStage.getPosition(), self._upperStage.getPosition())
@@ -60,17 +60,14 @@ class ElevatorSubsystem(Subsystem):
   def isAlignedToPosition(self) -> bool:
     return self._lowerStage.isAlignedToPosition() and self._upperStage.isAlignedToPosition()
   
-  def suspendSoftLimitsCommand(self) -> Command:
-    return self._lowerStage.suspendSoftLimitsCommand().alongWith(self._upperStage.suspendSoftLimitsCommand()).withName("ElevatorSubsystem:SuspendSoftLimitsCommand")
+  def resetLowerStageToZero(self) -> Command:
+    return self._lowerStage.resetToZero(self).withName("Elevator:ResetLowerStageToZero")
 
-  def resetLowerStageToZeroCommand(self) -> Command:
-    return self._lowerStage.resetToZeroCommand(self).withName("ElevatorSubsystem:ResetLowerStageToZero")
-
-  def resetUpperStageToZeroCommand(self) -> Command:
-    return self._upperStage.resetToZeroCommand(self).withName("ElevatorSubsystem:ResetUpperStageToZero")
+  def resetUpperStageToZero(self) -> Command:
+    return self._upperStage.resetToZero(self).withName("Elevator:ResetUpperStageToZero")
   
-  def hasInitialZeroReset(self) -> bool:
-    return self._lowerStage.hasInitialZeroReset() and self._upperStage.hasInitialZeroReset()
+  def hasZeroReset(self) -> bool:
+    return self._lowerStage.hasZeroReset() and self._upperStage.hasZeroReset()
   
   def reset(self) -> None:
     self._lowerStage.reset()

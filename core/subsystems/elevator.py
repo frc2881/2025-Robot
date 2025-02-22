@@ -27,11 +27,6 @@ class ElevatorSubsystem(Subsystem):
       lambda: self.reset()
     ).withName("ElevatorSubsystem:Run")
   
-  def alignToPositionCommand(self, elevatorPosition: ElevatorPosition) -> Command:
-    return self.run(
-      lambda: self._setPosition(elevatorPosition)
-    ).withName("ElevatorSubsystem:AlignToPosition")
-
   def _setSpeed(self, speed: units.percent, elevatorStage: ElevatorStage) -> None:
     if elevatorStage != elevatorStage.Upper:
       self._lowerStage.setSpeed(
@@ -43,19 +38,27 @@ class ElevatorSubsystem(Subsystem):
     if elevatorStage != elevatorStage.Lower:
       self._upperStage.setSpeed(speed)
 
-  def _setPosition(self, elevatorPosition: ElevatorPosition) -> None:
-    self._lowerStage.setPosition(elevatorPosition.lowerStage)
-    self._upperStage.setPosition(elevatorPosition.upperStage)
+  def alignToPositionCommand(self, elevatorPosition: ElevatorPosition) -> Command:
+    return self.run(
+      lambda: [
+        self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
+        self._upperStage.alignToPosition(elevatorPosition.upperStage)
+      ]
+    ).withName("ElevatorSubsystem:AlignToPosition")
+
+  def setPosition(self, elevatorPosition: ElevatorPosition) -> Command:
+    return self.run(
+      lambda: [
+        self._lowerStage.setPosition(elevatorPosition.lowerStage),
+        self._upperStage.setPosition(elevatorPosition.upperStage)
+      ]
+    ).withName("ElevatorSubsystem:SetPosition")
 
   def getPosition(self) -> ElevatorPosition:
     return ElevatorPosition(self._lowerStage.getPosition(), self._upperStage.getPosition())
 
   def isAlignedToPosition(self) -> bool:
     return self._lowerStage.isAlignedToPosition() and self._upperStage.isAlignedToPosition()
-  
-  def resetPositionAlignment(self) -> None:
-    self._lowerStage.resetPositionAlignment()
-    self._upperStage.resetPositionAlignment()
   
   def suspendSoftLimitsCommand(self) -> Command:
     return self._lowerStage.suspendSoftLimitsCommand().alongWith(self._upperStage.suspendSoftLimitsCommand()).withName("ElevatorSubsystem:SuspendSoftLimitsCommand")

@@ -138,10 +138,8 @@ class HandSubsystem(Subsystem):
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Hand/Gripper/IsEnabled", self._isGripperEnabled)
     SmartDashboard.putBoolean("Robot/Hand/Gripper/IsHolding", self._isGripperHolding)
-    SmartDashboard.putNumber("Robot/Hand/Gripper/Speed", self._gripperMotor.get())
     SmartDashboard.putNumber("Robot/Hand/Gripper/Current", self._gripperMotor.getOutputCurrent()) 
     SmartDashboard.putBoolean("Robot/Hand/Suction/IsEnabled", self._isSuctionEnabled)
     SmartDashboard.putBoolean("Robot/Hand/Suction/IsHolding", self._isSuctionHolding)
-    SmartDashboard.putNumber("Robot/Hand/Suction/Speed", self._suctionMotor.get())
     SmartDashboard.putNumber("Robot/Hand/Suction/Current", self._suctionMotor.getOutputCurrent())
  

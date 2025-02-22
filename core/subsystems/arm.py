@@ -20,29 +20,25 @@ class ArmSubsystem(Subsystem):
 
   def runCommand(self, getInput: Callable[[], units.percent]) -> Command:
     return self.runEnd(
-      lambda: self._setSpeed(getInput() * self._constants.kInputLimit),
+      lambda: self._arm.setSpeed(getInput() * self._constants.kInputLimit),
       lambda: self.reset()
     ).withName("ArmSubsystem:Run")
   
   def alignToPositionCommand(self, position: units.inches) -> Command:
     return self.run(
-      lambda: self._setPosition(position)
+      lambda: self._arm.alignToPosition(position)
     ).withName("ArmSubsystem:AlignToPosition")
   
-  def _setSpeed(self, speed: units.percent) -> None:
-    self._arm.setSpeed(speed)
-
-  def _setPosition(self, position: units.inches) -> None:
-    self._arm.setPosition(position)
+  def setPositionCommand(self, position: units.inches) -> Command:
+    return self.run(
+      lambda: self._arm.setPosition(position)
+    ).withName("ArmSubsystem:SetPosition")
 
   def getPosition(self) -> units.inches:
     return self._arm.getPosition()
 
   def isAlignedToPosition(self) -> bool:
     return self._arm.isAlignedToPosition()
-  
-  def resetPositionAlignment(self) -> None:
-    self._arm.resetPositionAlignment()
   
   def resetToZeroCommand(self) -> Command:
     return self._arm.resetToZeroCommand(self).withName("ArmSubsystem:ResetToZero")

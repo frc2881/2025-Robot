@@ -89,7 +89,7 @@ class Subsystems:
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
-      translationTolerance = Tolerance(0.025, 0.05),
+      translationTolerance = Tolerance(0.03, 0.06),
       translationSpeedMax = kTranslationSpeedMax * 0.5
     )
 
@@ -101,7 +101,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 3.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(-0.75, 1.0), # TODO: tune output range with vertical mechanism (slower going down)
+      motorOutputRange = Range(-1.0, 1.0),
       motorMotionMaxVelocity = 150.0, # TODO: retune with mechanism updates
       motorMotionMaxAcceleration = 200.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
@@ -117,7 +117,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(-0.5, 1.0), # TODO: tune output range with vertical mechanism (slower going down)
+      motorOutputRange = Range(-0.5, 1.0),
       motorMotionMaxVelocity = 400.0, # TODO: retune with mechanism updates
       motorMotionMaxAcceleration = 200.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
@@ -137,7 +137,7 @@ class Subsystems:
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(-0.75, 1.0), # TODO: tune output range with vertical mechanism (slower going down)
+      motorOutputRange = Range(-0.5, 1.0), # TODO: tune output range with vertical mechanism (slower going down)
       motorMotionMaxVelocity = 200, # TODO: retune with mechanism updates
       motorMotionMaxAcceleration = 300.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
@@ -152,8 +152,9 @@ class Subsystems:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.8
-    kMotorDownSpeed: units.percent = 0.5
-    kSetPositionTimeout: units.seconds = 0.5
+    kMotorDownSpeed: units.percent = 0.4
+    kMotorHoldSpeed: units.percent = 0.1
+    kSetPositionTimeout: units.seconds = 0.3
 
   class Hand:
     kGripperMotorCANId: int = 14
@@ -231,8 +232,8 @@ class Controllers:
 
 class Game:
   class Commands:
-    kTargetAlignmentTimeout: units.seconds = 2.0 
-    kAutoMoveTimeout: units.seconds = 4.0
+    kTargetAlignmentTimeout: units.seconds = 3.0 
+    kAutoMoveTimeout: units.seconds = 5.0
 
   class Field:
     kAprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT
@@ -302,7 +303,7 @@ class Game:
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(0.6, Value.min), Value.min, Position.Up),
         TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, Value.min), Value.min, Position.Up),
-        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.0, Position.Down),
+        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.75, Position.Down),
         TargetPositionType.ReefCoralL3Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),
         TargetPositionType.ReefCoralL3Score: TargetPosition(ElevatorPosition(Value.min, 27.5), 6.75, Position.Down),
         TargetPositionType.ReefCoralL2Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),
@@ -312,7 +313,6 @@ class Game:
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
         TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
-        TargetPositionType.Barge: TargetPosition(ElevatorPosition(Value.max, Value.max), 0.0, Position.Up),
-        TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up),
-        TargetPositionType.CageClimb: TargetPosition(ElevatorPosition(Value.min, Value.max), Value.max, Position.Up)
+        TargetPositionType.Barge: TargetPosition(ElevatorPosition(Value.max, Value.max), Value.min, Position.Down),
+        TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up)
       }

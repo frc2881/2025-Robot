@@ -30,7 +30,6 @@ class TargetPositionType(Enum):
   AlgaeProcessor = auto()
   Barge = auto()
   CageEntry = auto()
-  CageClimb = auto()
 
 class TargetAlignmentLocation(Enum):
   Default = auto()

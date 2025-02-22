@@ -66,24 +66,31 @@ class AutoCommands:
     return self._robot.gameCommands.alignRobotForScoringCommand(
       TargetPositionType.ReefCoralL4Ready, 
       TargetPositionType.ReefCoralL4Score
+    ).until(
+      lambda: (
+        self._robot.elevatorSubsystem.isAlignedToPosition() and
+        self._robot.armSubsystem.isAlignedToPosition() and
+        self._robot.wristSubsystem.isAlignedToPosition()
+      )
     )
   
-  def _intake(self) -> Command:
-    return self._robot.gameCommands.intakeCoralCommand()
-
   def _score(self) -> Command:
     return self._robot.gameCommands.scoreCommand(GamePiece.Coral)
   
+  def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
+    return (
+      self._move(autoPath).deadlineFor(self._alignForScoring())
+      .andThen(self._alignToTarget(targetAlignmentLocation))
+      .andThen(self._alignForScoring())
+      .andThen(self._score())
+    )
+  
   def _getStartingPose(self, position: int) -> Pose2d:
     match position:
-      case 1:
-        return self._paths.get(AutoPath.Start1_1).getStartingHolonomicPose()
-      case 2: 
-        return self._paths.get(AutoPath.Start2_2).getStartingHolonomicPose()
-      case 3:
-        return self._paths.get(AutoPath.Start3_3).getStartingHolonomicPose()
-      case _:
-        return None
+      case 1: return self._paths.get(AutoPath.Start1_1).getStartingHolonomicPose()
+      case 2: return self._paths.get(AutoPath.Start2_2).getStartingHolonomicPose()
+      case 3: return self._paths.get(AutoPath.Start3_3).getStartingHolonomicPose()
+      case _: return None
 
   def moveToStartingPosition(self, position: int) -> Command:
     return AutoBuilder.pathfindToPose(
@@ -95,35 +102,15 @@ class AutoCommands:
 
   def auto_1_1(self) -> Command:
     return cmd.sequence(
-      cmd.parallel(
-        self._move(AutoPath.Start1_1),
-        self._alignForScoring()
-      ),
-      self._alignToTarget(TargetAlignmentLocation.Left),
-      self._alignForScoring(),
-      self._score()
+      self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Left)
     ).withName("AutoCommands:[1]_1")
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
-      cmd.parallel(
-        self._move(AutoPath.Start2_2),
-        self._alignForScoring()
-      ),
-      self._alignToTarget(TargetAlignmentLocation.Left),
-      self._alignForScoring(),
-      self._score()
+      self._moveAlignScore(AutoPath.Start2_2, TargetAlignmentLocation.Left)
     ).withName("AutoCommands:[2]_2")
   
   def auto_3_3(self) -> Command:
     return cmd.sequence(
-      cmd.parallel(
-        cmd.sequence(
-          self._move(AutoPath.Start3_3),
-          self._alignToTarget(TargetAlignmentLocation.Right)
-        ),
-        self._alignForScoring()
-      ),
-      self._alignForScoring(),
-      self._score()
+      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Right)
     ).withName("AutoCommands:[3]_3")

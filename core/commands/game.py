@@ -48,7 +48,9 @@ class GameCommands:
             TargetPositionType.AlgaeProcessor,
             TargetPositionType.ReefAlgaeL3,
             TargetPositionType.ReefAlgaeL2,
-            TargetPositionType.Barge 
+            TargetPositionType.Barge,
+            TargetPositionType.ReefCoralL3Score,
+            TargetPositionType.ReefCoralL3Ready
           ] else 
           Position.Up
         )

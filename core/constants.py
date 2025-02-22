@@ -141,7 +141,7 @@ class Subsystems:
       motorMotionMaxVelocity = 200, # TODO: retune with mechanism updates
       motorMotionMaxAcceleration = 300.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
-      motorSoftLimitForward = 65.0, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 69.7, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 1.5, # TODO: retune with mechanism updates
       motorResetSpeed = 0.2
     ))
@@ -275,9 +275,9 @@ class Game:
       kTargetAlignmentTransforms: dict[TargetType, dict[TargetAlignmentLocation, Transform3d]] = {
         TargetType.Reef: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), units.inchesToMeters(-6.5), 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), units.inchesToMeters(6.5), 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(22), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(22), units.inchesToMeters(-6.5), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(22), units.inchesToMeters(6.5), 0, Rotation3d())
         },
         TargetType.CoralStation: {
           TargetAlignmentLocation.Default: Transform3d(),
@@ -301,11 +301,11 @@ class Game:
 
       # TODO: calculate and test elevator, arm, and wrist positions for all the targets
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
-        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(0.6, Value.min), Value.min, Position.Up),
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), 2.7, Position.Up),
         TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, Value.min), Value.min, Position.Up),
         TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.75, Position.Down),
-        TargetPositionType.ReefCoralL3Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),
-        TargetPositionType.ReefCoralL3Score: TargetPosition(ElevatorPosition(Value.min, 27.5), 6.75, Position.Down),
+        TargetPositionType.ReefCoralL3Ready: TargetPosition(ElevatorPosition(Value.min, Value.max), Value.min, Position.Down),
+        TargetPositionType.ReefCoralL3Score: TargetPosition(ElevatorPosition(Value.min, Value.max), 6.75, Position.Down),
         TargetPositionType.ReefCoralL2Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),
         TargetPositionType.ReefCoralL2Score: TargetPosition(ElevatorPosition(Value.min, 12.25), 6.75, Position.Down),
         TargetPositionType.ReefCoralL1Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Up),

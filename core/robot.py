@@ -84,9 +84,7 @@ class RobotCore:
     # self.driverController.b().whileTrue(cmd.none())
     # self.driverController.y().whileTrue(cmd.none())
     self.driverController.x().whileTrue(
-      self.elevatorSubsystem.suspendSoftLimitsCommand().andThen(
-        self.elevatorSubsystem.runCommand(-0.5, ElevatorStage.Lower) # TODO: test/validate cage climb speed and move into constant value
-      )
+      self.elevatorSubsystem.runCommand(lambda: -0.5, ElevatorStage.Lower) # TODO: test/validate cage climb speed and move into constant value
     )
     # self.driverController.start().and_((
     #     self.driverController.povLeft()
@@ -159,9 +157,7 @@ class RobotCore:
       self.wristSubsystem.togglePositionCommand()
     )
     self.operatorController.x().whileTrue(
-      self.elevatorSubsystem.suspendSoftLimitsCommand().andThen(
-        self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CageEntry)
-      ) 
+      self.gameCommands.alignRobotToTargetPositionCommand(TargetPositionType.CageEntry)
     )
     self.operatorController.start().and_(self.operatorController.povDown()).whileTrue(
       self.elevatorSubsystem.resetLowerStageToZeroCommand()

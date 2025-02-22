@@ -54,7 +54,7 @@ class Wrist(Subsystem):
 
   def _holdPosition(self, position: Position) -> Command:
     return self.startEnd(
-      lambda: self._motor.set(self._constants.kMotorHoldSpeed if position == Position.Up else -self._constants.kMotorHoldSpeed),
+      lambda: self._motor.set(self._constants.kMotorHoldUpSpeed if position == Position.Up else -self._constants.kMotorHoldDownSpeed),
       lambda: self._motor.stopMotor()
     )
 

@@ -32,7 +32,7 @@ class Game:
     ).withTimeout(
       constants.Game.Commands.kTargetAlignmentTimeout
     ).andThen(
-      self.rumbleControllers(ControllerRumbleMode.Driver)
+      self.rumbleControllers(ControllerRumbleMode.Both)
     ).withName("Game:AlignRobotToTarget")
   
   def alignRobotToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
@@ -41,7 +41,7 @@ class Game:
       self._robot.arm.setPosition(Value.min).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
       ),
-      cmd.waitSeconds(0.3).andThen(
+      cmd.waitSeconds(0.8).andThen(
         self._robot.wrist.setPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist).until(lambda: self._robot.elevator.isAlignedToPosition())).andThen(
         self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
       )
@@ -55,14 +55,7 @@ class Game:
     return cmd.either(
       self.alignRobotToTargetPosition(readyTargetPositionType),
       self.alignRobotToTargetPosition(scoreTargetPositionType).deadlineFor(
-        self._robot.hand.runGripper().onlyIf(
-          lambda: scoreTargetPositionType in [ 
-            TargetPositionType.ReefCoralL4Score,
-            TargetPositionType.ReefCoralL3Score,
-            TargetPositionType.ReefCoralL2Score,
-            TargetPositionType.ReefCoralL4Score
-          ]
-        )
+        self._robot.hand.runIntake(lambda: scoreTargetPositionType)
       ),
       lambda: not self._robot.drive.isAlignedToTarget()
     ).deadlineFor(
@@ -72,15 +65,13 @@ class Game:
           self._robot.arm.isAlignedToPosition() and
           self._robot.wrist.isAlignedToPosition()
         )
-      ).andThen(
-        self.rumbleControllers(ControllerRumbleMode.Operator)
       )
     ).withName("Game:AlignRobotForScoring")
   
   def intake(self, gamePiece: GamePiece) -> Command:
     return cmd.either(
       self._robot.hand.runGripper().until(lambda: self._robot.hand.isGripperHolding()),
-      self._robot.hand.runSuction().until(lambda: self._robot.hand.isSuctionHolding()),
+      self._robot.hand.runSuction(),
       lambda: gamePiece == GamePiece.Coral
     ).andThen(
       self.rumbleControllers(ControllerRumbleMode.Both)

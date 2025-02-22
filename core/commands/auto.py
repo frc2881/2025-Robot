@@ -8,13 +8,27 @@ from pathplannerlib.path import PathPlannerPath
 from lib import logger, utils
 from lib.classes import Alliance, TargetAlignmentMode
 if TYPE_CHECKING: from core.robot import RobotCore
-from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece
+from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, TargetType
 import core.constants as constants
 
 class AutoPath(Enum):
   Start1_1 = auto()
   Start2_2 = auto()
   Start3_3 = auto()
+  Pickup1_1 = auto()
+  #Pickup2_1 = auto()?
+  #Pickup2_2 = auto()?
+  Pickup3_2 = auto()
+  Pickup4_2 = auto()
+  Pickup5_1 = auto()
+  Pickup5_2 = auto()
+  Pickup6_1 = auto()
+  Move1_1 = auto()
+  Move1_5 = auto()
+  Move1_6 = auto()
+  Move2_3 = auto()
+  Move2_4 = auto()
+  Move2_5 = auto()
 
 class Auto:
   def __init__(
@@ -41,6 +55,7 @@ class Auto:
     self._autos.setDefaultOption("None", cmd.none)
     
     self._autos.addOption("[1]_1", self.auto_1_1)
+    self._autos.addOption("[1]_1_6", self.auto_1_1_6)
     self._autos.addOption("[2]_2", self.auto_2_2)
     self._autos.addOption("[3]_3", self.auto_3_3)
 
@@ -60,7 +75,7 @@ class Auto:
     return AutoBuilder.followPath(self._paths.get(path)).withTimeout(constants.Game.Commands.kAutoMoveTimeout)
   
   def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
-    return self._robot.game.alignRobotToTarget(TargetAlignmentMode.Translation, targetAlignmentLocation)
+    return self._robot.game.alignRobotToTarget(TargetAlignmentMode.Translation, targetAlignmentLocation, TargetType.ReefL4).withTimeout(2.0)
   
   def _alignForScoring(self) -> Command:
     return self._robot.game.alignRobotForScoring(
@@ -77,12 +92,24 @@ class Auto:
   def _score(self) -> Command:
     return self._robot.game.score(GamePiece.Coral)
   
+  def _intake(self) -> Command:
+    return self._robot.game.intakeCoral()
+  
   def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return (
       self._move(autoPath).deadlineFor(self._alignForScoring())
       .andThen(self._alignToTarget(targetAlignmentLocation))
       .andThen(self._alignForScoring())
+      .andThen(cmd.waitSeconds(0.02))
       .andThen(self._score())
+    )
+  
+  def _moveAlignPickup(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
+    return (
+      self._intake().alongWith(
+        self._move(autoPath)
+        .andThen(self._alignToTarget(targetAlignmentLocation))
+      )
     )
   
   def _getStartingPose(self, position: int) -> Pose2d:
@@ -104,6 +131,22 @@ class Auto:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Left)
     ).withName("Auto:[1]_1")
+  
+  def auto_1_1_6(self) -> Command:
+    return cmd.sequence(
+      self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Left),
+      self._moveAlignPickup(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
+      self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Left)
+    ).withName("Auto:[1]_1_6")
+  
+  def auto_1_1_6_6(self) -> Command:
+    return cmd.sequence(
+      self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Left),
+      self._moveAlignPickup(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
+      self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Left),
+      self._moveAlignPickup(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
+      self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Right)
+    ).withName("Auto:[1]_1_6_6")
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(

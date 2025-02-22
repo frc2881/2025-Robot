@@ -14,7 +14,7 @@ from core.subsystems.arm import Arm
 from core.subsystems.wrist import Wrist
 from core.subsystems.hand import Hand
 from core.services.localization import Localization
-from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, LightsMode, ElevatorStage
+from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, LightsMode, ElevatorStage, TargetType
 import core.constants as constants
 
 class RobotCore:
@@ -63,12 +63,19 @@ class RobotCore:
     self.driver.rightStick().and_((self.driver.rightBumper().or_(self.driver.leftBumper())).not_()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center)
     )
-    self.driver.rightStick().and_(self.driver.rightBumper()).whileTrue(
+    self.driver.rightStick().and_(self.driver.rightBumper()).and_(self.operator.povUp().not_()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Right)
     )
-    self.driver.rightStick().and_(self.driver.leftBumper()).whileTrue(
+    self.driver.rightStick().and_(self.driver.leftBumper()).and_(self.operator.povUp().not_()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left)
     )
+    self.driver.rightStick().and_(self.driver.rightBumper()).and_(self.operator.povUp()).whileTrue(
+      self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Right, TargetType.ReefL4)
+    )
+    self.driver.rightStick().and_(self.driver.leftBumper()).and_(self.operator.povUp()).whileTrue(
+      self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left, TargetType.ReefL4)
+    )
+
     self.driver.leftStick().whileTrue(
       self.drive.lock()
     )

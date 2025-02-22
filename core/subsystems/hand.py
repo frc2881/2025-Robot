@@ -1,9 +1,11 @@
+from typing import Callable
 from commands2 import Subsystem, Command, cmd
 from wpilib import SmartDashboard, PowerDistribution
 from rev import SparkMax, SparkMaxConfig, SparkBase
 from lib import logger, utils
 from lib.classes import Position
 import core.constants as constants
+from core.classes import TargetPositionType
 
 class Hand(Subsystem):
   def __init__(self):
@@ -46,7 +48,17 @@ class Hand(Subsystem):
 
   def periodic(self) -> None:
     self._updateTelemetry()
-  
+
+  def runIntake(self, getTargetPositionType: Callable[[], TargetPositionType]):
+    # TODO: Validate this
+    match getTargetPositionType():
+      case TargetPositionType.ReefCoralL1Score | TargetPositionType.ReefCoralL2Score | TargetPositionType.ReefCoralL3Score | TargetPositionType.ReefCoralL4Score:
+        return self.runGripper()
+      case TargetPositionType.ReefAlgaeL3 | TargetPositionType.ReefAlgaeL2 | TargetPositionType.AlgaeProcessor | TargetPositionType.Barge:
+        return self.runSuction()
+      case _:
+        return cmd.none()
+      
   def runGripper(self) -> Command:
     return self.startEnd(
       lambda: [

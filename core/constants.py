@@ -105,7 +105,7 @@ class Subsystems:
       motorMotionMaxVelocity = 150.0, # TODO: retune with mechanism updates
       motorMotionMaxAcceleration = 200.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
-      motorSoftLimitForward = 28.75, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 29.75, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
       motorResetSpeed = 0.2
     ))
@@ -117,7 +117,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(-0.5, 1.0),
+      motorOutputRange = Range(-0.4, 1.0),
       motorMotionMaxVelocity = 400.0, # TODO: retune with mechanism updates
       motorMotionMaxAcceleration = 200.0, # TODO: retune with mechanism updates
       motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
@@ -152,8 +152,9 @@ class Subsystems:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.8
-    kMotorDownSpeed: units.percent = 0.4
-    kMotorHoldSpeed: units.percent = 0.1
+    kMotorDownSpeed: units.percent = 0.33
+    kMotorHoldUpSpeed: units.percent = 0.0
+    kMotorHoldDownSpeed: units.percent = 0.01
     kSetPositionTimeout: units.seconds = 0.3
 
   class Hand:
@@ -166,7 +167,7 @@ class Subsystems:
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20
     kSuctionMotorCurrentTrigger: int = 15 # TODO: tune suction motor current trigger value
-    kSuctionMotorSpeed: units.percent = 0.5
+    kSuctionMotorSpeed: units.percent = 0.6
     kSuctionReleaseTimeout: units.seconds = 2.0
 
 class Services:
@@ -200,20 +201,20 @@ class Sensors:
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-29.4), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
-      PoseSensorConfig(
-        "RearRight",
-        Transform3d(
-          Translation3d(units.inchesToMeters(-9), units.inchesToMeters(-7.25), units.inchesToMeters(36.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.5), units.degreesToRadians(-180.0))
-        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
-      ),
-      PoseSensorConfig(
-        "RearLeft",
-        Transform3d(
-          Translation3d(units.inchesToMeters(-8.75), units.inchesToMeters(7.25), units.inchesToMeters(36.625)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
-        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
-      )
+      # PoseSensorConfig(
+      #   "RearRight",
+      #   Transform3d(
+      #     Translation3d(units.inchesToMeters(-8.04), units.inchesToMeters(-7.06), units.inchesToMeters(36.25)),
+      #     Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.5), units.degreesToRadians(-180.0))
+      #   ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+      # ),
+      # PoseSensorConfig(
+      #   "RearLeft",
+      #   Transform3d(
+      #     Translation3d(units.inchesToMeters(-8.67), units.inchesToMeters(7.22), units.inchesToMeters(36.625)),
+      #     Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
+      #   ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+      # )
     )
 
   class Camera:
@@ -275,15 +276,21 @@ class Game:
       kTargetAlignmentTransforms: dict[TargetType, dict[TargetAlignmentLocation, Transform3d]] = {
         TargetType.Reef: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(22), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(36), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(22), units.inchesToMeters(-6.5), 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(22), units.inchesToMeters(6.5), 0, Rotation3d())
         },
+        TargetType.ReefL4: {
+          TargetAlignmentLocation.Default: Transform3d(),
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), units.inchesToMeters(-6.5), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), units.inchesToMeters(6.5), 0, Rotation3d())
+        },
         TargetType.CoralStation: {
           TargetAlignmentLocation.Default: Transform3d(),
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(21), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(21), units.inchesToMeters(-23.5), 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(21), units.inchesToMeters(23.5), 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(19.25), units.inchesToMeters(0.0), 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(19.25), units.inchesToMeters(-16.0), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(19.25), units.inchesToMeters(16.0), 0, Rotation3d())
         },
         TargetType.AlgaeProcessor: {
           TargetAlignmentLocation.Default: Transform3d(),
@@ -301,18 +308,18 @@ class Game:
 
       # TODO: calculate and test elevator, arm, and wrist positions for all the targets
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
-        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), 2.7, Position.Up),
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), 2.7, Position.Up), 
         TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, Value.min), Value.min, Position.Up),
-        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 6.75, Position.Down),
-        TargetPositionType.ReefCoralL3Ready: TargetPosition(ElevatorPosition(Value.min, Value.max), Value.min, Position.Down),
-        TargetPositionType.ReefCoralL3Score: TargetPosition(ElevatorPosition(Value.min, Value.max), 6.75, Position.Down),
-        TargetPositionType.ReefCoralL2Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
-        TargetPositionType.ReefCoralL2Score: TargetPosition(ElevatorPosition(Value.min, 12.25), 6.75, Position.Down),
-        TargetPositionType.ReefCoralL1Ready: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
-        TargetPositionType.ReefCoralL1Score: TargetPosition(ElevatorPosition(Value.min, 14.5), 18.0, Position.Down),
-        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
-        TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
-        TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(Value.min, Value.min), 0.0, Position.Down),
+        TargetPositionType.ReefCoralL4Score: TargetPosition(ElevatorPosition(28.9, 28.7), 7.5, Position.Down),
+        TargetPositionType.ReefCoralL3Ready: TargetPosition(ElevatorPosition(Value.min, Value.max), 4.6, Position.Down),
+        TargetPositionType.ReefCoralL3Score: TargetPosition(ElevatorPosition(Value.min, Value.max), 4.6, Position.Down),
+        TargetPositionType.ReefCoralL2Ready: TargetPosition(ElevatorPosition(Value.min, 12.30), 3.8, Position.Down),
+        TargetPositionType.ReefCoralL2Score: TargetPosition(ElevatorPosition(Value.min, 12.30), 3.8, Position.Down),
+        TargetPositionType.ReefCoralL1Ready: TargetPosition(ElevatorPosition(Value.min, 23.0), 30, Position.Up),
+        TargetPositionType.ReefCoralL1Score: TargetPosition(ElevatorPosition(Value.min, 23.0), 30, Position.Up),
+        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, 28.0), 20.0, Position.Down),
+        TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),
+        TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(6.5, 28.0), 45.0, Position.Down),
         TargetPositionType.Barge: TargetPosition(ElevatorPosition(Value.max, Value.max), Value.min, Position.Down),
         TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up)
       }

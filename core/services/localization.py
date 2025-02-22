@@ -76,6 +76,9 @@ class Localization():
 
   def getTargetPose(self, targetAlignmentLocation: TargetAlignmentLocation, targetType: TargetType) -> Pose3d:
     match targetType:
+      case TargetType.ReefL4:
+        target = self._targets.get(utils.getTargetHash(self._robotPose.nearest(self._targetPoses)))
+        return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[targetType][targetAlignmentLocation])
       case _:
         target = self._targets.get(utils.getTargetHash(self._robotPose.nearest(self._targetPoses)))
         return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])

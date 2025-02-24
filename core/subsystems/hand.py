@@ -1,11 +1,9 @@
-from typing import Callable
 from commands2 import Subsystem, Command, cmd
 from wpilib import SmartDashboard, PowerDistribution
 from rev import SparkMax, SparkMaxConfig, SparkBase
 from lib import logger, utils
 from lib.classes import Position
 import core.constants as constants
-from core.classes import TargetPositionType
 
 class Hand(Subsystem):
   def __init__(self):
@@ -13,7 +11,6 @@ class Hand(Subsystem):
     self._constants = constants.Subsystems.Hand
 
     self._isGripperEnabled = False
-    self._isGripperHolding = False
     self._isSuctionEnabled = False
     self._isSuctionHolding = False
 
@@ -48,16 +45,6 @@ class Hand(Subsystem):
 
   def periodic(self) -> None:
     self._updateTelemetry()
-
-  def runIntake(self, getTargetPositionType: Callable[[], TargetPositionType]):
-    # TODO: Validate this
-    match getTargetPositionType():
-      case TargetPositionType.ReefCoralL1Score | TargetPositionType.ReefCoralL2Score | TargetPositionType.ReefCoralL3Score | TargetPositionType.ReefCoralL4Score:
-        return self.runGripper()
-      case TargetPositionType.ReefAlgaeL3 | TargetPositionType.ReefAlgaeL2 | TargetPositionType.AlgaeProcessor | TargetPositionType.Barge:
-        return self.runSuction()
-      case _:
-        return cmd.none()
       
   def runGripper(self) -> Command:
     return self.startEnd(
@@ -69,13 +56,6 @@ class Hand(Subsystem):
         self._gripperMotor.stopMotor(),
         setattr(self, "_isGripperEnabled", False)
       ]
-    ).alongWith(
-      cmd.sequence(
-        cmd.runOnce(lambda: setattr(self, "_isGripperHolding", False)),
-        cmd.waitSeconds(1.0),
-        cmd.waitUntil(lambda: self._gripperMotor.getOutputCurrent() >= self._constants.kGripperMotorCurrentTrigger),
-        cmd.runOnce(lambda: setattr(self, "_isGripperHolding", True))
-      )
     ).withName("Hand:RunGripper")
   
   def releaseGripper(self) -> Command:
@@ -89,29 +69,21 @@ class Hand(Subsystem):
   def isGripperEnabled(self) -> bool:
     return self._isGripperEnabled
   
-  def isGripperHolding(self) -> bool:
-    return self._isGripperHolding
-
   def _resetGripper(self) -> None:
     self._gripperMotor.stopMotor()
     self._isGripperEnabled = False
-    self._isGripperHolding = False
 
   def runSuction(self) -> Command:
-    return self.startEnd(
+    return self.runOnce(
       lambda: [
         self._setSolenoidPosition(Position.Closed),
         self._suctionMotor.set(self._constants.kSuctionMotorSpeed),
-        setattr(self, "_isSuctionEnabled", True)
-      ],
-      lambda: [ 
-        self._suctionMotor.stopMotor(),
-        setattr(self, "_isSuctionEnabled", False)
+        setattr(self, "_isSuctionEnabled", True),
+        setattr(self, "_isSuctionHolding", False)
       ]
-    ).alongWith(
+    ).andThen(
       cmd.sequence(
-        cmd.runOnce(lambda: setattr(self, "_isSuctionHolding", False)),
-        cmd.waitSeconds(2.0),
+        cmd.waitSeconds(0.5),
         cmd.waitUntil(lambda: self._suctionMotor.getOutputCurrent() >= self._constants.kSuctionMotorCurrentTrigger),
         cmd.runOnce(lambda: setattr(self, "_isSuctionHolding", True))
       )
@@ -149,9 +121,6 @@ class Hand(Subsystem):
 
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Hand/Gripper/IsEnabled", self._isGripperEnabled)
-    SmartDashboard.putBoolean("Robot/Hand/Gripper/IsHolding", self._isGripperHolding)
-    SmartDashboard.putNumber("Robot/Hand/Gripper/Current", self._gripperMotor.getOutputCurrent()) 
     SmartDashboard.putBoolean("Robot/Hand/Suction/IsEnabled", self._isSuctionEnabled)
     SmartDashboard.putBoolean("Robot/Hand/Suction/IsHolding", self._isSuctionHolding)
-    SmartDashboard.putNumber("Robot/Hand/Suction/Current", self._suctionMotor.getOutputCurrent())
  

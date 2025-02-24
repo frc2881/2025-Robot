@@ -9,9 +9,7 @@ class GamePiece(Enum):
   Algae = auto()
 
 class TargetType(Enum):
-  Default = auto()
   Reef = auto()
-  ReefL4 = auto()
   CoralStation = auto()
   AlgaeProcessor = auto()
   Barge = auto()
@@ -19,13 +17,10 @@ class TargetType(Enum):
 class TargetPositionType(Enum):
   CoralStation = auto()
   ReefCoralL4Ready = auto()
-  ReefCoralL4Score = auto()
-  ReefCoralL3Ready = auto()
-  ReefCoralL3Score = auto()
-  ReefCoralL2Ready = auto()
-  ReefCoralL2Score = auto()
-  ReefCoralL1Ready = auto()
-  ReefCoralL1Score = auto()
+  ReefCoralL4 = auto()
+  ReefCoralL3 = auto()
+  ReefCoralL2 = auto()
+  ReefCoralL1 = auto()
   ReefAlgaeL3 = auto()
   ReefAlgaeL2 = auto()
   AlgaeProcessor = auto()
@@ -33,10 +28,11 @@ class TargetPositionType(Enum):
   CageEntry = auto()
 
 class TargetAlignmentLocation(Enum):
-  Default = auto()
   Center = auto()
   Left = auto()
+  LeftL4 = auto()
   Right = auto()
+  RightL4 = auto()
 
 @dataclass(frozen=True, slots=True)
 class Target():

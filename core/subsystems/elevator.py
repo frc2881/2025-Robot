@@ -40,25 +40,26 @@ class Elevator(Subsystem):
 
   def alignToPosition(self, elevatorPosition: ElevatorPosition) -> Command:
     return self.run(
-      lambda: [
-        self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
-        self._upperStage.alignToPosition(elevatorPosition.upperStage)
-      ]
+      lambda: self._lowerStage.alignToPosition(elevatorPosition.lowerStage)
+    ).until(lambda: self._lowerStage.isAlignedToPosition()).andThen(
+      self.run(lambda: self._upperStage.alignToPosition(elevatorPosition.upperStage))
     ).withName("Elevator:AlignToPosition")
 
-  def setPosition(self, elevatorPosition: ElevatorPosition) -> Command:
-    return self.run(
-      lambda: [
-        self._lowerStage.setPosition(elevatorPosition.lowerStage),
-        self._upperStage.setPosition(elevatorPosition.upperStage)
-      ]
-    ).withName("Elevator:SetPosition")
+    # return self.run(
+    #   lambda: [
+    #     self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
+    #     self._upperStage.alignToPosition(elevatorPosition.upperStage)
+    #   ]
+    # ).withName("Elevator:AlignToPosition")
 
   def getPosition(self) -> ElevatorPosition:
     return ElevatorPosition(self._lowerStage.getPosition(), self._upperStage.getPosition())
 
   def isAlignedToPosition(self) -> bool:
     return self._lowerStage.isAlignedToPosition() and self._upperStage.isAlignedToPosition()
+  
+  def isReefCoralL4Ready(self) -> bool:
+    return self.getPosition().lowerStage > self._constants.kLowerStageReefCoralL4ReadyPosition
   
   def resetLowerStageToZero(self) -> Command:
     return self._lowerStage.resetToZero(self).withName("Elevator:ResetLowerStageToZero")

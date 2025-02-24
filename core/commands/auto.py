@@ -75,13 +75,10 @@ class Auto:
     return AutoBuilder.followPath(self._paths.get(path)).withTimeout(constants.Game.Commands.kAutoMoveTimeout)
   
   def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
-    return self._robot.game.alignRobotToTarget(TargetAlignmentMode.Translation, targetAlignmentLocation, TargetType.ReefL4).withTimeout(2.0)
+    return self._robot.game.alignRobotToTarget(TargetAlignmentMode.Translation, targetAlignmentLocation)
   
   def _alignForScoring(self) -> Command:
-    return self._robot.game.alignRobotForScoring(
-      TargetPositionType.ReefCoralL4Ready, 
-      TargetPositionType.ReefCoralL4Score
-    ).until(
+    return self._robot.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4).until(
       lambda: (
         self._robot.elevator.isAlignedToPosition() and
         self._robot.arm.isAlignedToPosition() and
@@ -89,27 +86,20 @@ class Auto:
       )
     )
   
-  def _score(self) -> Command:
-    return self._robot.game.score(GamePiece.Coral)
-  
-  def _intake(self) -> Command:
-    return self._robot.game.intakeCoral()
-  
   def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return (
       self._move(autoPath).deadlineFor(self._alignForScoring())
       .andThen(self._alignToTarget(targetAlignmentLocation))
       .andThen(self._alignForScoring())
       .andThen(cmd.waitSeconds(0.02))
-      .andThen(self._score())
+      .andThen(self._robot.game.score(GamePiece.Coral))
     )
   
-  def _moveAlignPickup(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
+  def _moveAlignIntake(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return (
-      self._intake().alongWith(
-        self._move(autoPath)
-        .andThen(self._alignToTarget(targetAlignmentLocation))
-      )
+      self._move(autoPath).deadlineFor(self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation))
+      .andThen(self._alignToTarget(targetAlignmentLocation))
+      .andThen(cmd.waitSeconds(2.0))
     )
   
   def _getStartingPose(self, position: int) -> Pose2d:
@@ -135,16 +125,16 @@ class Auto:
   def auto_1_1_6(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Left),
-      self._moveAlignPickup(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
+      self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Left)
     ).withName("Auto:[1]_1_6")
   
   def auto_1_1_6_6(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Left),
-      self._moveAlignPickup(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
+      self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Left),
-      self._moveAlignPickup(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
+      self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Right)
     ).withName("Auto:[1]_1_6_6")
   

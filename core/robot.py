@@ -1,5 +1,5 @@
 from commands2 import Command, cmd
-from wpilib import DriverStation, SmartDashboard
+from wpilib import DriverStation, SmartDashboard, Servo
 from lib import logger, utils
 from lib.classes import RobotState, Position, TargetAlignmentMode
 from lib.controllers.xbox import Xbox
@@ -38,6 +38,9 @@ class RobotCore:
     self.arm = Arm()
     self.wrist = Wrist()
     self.hand = Hand()
+
+    self.servo = Servo(9)
+    self.servo.setPosition(0.25)
     
   def _initServices(self) -> None:
     self.localization = Localization(self.gyro.getRotation, self.drive.getModulePositions, self.poseSensors)
@@ -63,19 +66,12 @@ class RobotCore:
     self.driver.rightStick().and_((self.driver.rightBumper().or_(self.driver.leftBumper())).not_()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center)
     )
-    self.driver.rightStick().and_(self.driver.rightBumper()).and_(self.operator.povUp().not_()).whileTrue(
+    self.driver.rightStick().and_(self.driver.rightBumper()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Right)
     )
-    self.driver.rightStick().and_(self.driver.leftBumper()).and_(self.operator.povUp().not_()).whileTrue(
+    self.driver.rightStick().and_(self.driver.leftBumper()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left)
     )
-    self.driver.rightStick().and_(self.driver.rightBumper()).and_(self.operator.povUp()).whileTrue(
-      self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Right, TargetType.ReefL4)
-    )
-    self.driver.rightStick().and_(self.driver.leftBumper()).and_(self.operator.povUp()).whileTrue(
-      self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left, TargetType.ReefL4)
-    )
-
     self.driver.leftStick().whileTrue(
       self.drive.lock()
     )
@@ -123,50 +119,44 @@ class RobotCore:
       self.arm.default(self.operator.getRightY)
     )
     self.operator.leftTrigger().whileTrue(
-      self.game.intake(GamePiece.Coral)
+      self.hand.runGripper()
     )
     self.operator.rightTrigger().onTrue(
       self.game.score(GamePiece.Coral)
     )
     self.operator.leftBumper().whileTrue(
-      self.game.intake(GamePiece.Algae)
+      self.hand.runSuction()
     )
     self.operator.rightBumper().onTrue(
       self.game.score(GamePiece.Algae)
     )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
-      self.game.alignRobotForScoring(TargetPositionType.ReefCoralL4Ready, TargetPositionType.ReefCoralL4Score)
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )
     self.operator.povRight().and_((self.operator.start()).not_()).whileTrue(
-      self.game.alignRobotForScoring(TargetPositionType.ReefCoralL3Ready, TargetPositionType.ReefCoralL3Score)
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL3)
     )
     self.operator.povDown().and_((self.operator.start()).not_()).whileTrue(
-      self.game.alignRobotForScoring(TargetPositionType.ReefCoralL2Ready, TargetPositionType.ReefCoralL2Score)
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL2)
     )
     self.operator.povLeft().and_((self.operator.start()).not_()).whileTrue(
-      self.game.alignRobotForScoring(TargetPositionType.ReefCoralL1Ready, TargetPositionType.ReefCoralL1Score)
-    )
-    self.operator.povUpRight().whileTrue(
-      self.game.intakeAlgae(TargetPositionType.ReefAlgaeL3)
-    )
-    self.operator.povDownRight().whileTrue(
-      self.game.intakeAlgae(TargetPositionType.ReefAlgaeL2)
-    )
-    self.operator.povDownLeft().whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.AlgaeProcessor)
-    )
-    self.operator.povUpLeft().whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.Barge)
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL1)
     )
     self.operator.a().whileTrue(
-      self.game.intakeCoral()
+      self.game.alignRobotToTargetPosition(TargetPositionType.CoralStation)
     )
-    # self.operator.b().whileTrue(cmd.none())
+    self.operator.b().whileTrue(
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2)
+    )
     self.operator.y().whileTrue(
-      self.wrist.togglePosition()
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3)
     )
     self.operator.x().whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.CageEntry)
+      cmd.sequence(
+        cmd.runOnce(self.servo.setPosition(0)),
+        cmd.waitSeconds(1.0),
+        self.game.alignRobotToTargetPosition(TargetPositionType.CageEntry)
+      )
     )
     self.operator.start().and_(self.operator.povDown()).whileTrue(
       self.elevator.resetLowerStageToZero()
@@ -175,7 +165,7 @@ class RobotCore:
       self.elevator.resetUpperStageToZero()
     )
     self.operator.start().and_(self.operator.povRight()).whileTrue(
-      self.wrist.alignToPosition(Position.Up)
+      self.wrist.togglePosition()
     )
     self.operator.start().and_(self.operator.povLeft()).whileTrue(
       self.arm.resetToZero()

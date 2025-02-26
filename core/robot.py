@@ -1,7 +1,7 @@
 from commands2 import Command, cmd
-from wpilib import DriverStation, SmartDashboard, Servo
+from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
-from lib.classes import RobotState, Position, TargetAlignmentMode
+from lib.classes import RobotState, TargetAlignmentMode, Position
 from lib.controllers.xbox import Xbox
 from lib.controllers.lights import Lights
 from lib.sensors.gyro_navx2 import Gyro_NAVX2
@@ -13,8 +13,9 @@ from core.subsystems.elevator import Elevator
 from core.subsystems.arm import Arm
 from core.subsystems.wrist import Wrist
 from core.subsystems.hand import Hand
+from core.subsystems.shield import Shield
 from core.services.localization import Localization
-from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, LightsMode, ElevatorStage, TargetType
+from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, LightsMode, ElevatorStage
 import core.constants as constants
 
 class RobotCore:
@@ -38,9 +39,7 @@ class RobotCore:
     self.arm = Arm()
     self.wrist = Wrist()
     self.hand = Hand()
-
-    self.servo = Servo(9)
-    self.servo.setPosition(0.25)
+    self.shield = Shield()
     
   def _initServices(self) -> None:
     self.localization = Localization(self.gyro.getRotation, self.drive.getModulePositions, self.poseSensors)
@@ -83,7 +82,7 @@ class RobotCore:
     # self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povLeft().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povRight().and_((self.driver.start()).not_()).whileTrue(cmd.none())
-    # self.driver.a().whileTrue(cmd.none())
+    # self.driver.a().onTrue(cmd.none())
     # self.driver.b().whileTrue(cmd.none())
     self.driver.y().whileTrue(
       self.elevator.default(lambda: 0.5, ElevatorStage.Lower)
@@ -119,13 +118,13 @@ class RobotCore:
       self.arm.default(self.operator.getRightY)
     )
     self.operator.leftTrigger().whileTrue(
-      self.hand.runGripper()
+      self.game.intakeManual(GamePiece.Coral)
     )
     self.operator.rightTrigger().onTrue(
       self.game.score(GamePiece.Coral)
     )
-    self.operator.leftBumper().whileTrue(
-      self.hand.runSuction()
+    self.operator.leftBumper().onTrue(
+      self.game.intakeManual(GamePiece.Algae)
     )
     self.operator.rightBumper().onTrue(
       self.game.score(GamePiece.Algae)
@@ -152,11 +151,7 @@ class RobotCore:
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3)
     )
     self.operator.x().whileTrue(
-      cmd.sequence(
-        cmd.runOnce(self.servo.setPosition(0)),
-        cmd.waitSeconds(1.0),
-        self.game.alignRobotToTargetPosition(TargetPositionType.CageEntry)
-      )
+      self.game.alignRobotToTargetPosition(TargetPositionType.CageEntry)
     )
     self.operator.start().and_(self.operator.povDown()).whileTrue(
       self.elevator.resetLowerStageToZero()
@@ -196,8 +191,10 @@ class RobotCore:
         elif not self.localization.hasVisionTarget():
           lightsMode = LightsMode.VisionNotReady
       case RobotState.Enabled:
-        # TODO: add additional modes as needed for game/robot state visualization for drive team
-        pass
+        if self.game.isRobotAlignedToTargetPosition():
+          lightsMode = LightsMode.AlignedToPosition
+        if self.shield.getPosition(Position.Open) and self.game.isRobotAlignedToTargetPosition():
+          lightsMode = LightsMode.ReadyForClimb
     self.lightsController.setMode(lightsMode.name)
 
   def _periodic(self) -> None:
@@ -227,6 +224,7 @@ class RobotCore:
     self.arm.reset()
     self.wrist.reset()
     self.hand.reset()
+    self.shield.reset()
 
   def _hasZeroResets(self) -> bool:
     return utils.isCompetitionMode() or (

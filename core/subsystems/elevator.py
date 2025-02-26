@@ -25,32 +25,32 @@ class Elevator(Subsystem):
     return self.runEnd(
       lambda: self._setSpeed(getInput() * self._constants.kInputLimit, elevatorStage),
       lambda: self.reset()
-    ).withName("Elevator:Run")
+    ).withName(f'Elevator:Run:{ elevatorStage.name }')
   
   def _setSpeed(self, speed: units.percent, elevatorStage: ElevatorStage) -> None:
-    if elevatorStage != elevatorStage.Upper:
-      self._lowerStage.setSpeed(
-        speed 
-        if elevatorStage == ElevatorStage.Lower 
-        or self._upperStage.isAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse, self._constants.kUpperStageSoftLimitBuffer) 
-        else 0
-      )
-    if elevatorStage != elevatorStage.Lower:
-      self._upperStage.setSpeed(speed)
-
+    match elevatorStage:
+      case ElevatorStage.Lower:
+        self._lowerStage.setSpeed(speed)
+        self._upperStage.setSpeed(0)
+      case ElevatorStage.Upper:
+        self._lowerStage.setSpeed(0)
+        self._upperStage.setSpeed(speed)
+      case ElevatorStage.Both:
+        self._lowerStage.setSpeed(
+          speed 
+          if elevatorStage == ElevatorStage.Lower 
+          or self._upperStage.isAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse, self._constants.kUpperStageSoftLimitBuffer) 
+          else 0
+        )
+        self._upperStage.setSpeed(speed)
+  
   def alignToPosition(self, elevatorPosition: ElevatorPosition) -> Command:
     return self.run(
-      lambda: self._lowerStage.alignToPosition(elevatorPosition.lowerStage)
-    ).until(lambda: self._lowerStage.isAlignedToPosition()).andThen(
-      self.run(lambda: self._upperStage.alignToPosition(elevatorPosition.upperStage))
+      lambda: [
+        self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
+        self._upperStage.alignToPosition(elevatorPosition.upperStage)
+      ]
     ).withName("Elevator:AlignToPosition")
-
-    # return self.run(
-    #   lambda: [
-    #     self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
-    #     self._upperStage.alignToPosition(elevatorPosition.upperStage)
-    #   ]
-    # ).withName("Elevator:AlignToPosition")
 
   def getPosition(self) -> ElevatorPosition:
     return ElevatorPosition(self._lowerStage.getPosition(), self._upperStage.getPosition())

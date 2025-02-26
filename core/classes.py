@@ -23,8 +23,6 @@ class TargetPositionType(Enum):
   ReefCoralL1 = auto()
   ReefAlgaeL3 = auto()
   ReefAlgaeL2 = auto()
-  AlgaeProcessor = auto()
-  Barge = auto()
   CageEntry = auto()
 
 class TargetAlignmentLocation(Enum):
@@ -66,3 +64,5 @@ class LightsMode(Enum):
   Default = auto()
   RobotNotReady = auto()
   VisionNotReady = auto()
+  AlignedToPosition = auto()
+  ReadyForClimb = auto()

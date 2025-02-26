@@ -50,16 +50,21 @@ class Localization():
   def _updateRobotPose(self) -> None:
     self._poseEstimator.update(self._getGyroRotation(), self._getModulePositions())
     for poseSensor in self._poseSensors:
+      standardDeviations = (
+        constants.Services.Localization.kVisionStandardDeviationsRear 
+        if poseSensor._config.cameraName in [ "RearRight", "RearLeft" ] else
+        constants.Services.Localization.kVisionStandardDeviations
+      )
       estimatedRobotPose = poseSensor.getEstimatedRobotPose()
       if estimatedRobotPose is not None:
         pose = estimatedRobotPose.estimatedPose.toPose2d()
         if utils.isPoseInBounds(pose, constants.Game.Field.kBounds):
           if estimatedRobotPose.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR:
-            self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
+            self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, standardDeviations)
           else:
             ambiguity = sum(target.getPoseAmbiguity() for target in estimatedRobotPose.targetsUsed) / len(estimatedRobotPose.targetsUsed)
             if utils.isValueInRange(ambiguity, 0, constants.Services.Localization.kVisionMaxPoseAmbiguity):
-              self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
+              self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds, standardDeviations)
     self._robotPose = self._poseEstimator.getEstimatedPosition()
 
   def getRobotPose(self) -> Pose2d:

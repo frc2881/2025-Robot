@@ -102,9 +102,9 @@ class Subsystems:
       motorReduction = 3.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
       motorOutputRange = Range(-1.0, 1.0),
-      motorMotionMaxVelocity = 150.0, # TODO: retune with mechanism updates
-      motorMotionMaxAcceleration = 200.0, # TODO: retune with mechanism updates
-      motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
+      motorMotionMaxVelocity = 150.0,
+      motorMotionMaxAcceleration = 200.0,
+      motorMotionAllowedClosedLoopError = 0.25,
       motorSoftLimitForward = 29.75, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
       motorResetSpeed = 0.2
@@ -118,9 +118,9 @@ class Subsystems:
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
       motorOutputRange = Range(-0.4, 1.0),
-      motorMotionMaxVelocity = 400.0, # TODO: retune with mechanism updates
-      motorMotionMaxAcceleration = 200.0, # TODO: retune with mechanism updates
-      motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
+      motorMotionMaxVelocity = 400.0,
+      motorMotionMaxAcceleration = 200.0,
+      motorMotionAllowedClosedLoopError = 0.25,
       motorSoftLimitForward = 28.75, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
       motorResetSpeed = 0.1
@@ -138,11 +138,11 @@ class Subsystems:
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(-0.5, 1.0), # TODO: tune output range with vertical mechanism (slower going down)
-      motorMotionMaxVelocity = 200, # TODO: retune with mechanism updates
-      motorMotionMaxAcceleration = 300.0, # TODO: retune with mechanism updates
-      motorMotionAllowedClosedLoopError = 0.25, # TODO: retune with mechanism updates
-      motorSoftLimitForward = 69.7, # TODO: retune with mechanism updates
+      motorOutputRange = Range(-0.4, 1.0),
+      motorMotionMaxVelocity = 200,
+      motorMotionMaxAcceleration = 300.0,
+      motorMotionAllowedClosedLoopError = 0.25,
+      motorSoftLimitForward = 69.8, # TODO: retune with mechanism updates
       motorSoftLimitReverse = 1.5, # TODO: retune with mechanism updates
       motorResetSpeed = 0.2
     ))
@@ -152,16 +152,16 @@ class Subsystems:
   class Wrist:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
-    kMotorUpSpeed: units.percent = 0.8
+    kMotorUpSpeed: units.percent = 0.7
     kMotorDownSpeed: units.percent = 0.3
-    kMotorHoldUpSpeed: units.percent = 0.0
+    kMotorHoldUpSpeed: units.percent = 0.01
     kMotorHoldDownSpeed: units.percent = 0.01
     kSetPositionTimeout: units.seconds = 0.8
 
   class Hand:
     kGripperMotorCANId: int = 14
-    kGripperMotorCurrentLimit: int = 20
-    kGripperMotorCurrentTrigger: int = 18
+    kGripperMotorCurrentLimit: int = 25
+    kGripperMotorCurrentTrigger: int = 23
     kGripperMotorSpeed: units.percent = 1.0
     kGripperReleaseTimeout: units.seconds = 1.0
 
@@ -169,12 +169,19 @@ class Subsystems:
     kSuctionMotorCurrentLimit: int = 20
     kSuctionMotorCurrentTrigger: int = 5
     kSuctionMotorSpeed: units.percent = 0.5
-    kSuctionReleaseTimeout: units.seconds = 2.0
+    kSuctionReleaseTimeout: units.seconds = 3.0
+
+  class Shield:
+    kServoChannel: int = 9
+    kServoSetPositionTimeout: units.seconds = 1.0
+    kPositionOpen: float = 0.0
+    kPositionClosed: float = 1.0
 
 class Services:
   class Localization:
-    kStateStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(5))
-    kVisionStandardDeviations: tuple[float, float, float] = (0.2, 0.2, units.degreesToRadians(10))
+    kStateStandardDeviations: tuple[float, float, float] = (0.03, 0.03, units.degreesToRadians(1))
+    kVisionStandardDeviations: tuple[float, float, float] = (0.2, 0.2, units.degreesToRadians(20))
+    kVisionStandardDeviationsRear: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(40))
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 
@@ -186,33 +193,32 @@ class Sensors:
     _poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
     _fallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
     
-    # TODO: validate all transform measurements against both CAD and physical install locations
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
       PoseSensorConfig(
         "FrontRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(-4), units.inchesToMeters(-7.875), units.inchesToMeters(38.375)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.1), units.degreesToRadians(0.0))
+          Translation3d(units.inchesToMeters(-4.1), units.inchesToMeters(-8.0), units.inchesToMeters(38.35)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.0), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "FrontLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-3.75), units.inchesToMeters(7.75), units.inchesToMeters(39.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-29.4), units.degreesToRadians(0.0))
+          Translation3d(units.inchesToMeters(-4.1), units.inchesToMeters(8.0), units.inchesToMeters(39.35)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(0.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "RearRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(-8.04), units.inchesToMeters(-7.06), units.inchesToMeters(36.25)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.5), units.degreesToRadians(-180.0))
+          Translation3d(units.inchesToMeters(-8.65), units.inchesToMeters(-7.25), units.inchesToMeters(36.35)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       ),
       PoseSensorConfig(
         "RearLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-8.67), units.inchesToMeters(7.22), units.inchesToMeters(36.625)),
+          Translation3d(units.inchesToMeters(-8.65), units.inchesToMeters(-7.25), units.inchesToMeters(36.6)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
         ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
       )
@@ -307,7 +313,5 @@ class Game:
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 23.0), 30, Position.Up),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, 28.0), 20.0, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),
-        TargetPositionType.AlgaeProcessor: TargetPosition(ElevatorPosition(6.5, 28.0), 45.0, Position.Down),
-        TargetPositionType.Barge: TargetPosition(ElevatorPosition(Value.max, Value.max), Value.min, Position.Down),
         TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up)
       }

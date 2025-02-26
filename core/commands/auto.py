@@ -78,13 +78,7 @@ class Auto:
     return self._robot.game.alignRobotToTarget(TargetAlignmentMode.Translation, targetAlignmentLocation)
   
   def _alignForScoring(self) -> Command:
-    return self._robot.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4).until(
-      lambda: (
-        self._robot.elevator.isAlignedToPosition() and
-        self._robot.arm.isAlignedToPosition() and
-        self._robot.wrist.isAlignedToPosition()
-      )
-    )
+    return self._robot.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4).until(lambda: self._robot.game.isRobotAlignedToTargetPosition())
   
   def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return (

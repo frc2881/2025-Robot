@@ -55,6 +55,9 @@ class Wrist(Subsystem):
       lambda: self._motor.set(self._constants.kMotorHoldUpSpeed if position == Position.Up else -self._constants.kMotorHoldDownSpeed),
       lambda: self._motor.stopMotor()
     )
+  
+  def refreshPosition(self) -> Command:
+    self.setPosition(self._position)
 
   def togglePosition(self) -> Command:
     return cmd.either(

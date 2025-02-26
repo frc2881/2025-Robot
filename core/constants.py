@@ -179,9 +179,8 @@ class Subsystems:
 
 class Services:
   class Localization:
-    kStateStandardDeviations: tuple[float, float, float] = (0.03, 0.03, units.degreesToRadians(1))
-    kVisionStandardDeviations: tuple[float, float, float] = (0.2, 0.2, units.degreesToRadians(20))
-    kVisionStandardDeviationsRear: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(40))
+    kStateStandardDeviations: tuple[float, float, float] = (0.04, 0.04, units.degreesToRadians(1))
+    kVisionStandardDeviations: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(10))
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 
@@ -283,8 +282,8 @@ class Game:
         TargetType.Reef: {
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(36), 0, 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(22), units.inchesToMeters(-6.5), 0, Rotation3d()),
-          TargetAlignmentLocation.LeftL4: Transform3d(units.inchesToMeters(24), units.inchesToMeters(-6.5), 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(22), units.inchesToMeters(6.5), 0, Rotation3d()),
+          TargetAlignmentLocation.LeftL4: Transform3d(units.inchesToMeters(24), units.inchesToMeters(-6.5), 0, Rotation3d()),
           TargetAlignmentLocation.RightL4: Transform3d(units.inchesToMeters(24), units.inchesToMeters(6.5), 0, Rotation3d())
         },
         TargetType.CoralStation: {
@@ -305,7 +304,7 @@ class Game:
       }
 
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
-        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, 5.5), 9.1, Position.Up), 
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, 5.5), 9.1, Position.Up), # TODO: tune to actual field element dynamics
         TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, Value.min), Value.min, Position.Up),
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.9, 28.7), 7.5, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(Value.min, Value.max), 4.6, Position.Down),

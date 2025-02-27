@@ -84,7 +84,7 @@ class Subsystems:
 
     kTargetAlignmentConstants = TargetAlignmentConstants(
       rotationPID = PID(0.075, 0, 0.001),
-      rotationTolerance = Tolerance(0.5, 1.0),
+      rotationTolerance = Tolerance(0.25, 0.5),
       rotationSpeedMax = kRotationSpeedMax * 0.4, 
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
@@ -155,7 +155,7 @@ class Subsystems:
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.7
     kMotorDownSpeed: units.percent = 0.3
-    kMotorHoldUpSpeed: units.percent = 0.00
+    kMotorHoldUpSpeed: units.percent = 0.01
     kMotorHoldDownSpeed: units.percent = 0.05
     kSetPositionTimeout: units.seconds = 0.8
 

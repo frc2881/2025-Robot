@@ -71,6 +71,9 @@ class RobotCore:
     self.driver.rightStick().and_(self.driver.leftBumper()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left)
     )
+    self.driver.leftStick().whileTrue(
+      self.drive.lock()
+    )
     self.driver.rightTrigger().whileTrue(
       self.drive.lock()
     )

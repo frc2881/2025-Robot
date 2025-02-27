@@ -34,12 +34,17 @@ class Game:
   def alignRobotToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
     return cmd.select(
       {
-        TargetPositionType.CoralStation: self._alignRobotToTargetPositionArmSafety(TargetPositionType.CoralStation),
+        TargetPositionType.CoralStation: 
+          cmd.either(
+            self._alignRobotToTargetPositionCoralStationReady(),
+            self._alignRobotToTargetPositionParallel(TargetPositionType.CoralStation),
+            lambda: not self._robot.elevator.isCoralStationReady()
+          ),
         TargetPositionType.ReefCoralL4: 
           cmd.either(
-            self._alignRobotToTargetPositionArmSafety(TargetPositionType.ReefCoralL4),
             self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL4Ready),
-            lambda: self._robot.elevator.isReefCoralL4Ready()
+            self._alignRobotToTargetPositionArmSafety(TargetPositionType.ReefCoralL4),
+            lambda: not self._robot.elevator.isReefCoralL4Ready()
           ),
         TargetPositionType.ReefCoralL3: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL3),
         TargetPositionType.ReefCoralL2: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL2),
@@ -75,12 +80,23 @@ class Game:
       self._robot.arm.setPosition(Value.min).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
       ),
-      self._robot.wrist.setPosition(Position.Up).until(lambda: self._robot.arm.isAlignedToPosition()).andThen(
+      self._robot.wrist.setPosition(Position.Up).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
         self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
       ),
-      self._intakeAligned(GamePiece.Coral)
+      self._intakeAligned(GamePiece.Coral).unless(lambda: targetPositionType == TargetPositionType.CoralStationReady)
     ).alongWith(
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Operator))
+    )
+  
+  def _alignRobotToTargetPositionCoralStationReady(self):
+    return cmd.parallel(
+      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStationReady].elevator),
+      self._robot.arm.setPosition(Value.min).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
+        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStationReady].arm)
+      ),
+      self._robot.wrist.setPosition(Position.Up).until(lambda: self._robot.arm.isAlignedToPosition()).andThen(
+        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStationReady].wrist)
+      )
     )
   
   def _alignRobotToTargetPositionCageEntry(self) -> Command:

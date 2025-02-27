@@ -38,12 +38,13 @@ class Wrist(Subsystem):
     return self.startEnd(
       lambda: [
         self._resetPositionAlignment(),
-        self._motor.set(self._constants.kMotorUpSpeed if position == Position.Up else -self._constants.kMotorDownSpeed),
-        setattr(self, "_position", position)
+        self._motor.set(self._constants.kMotorUpSpeed if position == Position.Up else -self._constants.kMotorDownSpeed)
       ],
       lambda: self._motor.stopMotor()
     ).withTimeout(
       self._constants.kSetPositionTimeout
+    ).andThen(
+      cmd.runOnce(lambda: setattr(self, "_position", position))
     ).andThen(
       self._holdPosition(position)
     ).finallyDo(

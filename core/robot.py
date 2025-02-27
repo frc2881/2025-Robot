@@ -71,10 +71,9 @@ class RobotCore:
     self.driver.rightStick().and_(self.driver.leftBumper()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Left)
     )
-    self.driver.leftStick().whileTrue(
+    self.driver.rightTrigger().whileTrue(
       self.drive.lock()
     )
-    # self.driver.rightTrigger().whileTrue(cmd.none())
     # self.driver.leftTrigger().whileTrue(cmd.none())
     # self.driver.rightBumper().whileTrue(cmd.none())
     # self.driver.leftBumper().whileTrue(cmd.none())
@@ -193,7 +192,7 @@ class RobotCore:
       case RobotState.Enabled:
         if self.game.isRobotAlignedToTargetPosition():
           lightsMode = LightsMode.AlignedToPosition
-        if self.shield.getPosition(Position.Open) and self.game.isRobotAlignedToTargetPosition():
+        if self.shield.getPosition() == Position.Open and self.game.isRobotAlignedToTargetPosition():
           lightsMode = LightsMode.ReadyForClimb
     self.lightsController.setMode(lightsMode.name)
 

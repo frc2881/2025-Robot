@@ -149,6 +149,7 @@ class Subsystems:
     ))
 
     kInputLimit: units.percent = 0.6
+    kCoralStageReadyPosition: float = 11.2
 
   class Wrist:
     kMotorCANId: int = 13
@@ -306,7 +307,7 @@ class Game:
 
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
         TargetPositionType.CoralStationReady: TargetPosition(ElevatorPosition(6.5, Value.min), Value.min, Position.Up),
-        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(6.5, Value.min), 11.5, Position.Up),
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(6.5, Value.min), 10.8, Position.Up),
         TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, Value.min), Value.min, Position.Up),
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.9, 28.7), 7.5, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(Value.min, Value.max), 4.6, Position.Down),

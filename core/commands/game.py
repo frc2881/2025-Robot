@@ -38,7 +38,7 @@ class Game:
           cmd.either(
             self._alignRobotToTargetPositionCoralStationReady(),
             self._alignRobotToTargetPositionParallel(TargetPositionType.CoralStation),
-            lambda: not self._robot.elevator.isCoralStationReady()
+            lambda: not self._robot.elevator.isCoralStationReady() or not self._robot.arm.isCoralStationReady()
           ),
         TargetPositionType.ReefCoralL4: 
           cmd.either(

@@ -12,7 +12,7 @@ class TargetType(Enum):
   Reef = auto()
   CoralStation = auto()
   AlgaeProcessor = auto()
-  Barge = auto()
+  # Barge = auto()
 
 class TargetPositionType(Enum):
   CoralStationReady = auto()

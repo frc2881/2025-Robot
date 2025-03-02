@@ -94,7 +94,7 @@ class Auto:
     return (
       self._move(autoPath).deadlineFor(self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation))
       .andThen(self._alignToTarget(targetAlignmentLocation))
-      .andThen(cmd.waitSeconds(4.0).deadlineFor(self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation)))
+      .andThen(cmd.waitSeconds(3.25).deadlineFor(self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation)))
     )
   
   def _getStartingPose(self, position: int) -> Pose2d:
@@ -145,7 +145,7 @@ class Auto:
   
   def auto_3_3_4(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Right),
+      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Right), # TODO: Move to left
       self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move2_4, TargetAlignmentLocation.Left)
     ).withName("Auto:[3]_3_4")

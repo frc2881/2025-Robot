@@ -86,13 +86,13 @@ class Subsystems:
 
     kTargetAlignmentConstants = TargetAlignmentConstants(
       rotationPID = PID(0.075, 0, 0.001),
-      rotationTolerance = Tolerance(0.25, 0.5),
+      rotationTolerance = Tolerance(1.0, 2.0),
       rotationSpeedMax = kRotationSpeedMax * 0.4, 
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
       translationTolerance = Tolerance(0.025, 0.05),
-      translationSpeedMax = kTranslationSpeedMax * 0.4
+      translationSpeedMax = kTranslationSpeedMax * 0.3
     )
 
   class Elevator:
@@ -141,7 +141,7 @@ class Subsystems:
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
-      motorOutputRange = Range(-0.4, 1.0),
+      motorOutputRange = Range(-0.7, 1.0),
       motorMotionMaxVelocity = 200,
       motorMotionMaxAcceleration = 300.0,
       motorMotionAllowedClosedLoopError = 0.1,
@@ -164,8 +164,8 @@ class Subsystems:
 
   class Hand:
     kGripperMotorCANId: int = 14
-    kGripperMotorCurrentLimit: int = 20
-    kGripperMotorCurrentTrigger: int = 18
+    kGripperMotorCurrentLimit: int = 25
+    kGripperMotorCurrentTrigger: int = 23
     kGripperMotorSpeed: units.percent = 1.0
     kGripperReleaseTimeout: units.seconds = 1.0
 
@@ -183,8 +183,8 @@ class Subsystems:
 
 class Services:
   class Localization:
-    kStateStandardDeviations: tuple[float, float, float] = (0.04, 0.04, units.degreesToRadians(1))
-    kVisionStandardDeviations: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(10))
+    kStateStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(5))
+    kVisionStandardDeviations: tuple[float, float, float] = (0.3, 0.3, units.degreesToRadians(8))
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 
@@ -243,7 +243,7 @@ class Controllers:
 
 class Game:
   class Commands:
-    kTargetAlignmentTimeout: units.seconds = 3.0 
+    kTargetAlignmentTimeout: units.seconds = 2.0 
     kAutoMoveTimeout: units.seconds = 5.0
 
   class Field:
@@ -291,14 +291,14 @@ class Game:
           TargetAlignmentLocation.RightL4: Transform3d(units.inchesToMeters(24), units.inchesToMeters(6.5), 0, Rotation3d())
         },
         TargetType.CoralStation: {
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(25.5), units.inchesToMeters(0.0), 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(25.5), units.inchesToMeters(-16.0), 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(25.5), units.inchesToMeters(16.0), 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(26), units.inchesToMeters(0.0), 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(26), units.inchesToMeters(-16.0), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(26), units.inchesToMeters(16.0), 0, Rotation3d())
         },
         TargetType.AlgaeProcessor: {
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d())
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(25), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(25), 0, 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(25), 0, 0, Rotation3d())
         }
         # TargetType.Barge: {
         #   TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),

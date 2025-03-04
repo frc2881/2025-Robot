@@ -50,11 +50,18 @@ class Localization():
   def _updateRobotPose(self) -> None:
     self._poseEstimator.update(self._getGyroRotation(), self._getModulePositions())
     for poseSensor in self._poseSensors:
+      # TODO: add check if robot is aligning to target and if true exclude rear cameras temporarily from this processing loop (only use forward camera during robot target alignment)
       estimatedRobotPose = poseSensor.getEstimatedRobotPose()
       if estimatedRobotPose is not None:
         pose = estimatedRobotPose.estimatedPose.toPose2d()
         if utils.isPoseInBounds(pose, constants.Game.Field.kBounds):
-          self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
+          if estimatedRobotPose.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR:
+            self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
+          else:
+            for target in estimatedRobotPose.targetsUsed:
+              if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Services.Localization.kVisionMaxPoseAmbiguity):
+                self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
+                break
     self._robotPose = self._poseEstimator.getEstimatedPosition()
 
   def getRobotPose(self) -> Pose2d:

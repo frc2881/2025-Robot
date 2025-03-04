@@ -21,6 +21,7 @@ from lib.classes import (
   SwerveModuleConstants, 
   SwerveModuleConfig, 
   SwerveModuleLocation, 
+  PoseSensorConstants,
   PoseSensorConfig, 
   DriftCorrectionConstants, 
   TargetAlignmentConstants, 
@@ -107,8 +108,8 @@ class Subsystems:
       motorMotionMaxVelocity = 150.0,
       motorMotionMaxAcceleration = 200.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 29.75, # TODO: retune with mechanism updates
-      motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 29.75,
+      motorSoftLimitReverse = 0.25,
       motorResetSpeed = 0.2
     ))
 
@@ -123,8 +124,8 @@ class Subsystems:
       motorMotionMaxVelocity = 400.0,
       motorMotionMaxAcceleration = 200.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 28.75, # TODO: retune with mechanism updates
-      motorSoftLimitReverse = 0.25, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 28.75,
+      motorSoftLimitReverse = 0.25,
       motorResetSpeed = 0.1
     ))
 
@@ -145,8 +146,8 @@ class Subsystems:
       motorMotionMaxVelocity = 200,
       motorMotionMaxAcceleration = 300.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 69.8, # TODO: retune with mechanism updates
-      motorSoftLimitReverse = 1.5, # TODO: retune with mechanism updates
+      motorSoftLimitForward = 69.8,
+      motorSoftLimitReverse = 1.5,
       motorResetSpeed = 0.2
     ))
 
@@ -183,8 +184,8 @@ class Subsystems:
 
 class Services:
   class Localization:
-    kStateStandardDeviations: tuple[float, float, float] = (0.1, 0.1, units.degreesToRadians(5))
-    kVisionStandardDeviations: tuple[float, float, float] = (0.3, 0.3, units.degreesToRadians(8))
+    kStateStandardDeviations: tuple[float, float, float] = (0.04, 0.04, units.degreesToRadians(1))
+    kVisionStandardDeviations: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(4))
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 
@@ -193,38 +194,41 @@ class Sensors:
       kComType = AHRS.NavXComType.kUSB1
 
   class Pose:
-    _poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR
-    _fallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
-    
+    _poseSensorConstants = PoseSensorConstants(
+      aprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT,
+      poseStrategy = PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+      fallbackPoseStrategy = PoseStrategy.LOWEST_AMBIGUITY
+    )
+
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
       PoseSensorConfig(
         "FrontRight",
         Transform3d(
           Translation3d(units.inchesToMeters(-4.1), units.inchesToMeters(-8.0), units.inchesToMeters(38.35)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.0), units.degreesToRadians(-2.0))
-        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+        ), _poseSensorConstants
       ),
       PoseSensorConfig(
         "FrontLeft",
         Transform3d(
           Translation3d(units.inchesToMeters(-4.1), units.inchesToMeters(8.0), units.inchesToMeters(39.35)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(4.0))
-        ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
+        ), _poseSensorConstants
+      ),
+      PoseSensorConfig(
+        "RearRight",
+        Transform3d(
+          Translation3d(units.inchesToMeters(-8.65), units.inchesToMeters(-7.25), units.inchesToMeters(36.35)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
+        ), _poseSensorConstants
+      ),
+      PoseSensorConfig(
+        "RearLeft",
+        Transform3d(
+          Translation3d(units.inchesToMeters(-8.65), units.inchesToMeters(-7.25), units.inchesToMeters(36.6)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
+        ), _poseSensorConstants
       )
-      # PoseSensorConfig(
-      #   "RearRight",
-      #   Transform3d(
-      #     Translation3d(units.inchesToMeters(-8.65), units.inchesToMeters(-7.25), units.inchesToMeters(36.35)),
-      #     Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
-      #   ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
-      # ),
-      # PoseSensorConfig(
-      #   "RearLeft",
-      #   Transform3d(
-      #     Translation3d(units.inchesToMeters(-8.65), units.inchesToMeters(-7.25), units.inchesToMeters(36.6)),
-      #     Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
-      #   ), _poseStrategy, _fallbackPoseStrategy, APRIL_TAG_FIELD_LAYOUT
-      # )
     )
 
   class Camera:
@@ -244,7 +248,7 @@ class Controllers:
 class Game:
   class Commands:
     kTargetAlignmentTimeout: units.seconds = 2.0 
-    kAutoMoveTimeout: units.seconds = 5.0
+    kAutoMoveTimeout: units.seconds = 4.0
 
   class Field:
     kAprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT

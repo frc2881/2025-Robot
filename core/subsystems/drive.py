@@ -72,8 +72,10 @@ class Drive(Subsystem):
 
     self._lockState: LockState = LockState.Unlocked
 
-    SmartDashboard.putNumber("Robot/Drive/Chassis/Length", self._constants.kWheelBase)
-    SmartDashboard.putNumber("Robot/Drive/Chassis/Width", self._constants.kTrackWidth)
+    SmartDashboard.putNumber("Robot/Drive/Chassis/RobotLength", self._constants.kRobotLength)
+    SmartDashboard.putNumber("Robot/Drive/Chassis/RobotWidth", self._constants.kRobotWidth)
+    SmartDashboard.putNumber("Robot/Drive/Chassis/WheelBase", self._constants.kWheelBase)
+    SmartDashboard.putNumber("Robot/Drive/Chassis/TrackWidth", self._constants.kTrackWidth)
     SmartDashboard.putNumber("Robot/Drive/Speed/Max", self._constants.kTranslationSpeedMax)
 
   def periodic(self) -> None:

@@ -43,6 +43,8 @@ PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
 
 class Subsystems:
   class Drive:
+    kRobotLength: units.meters = units.inchesToMeters(36.0)
+    kRobotWidth: units.meters = units.inchesToMeters(36.0)
     kTrackWidth: units.meters = units.inchesToMeters(26.0)
     kWheelBase: units.meters = units.inchesToMeters(26.0)
 

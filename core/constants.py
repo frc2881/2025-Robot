@@ -37,7 +37,7 @@ from core.classes import (
   ElevatorPosition
 )
 
-APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout(f'{wpilib.getDeployDirectory()}/2025-reefscape-andymark-nobarges.json')
+APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout(f'{ wpilib.getDeployDirectory() }/localization/2025-reefscape-andymark-nobarges.json')
 # APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025ReefscapeAndyMark)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
 
@@ -87,8 +87,8 @@ class Subsystems:
 
     kTargetAlignmentConstants = TargetAlignmentConstants(
       rotationPID = PID(0.075, 0, 0.001),
-      rotationTolerance = Tolerance(1.0, 2.0),
-      rotationSpeedMax = kRotationSpeedMax * 0.4, 
+      rotationTolerance = Tolerance(0.5, 1.0),
+      rotationSpeedMax = kRotationSpeedMax * 0.3, 
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
@@ -298,17 +298,7 @@ class Game:
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(26), units.inchesToMeters(0.0), 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(26), units.inchesToMeters(-16.0), 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(26), units.inchesToMeters(16.0), 0, Rotation3d())
-        },
-        TargetType.AlgaeProcessor: {
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(25), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(25), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(25), 0, 0, Rotation3d())
         }
-        # TargetType.Barge: {
-        #   TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
-        #   TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d()),
-        #   TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(24), 0, 0, Rotation3d())
-        # }
       }
 
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {

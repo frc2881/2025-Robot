@@ -1,5 +1,5 @@
 from commands2 import Command, cmd
-from wpilib import DriverStation, SmartDashboard
+from wpilib import DriverStation, SmartDashboard, RobotBase
 from lib import logger, utils
 from lib.classes import RobotState, TargetAlignmentMode, Position
 from lib.controllers.xbox import Xbox
@@ -47,7 +47,7 @@ class RobotCore:
   def _initControllers(self) -> None:
     self.driver = Xbox(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)
     self.operator = Xbox(constants.Controllers.kOperatorControllerPort, constants.Controllers.kInputDeadband)
-    DriverStation.silenceJoystickConnectionWarning(True)
+    DriverStation.silenceJoystickConnectionWarning(not utils.isCompetitionMode())
 
   def _initCommands(self) -> None:
     self.game = Game(self)

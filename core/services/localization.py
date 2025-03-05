@@ -7,7 +7,7 @@ from wpimath.estimator import SwerveDrive4PoseEstimator
 from photonlibpy.photonPoseEstimator import PoseStrategy
 from lib.sensors.pose import PoseSensor
 from lib import logger, utils
-from core.classes import Target, TargetType, TargetAlignmentLocation, ElevatorPosition
+from core.classes import Target, TargetType, TargetAlignmentLocation
 import core.constants as constants
 
 class Localization():
@@ -50,7 +50,7 @@ class Localization():
   def _updateRobotPose(self) -> None:
     self._poseEstimator.update(self._getGyroRotation(), self._getModulePositions())
     for poseSensor in self._poseSensors:
-      # TODO: add check if robot is aligning to target and if true exclude rear cameras temporarily from this processing loop (only use forward camera during robot target alignment)
+      # TODO: add check if robot is actively aligning to target and if true exclude rear cameras temporarily from this processing loop (only use forward cameras during robot target alignment)
       estimatedRobotPose = poseSensor.getEstimatedRobotPose()
       if estimatedRobotPose is not None:
         pose = estimatedRobotPose.estimatedPose.toPose2d()

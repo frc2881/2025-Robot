@@ -42,7 +42,7 @@ class RobotCore:
     self.shield = Shield()
     
   def _initServices(self) -> None:
-    self.localization = Localization(self.gyro.getRotation, self.drive.getModulePositions, self.poseSensors)
+    self.localization = Localization(self.gyro.getRotation, self.drive.getModulePositions, self.poseSensors, self.drive.isAligningToTarget)
     
   def _initControllers(self) -> None:
     self.driver = Xbox(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)

@@ -15,12 +15,14 @@ class Localization():
       self,
       getGyroRotation: Callable[[], Rotation2d],
       getModulePositions: Callable[[], tuple[SwerveModulePosition, ...]],
-      poseSensors: tuple[PoseSensor, ...]
+      poseSensors: tuple[PoseSensor, ...],
+      getIsAligningToTarget: Callable[[], bool]
     ) -> None:
     super().__init__()
     self._getGyroRotation = getGyroRotation
     self._getModulePositions = getModulePositions
     self._poseSensors = poseSensors
+    self._getIsAligningToTarget = getIsAligningToTarget
 
     self._poseEstimator = SwerveDrive4PoseEstimator(
       constants.Subsystems.Drive.kDriveKinematics,
@@ -50,7 +52,9 @@ class Localization():
   def _updateRobotPose(self) -> None:
     self._poseEstimator.update(self._getGyroRotation(), self._getModulePositions())
     for poseSensor in self._poseSensors:
-      # TODO: add check if robot is actively aligning to target and if true exclude rear cameras temporarily from this processing loop (only use forward cameras during robot target alignment)
+      if self._getIsAligningToTarget() and poseSensor.getCameraName() in ["RearLeft", "RearRight"]:
+        continue
+
       estimatedRobotPose = poseSensor.getEstimatedRobotPose()
       if estimatedRobotPose is not None:
         pose = estimatedRobotPose.estimatedPose.toPose2d()

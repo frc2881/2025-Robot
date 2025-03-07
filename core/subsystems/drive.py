@@ -30,6 +30,7 @@ class Drive(Subsystem):
     self._driftCorrectionController.enableContinuousInput(-180.0, 180.0)
 
     self._targetPose: Pose3d = None
+    self._isAligningToTarget: bool = False
     self._isAlignedToTarget: bool = False
     self._targetAlignmentTranslationXController = PIDController(*self._constants.kTargetAlignmentConstants.translationPID)
     self._targetAlignmentTranslationXController.setTolerance(*self._constants.kTargetAlignmentConstants.translationTolerance)
@@ -177,6 +178,7 @@ class Drive(Subsystem):
       targetAlignmentMode: TargetAlignmentMode
     ) -> None:
     self._resetTargetAlignment()
+    self._isAligningToTarget = True
     self._targetPose = targetPose
     self._targetAlignmentTranslationXController.reset()
     self._targetAlignmentTranslationXController.setSetpoint(0)
@@ -216,13 +218,18 @@ class Drive(Subsystem):
     self._setSwerveModuleStates(self._constants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds(speedTranslationX, speedTranslationY, speedRotation)))
     if speedRotation == 0 and speedTranslationX == 0 and speedTranslationY == 0:
       self._isAlignedToTarget = True
+      self._isAligningToTarget = False
 
   def isAlignedToTarget(self) -> bool:
     return self._isAlignedToTarget
   
+  def isAligningToTarget(self) -> bool:
+    return self.isAligningToTarget
+  
   def _resetTargetAlignment(self) -> None:
     self._targetPose = None
     self._isAlignedToTarget = False
+    self._isAligningToTarget = False
 
   def reset(self) -> None:
     self.drive(ChassisSpeeds())

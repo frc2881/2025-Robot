@@ -40,9 +40,6 @@ class Arm(Subsystem):
   def isAlignedToPosition(self) -> bool:
     return self._arm.isAlignedToPosition()
   
-  def isCoralStationReady(self) -> bool:
-    return self.getPosition() < self._constants.kCoralStageReadyPosition
-  
   def resetToZero(self) -> Command:
     return self._arm.resetToZero(self).withName("Arm:ResetToZero")
 

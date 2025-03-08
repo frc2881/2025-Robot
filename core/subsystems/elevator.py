@@ -61,9 +61,6 @@ class Elevator(Subsystem):
   
   def isReefCoralL4Ready(self) -> bool:
     return self.getPosition().lowerStage > self._constants.kLowerStageReefCoralL4ReadyPosition
-  
-  def isCoralStationReady(self) -> bool:
-    return self.getPosition().lowerStage < self._constants.kLowerStageCoralStationReadyPosition
 
   def resetLowerStageToZero(self) -> Command:
     return self._lowerStage.resetToZero(self).withName("Elevator:ResetLowerStageToZero")

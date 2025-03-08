@@ -186,17 +186,20 @@ class RobotCore:
 
   def _updateLights(self) -> None:
     lightsMode = LightsMode.Default
-    match utils.getRobotState():
-      case RobotState.Disabled:
-        if not self._hasZeroResets():
-          lightsMode = LightsMode.RobotNotReady
-        elif not self.localization.hasVisionTarget():
-          lightsMode = LightsMode.VisionNotReady
-      case RobotState.Enabled:
-        if self.game.isRobotAlignedToTargetPosition():
-          lightsMode = LightsMode.AlignedToPosition
-        if self.shield.getPosition() == Position.Open and self.game.isRobotAlignedToTargetPosition():
-          lightsMode = LightsMode.ReadyForClimb
+    if not DriverStation.isDSAttached():
+      lightsMode = LightsMode.RobotNotConnected
+    else: 
+      match utils.getRobotState():
+        case RobotState.Disabled:
+          if not self._hasZeroResets():
+            lightsMode = LightsMode.RobotNotReady
+          elif not self.localization.hasVisionTarget():
+            lightsMode = LightsMode.VisionNotReady
+        case RobotState.Enabled:
+          if self.game.isRobotAlignedToTargetPosition():
+            lightsMode = LightsMode.AlignedToPosition
+          if self.shield.getPosition() == Position.Open and self.game.isRobotAlignedToTargetPosition():
+            lightsMode = LightsMode.ReadyForClimb
     self.lightsController.setMode(lightsMode.name)
 
   def _periodic(self) -> None:

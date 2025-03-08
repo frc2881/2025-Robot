@@ -16,6 +16,7 @@ class Elevator(Subsystem):
     self._hasInitialZeroReset: bool = False
 
     self._lowerStage = PositionControlModule(self._constants.kLowerStageConfig)
+    self._lowerStage2 = PositionControlModule(self._constants.kLowerStage2Config)
     self._upperStage = PositionControlModule(self._constants.kUpperStageConfig)
 
   def periodic(self) -> None:

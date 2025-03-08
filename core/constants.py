@@ -99,21 +99,24 @@ class Subsystems:
     )
 
   class Elevator:
-    kLowerStageConfig = PositionControlModuleConfig("Elevator/LowerStage", 10, None, False, PositionControlModuleConstants(
+    _lowerStageModuleConstants = PositionControlModuleConstants(
       distancePerRotation = 0.5,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 80,
-      motorReduction = 3.0 / 1.0,
+      motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
       motorOutputRange = Range(-1.0, 1.0),
-      motorMotionMaxVelocity = 150.0,
+      motorMotionMaxVelocity = 400.0,
       motorMotionMaxAcceleration = 200.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 29.75,
-      motorSoftLimitReverse = 0.25,
+      motorSoftLimitForward = 30.0,
+      motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.2
-    ))
+    )
+
+    kLowerStageConfig = PositionControlModuleConfig("Elevator/LowerStage", 10, None, False, _lowerStageModuleConstants)
+    kLowerStage2Config = PositionControlModuleConfig("Elevator/LowerStage2", 20, 10, True, _lowerStageModuleConstants)
 
     kUpperStageConfig = PositionControlModuleConfig("Elevator/UpperStage", 11, None, False, PositionControlModuleConstants(
       distancePerRotation = 1.0,
@@ -126,15 +129,15 @@ class Subsystems:
       motorMotionMaxVelocity = 400.0,
       motorMotionMaxAcceleration = 200.0,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 28.75,
-      motorSoftLimitReverse = 0.25,
+      motorSoftLimitForward = 28.0,
+      motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.1
     ))
 
     kUpperStageSoftLimitBuffer: units.inches = 1.5
-    kLowerStageReefCoralL4ReadyPosition: units.inches = 28.0
+    kLowerStageReefCoralL4ReadyPosition: units.inches = 27.0
     kLowerStageCoralStationReadyPosition: units.inches = 8.0
-    kInputLimit: units.percent = 1.0
+    kInputLimit: units.percent = 0.5
 
   class Arm:
     kArmConfig = PositionControlModuleConfig("Arm", 12, None, True, PositionControlModuleConstants(
@@ -167,8 +170,8 @@ class Subsystems:
 
   class Hand:
     kGripperMotorCANId: int = 14
-    kGripperMotorCurrentLimit: int = 25
-    kGripperMotorCurrentTrigger: int = 23
+    kGripperMotorCurrentLimit: int = 30
+    kGripperMotorCurrentTrigger: int = 25
     kGripperMotorSpeed: units.percent = 1.0
     kGripperReleaseTimeout: units.seconds = 1.0
 
@@ -204,42 +207,43 @@ class Sensors:
 
     kPoseSensorConfigs: tuple[PoseSensorConfig, ...] = (
       PoseSensorConfig(
-        "FrontRight",
-        Transform3d(
-          Translation3d(units.inchesToMeters(-4.1), units.inchesToMeters(-8.0), units.inchesToMeters(38.35)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.0), units.degreesToRadians(-2.0))
-        ), _poseSensorConstants
-      ),
-      PoseSensorConfig(
         "FrontLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-4.1), units.inchesToMeters(8.0), units.inchesToMeters(39.35)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(4.0))
+          Translation3d(units.inchesToMeters(-4.1391), units.inchesToMeters(8.125), units.inchesToMeters(39.3044)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(0))
         ), _poseSensorConstants
       ),
       PoseSensorConfig(
-        "RearRight",
+        "FrontRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(-8.65), units.inchesToMeters(-7.25), units.inchesToMeters(36.35)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
+          Translation3d(units.inchesToMeters(-4.0972), units.inchesToMeters(-8.125), units.inchesToMeters(38.3683)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.0), units.degreesToRadians(0))
         ), _poseSensorConstants
       ),
       PoseSensorConfig(
         "RearLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-8.65), units.inchesToMeters(-7.25), units.inchesToMeters(36.6)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(5.0), units.degreesToRadians(-180.0))
+          Translation3d(units.inchesToMeters(-8.8236), units.inchesToMeters(-7.2958), units.inchesToMeters(36.1419)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(165.0))
+        ), _poseSensorConstants
+      ),
+      PoseSensorConfig(
+        "RearRight",
+        Transform3d(
+          Translation3d(units.inchesToMeters(-8.8236), units.inchesToMeters(-7.2958), units.inchesToMeters(36.1515)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(-165.0))
         ), _poseSensorConstants
       )
     )
 
   class Camera:
     kStreams: dict[str, str] = {
-      "FrontRight": "http://10.28.81.6:1182/?action=stream",
+      "FrontRight": "http://10.28.81.6:1184/?action=stream",
       "FrontLeft": "http://10.28.81.7:1182/?action=stream",
-      "RearRight": "http://10.28.81.6:1184/?action=stream",
-      "RearLeft": "http://10.28.81.7:1184/?action=stream",
-      "Driver": "http://10.28.81.6:1182/?action=stream"
+      "RearRight": "http://10.28.81.6:1182/?action=stream",
+      "RearLeft": "http://10.28.81.7:1186/?action=stream",
+      "Driver": "http://10.28.81.6:1184/?action=stream",
+      "Internal": "http://10.28.81.7:1184/?action=stream"
     }
 
 class Controllers:
@@ -307,11 +311,11 @@ class Game:
         TargetPositionType.CoralStationReady: TargetPosition(ElevatorPosition(6.5, Value.min), Value.min, Position.Up),
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(6.5, Value.min), 10.0, Position.Up),
         TargetPositionType.ReefCoralL4Ready: TargetPosition(ElevatorPosition(28.9, Value.min), Value.min, Position.Up),
-        TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.9, 28.7), 7.5, Position.Down),
+        TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(29.5, Value.max), 7.5, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(Value.min, Value.max), 4.6, Position.Down),
         TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 12.30), 3.8, Position.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 23.0), 30, Position.Up),
-        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, 28.0), 19.3, Position.Down),
+        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, Value.max), 19.3, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),
         TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up)
       }

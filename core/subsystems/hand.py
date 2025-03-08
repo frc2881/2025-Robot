@@ -1,6 +1,6 @@
 from commands2 import Subsystem, Command, cmd
 from wpilib import SmartDashboard, PowerDistribution
-from rev import SparkMax, SparkMaxConfig, SparkBase
+from rev import SparkFlex, SparkMax, SparkBaseConfig, SparkBase
 from lib import logger, utils
 from lib.classes import Position
 import core.constants as constants
@@ -10,15 +10,12 @@ class Hand(Subsystem):
     super().__init__()
     self._constants = constants.Subsystems.Hand
 
-    self._isGripperEnabled = False
-    self._isSuctionEnabled = False
-    self._isSuctionHolding = False
-
-    self._gripperMotor = SparkMax(self._constants.kGripperMotorCANId, SparkBase.MotorType.kBrushed)
-    self._sparkConfig = SparkMaxConfig()
+    self._gripperMotor = SparkFlex(self._constants.kGripperMotorCANId, SparkBase.MotorType.kBrushless)
+    self._sparkConfig = SparkBaseConfig()
     (self._sparkConfig
+      .setIdleMode(SparkBaseConfig.IdleMode.kBrake)
       .smartCurrentLimit(self._constants.kGripperMotorCurrentLimit)
-      .inverted(True))
+      .inverted(False))
     utils.setSparkConfig(
       self._gripperMotor.configure(
         self._sparkConfig,
@@ -28,7 +25,7 @@ class Hand(Subsystem):
     )
 
     self._suctionMotor = SparkMax(self._constants.kSuctionMotorCANId, SparkBase.MotorType.kBrushed)
-    self._sparkConfig = SparkMaxConfig()
+    self._sparkConfig = SparkBaseConfig()
     (self._sparkConfig
       .smartCurrentLimit(self._constants.kSuctionMotorCurrentLimit)
       .inverted(True))
@@ -48,14 +45,8 @@ class Hand(Subsystem):
       
   def runGripper(self) -> Command:
     return self.startEnd(
-      lambda: [
-        self._gripperMotor.set(self._constants.kGripperMotorSpeed),
-        setattr(self, "_isGripperEnabled", True)
-      ],
-      lambda: [ 
-        self._gripperMotor.stopMotor(),
-        setattr(self, "_isGripperEnabled", False)
-      ]
+      lambda: self._gripperMotor.set(self._constants.kGripperMotorSpeed),
+      lambda: self._gripperMotor.stopMotor()
     ).withName("Hand:RunGripper")
   
   def releaseGripper(self) -> Command:
@@ -67,26 +58,20 @@ class Hand(Subsystem):
     ).withName("Hand:ReleaseGripper")
 
   def isGripperEnabled(self) -> bool:
-    return self._isGripperEnabled
+    return self._gripperMotor.get() != 0
+  
+  def isGripperHolding(self) -> bool:
+    return self._gripperMotor.getOutputCurrent() >= self._constants.kGripperMotorCurrentTrigger
   
   def _resetGripper(self) -> None:
     self._gripperMotor.stopMotor()
-    self._isGripperEnabled = False
 
   def runSuction(self) -> Command:
     return self.runOnce(
       lambda: [
         self._setSolenoidPosition(Position.Closed),
-        self._suctionMotor.set(self._constants.kSuctionMotorSpeed),
-        setattr(self, "_isSuctionEnabled", True),
-        setattr(self, "_isSuctionHolding", False)
+        self._suctionMotor.set(self._constants.kSuctionMotorSpeed)
       ]
-    ).andThen(
-      cmd.sequence(
-        cmd.waitSeconds(0.5),
-        cmd.waitUntil(lambda: self._suctionMotor.getOutputCurrent() >= self._constants.kSuctionMotorCurrentTrigger),
-        cmd.runOnce(lambda: setattr(self, "_isSuctionHolding", True))
-      )
     ).withName("Hand:RunSuction")
 
   def releaseSuction(self) -> Command:
@@ -101,10 +86,10 @@ class Hand(Subsystem):
     ).withName("Hand:ReleaseSuction")
 
   def isSuctionEnabled(self) -> bool:
-    return self._isSuctionEnabled
+    return self._suctionMotor.get() != 0
   
   def isSuctionHolding(self) -> bool:
-    return self._isSuctionHolding
+    return self._suctionMotor.getOutputCurrent() >= self._constants.kSuctionMotorCurrentTrigger
   
   def _setSolenoidPosition(self, position: Position) -> None:
     self._powerDistribution.setSwitchableChannel(True if position == Position.Open else False)
@@ -112,17 +97,16 @@ class Hand(Subsystem):
   def _resetSuction(self) -> None:
     self._suctionMotor.stopMotor()
     self._setSolenoidPosition(Position.Closed)
-    self._isSuctionEnabled = False
-    self._isSuctionHolding = False
 
   def reset(self) -> None:
     self._resetGripper()
     self._resetSuction()
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putBoolean("Robot/Hand/Gripper/IsEnabled", self._isGripperEnabled)
+    SmartDashboard.putBoolean("Robot/Hand/Gripper/IsEnabled", self.isGripperEnabled())
+    SmartDashboard.putBoolean("Robot/Hand/Gripper/IsHolding", self.isGripperHolding())
     SmartDashboard.putNumber("Robot/Hand/Gripper/Current", self._gripperMotor.getOutputCurrent())
-    SmartDashboard.putBoolean("Robot/Hand/Suction/IsEnabled", self._isSuctionEnabled)
-    SmartDashboard.putBoolean("Robot/Hand/Suction/IsHolding", self._isSuctionHolding)
+    SmartDashboard.putBoolean("Robot/Hand/Suction/IsEnabled", self.isSuctionEnabled())
+    SmartDashboard.putBoolean("Robot/Hand/Suction/IsHolding", self.isSuctionHolding())
     SmartDashboard.putNumber("Robot/Hand/Suction/Current", self._suctionMotor.getOutputCurrent())
  

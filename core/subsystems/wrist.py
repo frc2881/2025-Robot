@@ -1,6 +1,6 @@
 from commands2 import Subsystem, Command, cmd
 from wpilib import SmartDashboard
-from rev import SparkMax, SparkMaxConfig, SparkBase
+from rev import SparkMax, SparkBaseConfig, SparkBase
 from lib import logger, utils
 from lib.classes import Position
 import core.constants as constants
@@ -14,7 +14,7 @@ class Wrist(Subsystem):
     self._isAlignedToPosition: bool = False
 
     self._motor = SparkMax(self._constants.kMotorCANId, SparkBase.MotorType.kBrushed)
-    self._sparkConfig = SparkMaxConfig()
+    self._sparkConfig = SparkBaseConfig()
     self._sparkConfig.smartCurrentLimit(self._constants.kMotorCurrentLimit)
     utils.setSparkConfig(
       self._motor.configure(

@@ -21,7 +21,7 @@ class Game:
     ) -> Command:
     return self._robot.drive.alignToTarget(
       self._robot.localization.getRobotPose, 
-      lambda: self._robot.localization.getTargetPose(targetAlignmentLocation, self._robot.elevator.isReefCoralL4Ready()),
+      lambda: self._robot.localization.getTargetPose(targetAlignmentLocation, self._robot.elevator.isReefCoralL4()),
       targetAlignmentMode
     ).until(
       lambda: self._robot.drive.isAlignedToTarget()
@@ -34,13 +34,8 @@ class Game:
   def alignRobotToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
     return cmd.select(
       {
-        TargetPositionType.CoralStation: self._alignRobotToTargetPositionParallel(TargetPositionType.CoralStation),
-        TargetPositionType.ReefCoralL4: 
-          cmd.either(
-            self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL4Ready),
-            self._alignRobotToTargetPositionArmSafety(TargetPositionType.ReefCoralL4),
-            lambda: not self._robot.elevator.isReefCoralL4Ready()
-          ),
+        TargetPositionType.CoralStation: self._alignRobotToTargetPositionArmSafety(TargetPositionType.CoralStation),
+        TargetPositionType.ReefCoralL4: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL4),
         TargetPositionType.ReefCoralL3: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL3),
         TargetPositionType.ReefCoralL2: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL2),
         TargetPositionType.ReefCoralL1: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL1),
@@ -71,7 +66,7 @@ class Game:
 
   def _alignRobotToTargetPositionArmSafety(self, targetPositionType: TargetPositionType):
     return cmd.parallel(
-      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
+      self._robot.elevator.alignToPositonSafety(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
       self._robot.arm.setPosition(Value.min).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
       ),

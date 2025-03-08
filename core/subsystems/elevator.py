@@ -37,12 +37,7 @@ class Elevator(Subsystem):
         self._lowerStage.setSpeed(0)
         self._upperStage.setSpeed(speed)
       case ElevatorStage.Both:
-        self._lowerStage.setSpeed(
-          speed 
-          if elevatorStage == ElevatorStage.Lower 
-          or self._upperStage.isAtSoftLimit(MotorDirection.Forward if speed > 0 else MotorDirection.Reverse, self._constants.kUpperStageSoftLimitBuffer) 
-          else 0
-        )
+        self._lowerStage.setSpeed(speed)
         self._upperStage.setSpeed(speed)
   
   def alignToPosition(self, elevatorPosition: ElevatorPosition) -> Command:
@@ -52,6 +47,15 @@ class Elevator(Subsystem):
         self._upperStage.alignToPosition(elevatorPosition.upperStage)
       ]
     ).withName("Elevator:AlignToPosition")
+  
+  def alignToPositonSafety(self, elevatorPosition: ElevatorPosition) -> Command:
+    return self.run(
+      lambda: self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
+    ).until(lambda: self._lowerStage.isAlignedToPosition()).andThen(
+      self.run(
+        lambda: self._upperStage.alignToPosition(elevatorPosition.upperStage)
+      )
+    ).withName("Elevator:AlignToPositionSafety")
 
   def getPosition(self) -> ElevatorPosition:
     return ElevatorPosition(self._lowerStage.getPosition(), self._upperStage.getPosition())
@@ -59,8 +63,8 @@ class Elevator(Subsystem):
   def isAlignedToPosition(self) -> bool:
     return self._lowerStage.isAlignedToPosition() and self._upperStage.isAlignedToPosition()
   
-  def isReefCoralL4Ready(self) -> bool:
-    return self.getPosition().lowerStage > self._constants.kLowerStageReefCoralL4ReadyPosition
+  def isReefCoralL4(self) -> bool:
+    return self.getPosition().lowerStage > self._constants.kLowerStageReefCoralL4Position
 
   def resetLowerStageToZero(self) -> Command:
     return self._lowerStage.resetToZero(self).withName("Elevator:ResetLowerStageToZero")

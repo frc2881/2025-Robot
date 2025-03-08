@@ -16,7 +16,6 @@ class TargetType(Enum):
 
 class TargetPositionType(Enum):
   CoralStation = auto()
-  ReefCoralL4Ready = auto()
   ReefCoralL4 = auto()
   ReefCoralL3 = auto()
   ReefCoralL2 = auto()

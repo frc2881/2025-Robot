@@ -80,9 +80,9 @@ class Localization():
       self._targets = constants.Game.Field.Targets.kTargets[self._alliance]
       self._targetPoses = [t.pose.toPose2d() for t in self._targets.values()]
 
-  def getTargetPose(self, targetAlignmentLocation: TargetAlignmentLocation, isElevatorReefCoralL4Ready: bool) -> Pose3d:
+  def getTargetPose(self, targetAlignmentLocation: TargetAlignmentLocation, isElevatorReefCoralL4: bool) -> Pose3d:
     target = self._targets.get(utils.getTargetHash(self._robotPose.nearest(self._targetPoses)))
-    if target.type == TargetType.Reef and isElevatorReefCoralL4Ready:
+    if target.type == TargetType.Reef and isElevatorReefCoralL4:
       targetAlignmentLocation = TargetAlignmentLocation.LeftL4 if targetAlignmentLocation == TargetAlignmentLocation.Left else TargetAlignmentLocation.RightL4
     return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])
 

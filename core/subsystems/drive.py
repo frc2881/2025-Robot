@@ -224,7 +224,7 @@ class Drive(Subsystem):
     return self._isAlignedToTarget
   
   def isAligningToTarget(self) -> bool:
-    return self.isAligningToTarget
+    return self._isAligningToTarget
   
   def _resetTargetAlignment(self) -> None:
     self._targetPose = None
@@ -237,4 +237,5 @@ class Drive(Subsystem):
   
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Drive/IsAlignedToTarget", self._isAlignedToTarget)
+    SmartDashboard.putBoolean("Robot/Drive/IsAligningToTarget", self._isAligningToTarget)
     SmartDashboard.putString("Robot/Drive/LockState", self._lockState.name)

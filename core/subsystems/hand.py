@@ -1,3 +1,4 @@
+from typing import Callable
 from commands2 import Subsystem, Command, cmd
 from wpilib import SmartDashboard, PowerDistribution
 from rev import SparkFlex, SparkMax, SparkBaseConfig, SparkBase
@@ -6,9 +7,11 @@ from lib.classes import Position
 import core.constants as constants
 
 class Hand(Subsystem):
-  def __init__(self):
+  def __init__(self, intakeDistanceSensorHasTarget: Callable[[], bool],):
     super().__init__()
     self._constants = constants.Subsystems.Hand
+
+    self._intakeDistanceSensorHasTarget = intakeDistanceSensorHasTarget
 
     self._gripperMotor = SparkFlex(self._constants.kGripperMotorCANId, SparkBase.MotorType.kBrushless)
     self._sparkConfig = SparkBaseConfig()
@@ -45,13 +48,13 @@ class Hand(Subsystem):
       
   def runGripper(self) -> Command:
     return self.startEnd(
-      lambda: self._gripperMotor.set(self._constants.kGripperMotorSpeed),
+      lambda: self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed),
       lambda: self._gripperMotor.stopMotor()
     ).withName("Hand:RunGripper")
   
   def releaseGripper(self) -> Command:
     return self.startEnd(
-      lambda: self._gripperMotor.set(-self._constants.kGripperMotorSpeed),
+      lambda: self._gripperMotor.set(-self._constants.kGripperMotorReleaseSpeed),
       lambda: self._resetGripper()
     ).withTimeout(
       self._constants.kGripperReleaseTimeout
@@ -61,7 +64,7 @@ class Hand(Subsystem):
     return self._gripperMotor.get() != 0
   
   def isGripperHolding(self) -> bool:
-    return self._gripperMotor.getOutputCurrent() >= self._constants.kGripperMotorCurrentTrigger
+    return self._intakeDistanceSensorHasTarget()
   
   def _resetGripper(self) -> None:
     self._gripperMotor.stopMotor()

@@ -37,9 +37,12 @@ class Elevator(Subsystem):
         self._lowerStage.setSpeed(0)
         self._upperStage.setSpeed(speed)
       case ElevatorStage.Both:
-        # TODO: enforce lower stage to go down completely first before upper stage moves when elevator is going down
         self._lowerStage.setSpeed(speed)
-        self._upperStage.setSpeed(speed)
+        self._upperStage.setSpeed(
+          speed 
+          if speed > 0 or self._lowerStage.isAtSoftLimit(MotorDirection.Reverse, self._constants.kLowerStageSoftLimitBuffer) 
+          else 0
+        )
   
   def alignToPosition(self, elevatorPosition: ElevatorPosition, isParallel: bool = True) -> Command:
     return self.run(
@@ -72,6 +75,9 @@ class Elevator(Subsystem):
   
   def hasZeroReset(self) -> bool:
     return self._lowerStage.hasZeroReset() and self._upperStage.hasZeroReset()
+  
+  def setUpperStageSoftLimitsEnabled(self, softLimitsEnabled: bool):
+    self._upperStage.setSoftLimitsEnabled(softLimitsEnabled)
   
   def reset(self) -> None:
     self._lowerStage.reset()

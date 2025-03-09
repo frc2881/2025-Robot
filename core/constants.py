@@ -103,14 +103,15 @@ class Subsystems:
       distancePerRotation = 0.5,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
-      motorCurrentLimit = 80,
+      motorCurrentLimit = 100,
       motorReduction = 1.0 / 1.0,
-      motorPID = PID(1.8, 0, 0.05),
+      motorPID = PID(0.1, 0, 0.07),
       motorOutputRange = Range(-0.9, 1.0),
-      motorMotionMaxVelocity = 300.0,
-      motorMotionMaxAcceleration = 125.0,
+      motorMotionMaxVelocity = 7000.0,
+      motorMotionMaxAcceleration = 14000.0,
+      motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 30.0,
+      motorSoftLimitForward = 29.0,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.2
     )
@@ -124,18 +125,18 @@ class Subsystems:
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
-      motorPID = PID(0.1, 0, 0.01),
-      # TODO: try adding velocityFF per REV example?
-      motorOutputRange = Range(-0.4, 1.0),
-      motorMotionMaxVelocity = 600.0,
-      motorMotionMaxAcceleration = 200.0,
+      motorPID = PID(0.1, 0, 0.07),
+      motorOutputRange = Range(-0.8, 1.0),
+      motorMotionMaxVelocity = 6500.0,
+      motorMotionMaxAcceleration = 13000.0,
+      motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.1,
       motorSoftLimitForward = 28.0,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.1
     ))
 
-    kUpperStageSoftLimitBuffer: units.inches = 1.5
+    kLowerStageSoftLimitBuffer: units.inches = 1.5
     kLowerStageReefCoralL4Position: units.inches = 15.0
     kInputLimit: units.percent = 0.5
 
@@ -146,10 +147,11 @@ class Subsystems:
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
-      motorPID = PID(0.1, 0, 0.01),
+      motorPID = PID(0.1, 0, 0.07),
       motorOutputRange = Range(-0.7, 1.0),
-      motorMotionMaxVelocity = 200,
-      motorMotionMaxAcceleration = 300.0,
+      motorMotionMaxVelocity = 9000,
+      motorMotionMaxAcceleration = 18000.0,
+      motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.1,
       motorSoftLimitForward = 69.8,
       motorSoftLimitReverse = 1.5,
@@ -170,10 +172,10 @@ class Subsystems:
 
   class Hand:
     kGripperMotorCANId: int = 14
-    kGripperMotorCurrentLimit: int = 30
-    kGripperMotorCurrentTrigger: int = 25
-    kGripperMotorSpeed: units.percent = 1.0
-    kGripperReleaseTimeout: units.seconds = 0.75
+    kGripperMotorCurrentLimit: int = 40
+    kGripperMotorIntakeSpeed: units.percent = 0.8
+    kGripperMotorReleaseSpeed: units.percent = 1.0
+    kGripperReleaseTimeout: units.seconds = 0.5
 
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20
@@ -197,6 +199,12 @@ class Sensors:
   class Gyro:
     class NAVX2:
       kComType = AHRS.NavXComType.kUSB1
+
+  class Distance:
+    class Intake:
+      kSensorName = "Intake"
+      kMinTargetDistance: units.millimeters = 1
+      kMaxTargetDistance: units.millimeters = 85
 
   class Pose:
     _poseSensorConstants = PoseSensorConstants(
@@ -301,19 +309,19 @@ class Game:
           TargetAlignmentLocation.RightL4: Transform3d(units.inchesToMeters(23.5), units.inchesToMeters(6.5), 0, Rotation3d())
         },
         TargetType.CoralStation: {
-          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(23), units.inchesToMeters(0.0-2.0), 0, Rotation3d()),
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(23), units.inchesToMeters(0.0), 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(23), units.inchesToMeters(-24.0), 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(23), units.inchesToMeters(24.0), 0, Rotation3d())
         }
       }
 
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
-        TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.5, Value.max), 7.5, Position.Down),
-        TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(Value.min, Value.max), 3.6, Position.Down),
+        TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.5, 28.0), 7.4, Position.Down),
+        TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(4.2, 28.0), 6.0, Position.Down),
         TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 11.30), 1.0, Position.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 23.0), 30, Position.Up),
-        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, Value.max), 19.3, Position.Down),
+        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, 28.0), 19.3, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), Value.min, Position.Up),
-        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up)
+        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.0), Value.max, Position.Up)
       }

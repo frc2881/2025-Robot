@@ -59,6 +59,7 @@ class Auto:
     self._autos.addOption("[2]_2", self.auto_2_2)
     self._autos.addOption("[3]_3", self.auto_3_3)
     self._autos.addOption("[3]_3_4", self.auto_3_3_4)
+    self._autos.addOption("[3]_3_4_", self.auto_3_3_4_)
 
     self._autos.onChange(lambda auto: setattr(self, "_auto", auto()))
     SmartDashboard.putData("Robot/Auto", self._autos)
@@ -91,9 +92,9 @@ class Auto:
   
   def _moveAlignIntake(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return (
-      self._move(autoPath).deadlineFor(self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation))
-      .andThen(self._alignToTarget(targetAlignmentLocation))
-      .andThen(cmd.waitSeconds(2.0).deadlineFor(self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation)))
+      self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation).alongWith(
+        self._move(autoPath).andThen(self._alignToTarget(targetAlignmentLocation))
+      ).until(lambda: self._robot.hand.isGripperHolding())
     )
   
   def _getStartingPose(self, position: int) -> Pose2d:
@@ -144,7 +145,15 @@ class Auto:
   
   def auto_3_3_4(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left), # TODO: Move to left
+      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left),
       self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move2_4, TargetAlignmentLocation.Left)
     ).withName("Auto:[3]_3_4")
+  
+  def auto_3_3_4_(self) -> Command:
+    return cmd.sequence(
+      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left),
+      self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Center),
+      self._moveAlignScore(AutoPath.Move2_4, TargetAlignmentLocation.Left),
+      self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center),
+    ).withName("Auto:[3]_3_4_")

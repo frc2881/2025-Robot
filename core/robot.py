@@ -4,6 +4,7 @@ from lib import logger, utils
 from lib.classes import RobotState, TargetAlignmentMode, Position
 from lib.controllers.xbox import Xbox
 from lib.controllers.lights import Lights
+from lib.sensors.distance import DistanceSensor
 from lib.sensors.gyro_navx2 import Gyro_NAVX2
 from lib.sensors.pose import PoseSensor
 from core.commands.auto import Auto
@@ -31,6 +32,11 @@ class RobotCore:
   def _initSensors(self) -> None:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
+    self.intakeDistanceSensor = DistanceSensor(
+      constants.Sensors.Distance.Intake.kSensorName,
+      constants.Sensors.Distance.Intake.kMinTargetDistance,
+      constants.Sensors.Distance.Intake.kMaxTargetDistance
+    )
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
   def _initSubsystems(self) -> None:
@@ -38,7 +44,7 @@ class RobotCore:
     self.elevator = Elevator()
     self.arm = Arm()
     self.wrist = Wrist()
-    self.hand = Hand()
+    self.hand = Hand(self.intakeDistanceSensor.hasTarget)
     self.shield = Shield()
     
   def _initServices(self) -> None:
@@ -87,7 +93,7 @@ class RobotCore:
     # self.driver.a().onTrue(cmd.none())
     # self.driver.b().whileTrue(cmd.none())
     self.driver.y().whileTrue(
-      self.elevator.default(lambda: 0.5, ElevatorStage.Lower)
+      self.elevator.default(lambda: 0.3, ElevatorStage.Lower)
     )
     self.driver.x().whileTrue(
       self.elevator.default(lambda: -0.5, ElevatorStage.Lower)

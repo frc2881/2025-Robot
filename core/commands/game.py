@@ -45,13 +45,8 @@ class Game:
   def _alignRobotToTargetPosition(self, targetPositionType: TargetPositionType):
     return cmd.parallel(
       self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator, isParallel = True),
-      # TODO: remove the wait on elevator to move arm/wrist in parallel?
-      cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
-      ),
-      cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
-      ),
+      self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm),
+      self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist),
       cmd.either(
         self._intakeAligned(GamePiece.Algae), 
         self._intakeAligned(GamePiece.Coral), 
@@ -65,25 +60,29 @@ class Game:
     return cmd.parallel(
       self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].elevator, isParallel = False),
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].arm),
-      self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].wrist)
-    ).alongWith(
-      cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self._intakeAligned(GamePiece.Coral))
+      self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].wrist),
+      self._intakeAligned(GamePiece.Coral)
     )
   
   def _alignRobotToTargetPositionCageDeepClimb(self) -> Command:
     return cmd.sequence(
       self._robot.shield.setPosition(Position.Open),
+      cmd.runOnce(
+        lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)
+      ),
       cmd.parallel(
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
         cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-          self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
-        ),
-        cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
           self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist)
+        ),
+        cmd.waitUntil(lambda: self._robot.wrist.isAlignedToPosition()).andThen(
+          self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
         )
       )
     ).alongWith(
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver))
+    ).finallyDo(
+      lambda end: self._robot.elevator.setUpperStageSoftLimitsEnabled(True)
     )
 
   def isRobotAlignedToTargetPosition(self) -> bool:

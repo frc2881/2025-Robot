@@ -15,14 +15,14 @@ class TargetType(Enum):
   Barge = auto()
 
 class TargetPositionType(Enum):
-  CoralStation = auto()
   ReefCoralL4 = auto()
   ReefCoralL3 = auto()
   ReefCoralL2 = auto()
   ReefCoralL1 = auto()
   ReefAlgaeL3 = auto()
   ReefAlgaeL2 = auto()
-  CageEntry = auto()
+  CoralStation = auto()
+  CageDeepClimb = auto()
 
 class TargetAlignmentLocation(Enum):
   Center = auto()

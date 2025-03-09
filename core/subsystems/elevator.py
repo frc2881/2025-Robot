@@ -16,7 +16,7 @@ class Elevator(Subsystem):
     self._hasInitialZeroReset: bool = False
 
     self._lowerStage = PositionControlModule(self._constants.kLowerStageConfig)
-    self._lowerStage2 = PositionControlModule(self._constants.kLowerStage2Config)
+    self._lowerStageHelper = PositionControlModule(self._constants.kLowerStageHelperConfig)
     self._upperStage = PositionControlModule(self._constants.kUpperStageConfig)
 
   def periodic(self) -> None:
@@ -37,25 +37,23 @@ class Elevator(Subsystem):
         self._lowerStage.setSpeed(0)
         self._upperStage.setSpeed(speed)
       case ElevatorStage.Both:
+        # TODO: enforce lower stage to go down completely first before upper stage moves when elevator is going down
         self._lowerStage.setSpeed(speed)
         self._upperStage.setSpeed(speed)
   
-  def alignToPosition(self, elevatorPosition: ElevatorPosition) -> Command:
-    return self.run(
-      lambda: [
-        self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
-        self._upperStage.alignToPosition(elevatorPosition.upperStage)
-      ]
-    ).withName("Elevator:AlignToPosition")
-  
-  def alignToPositonSafety(self, elevatorPosition: ElevatorPosition) -> Command:
+  def alignToPosition(self, elevatorPosition: ElevatorPosition, isParallel: bool = True) -> Command:
     return self.run(
       lambda: self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
-    ).until(lambda: self._lowerStage.isAlignedToPosition()).andThen(
+    ).until(
+      lambda: self._lowerStage.isAlignedToPosition()
+    ).onlyIf(lambda: not isParallel).andThen(
       self.run(
-        lambda: self._upperStage.alignToPosition(elevatorPosition.upperStage)
+        lambda: [
+          self._lowerStage.alignToPosition(elevatorPosition.lowerStage),
+          self._upperStage.alignToPosition(elevatorPosition.upperStage)
+        ]
       )
-    ).withName("Elevator:AlignToPositionSafety")
+    ).withName("Elevator:AlignToPosition")
 
   def getPosition(self) -> ElevatorPosition:
     return ElevatorPosition(self._lowerStage.getPosition(), self._upperStage.getPosition())

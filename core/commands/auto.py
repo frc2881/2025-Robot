@@ -86,7 +86,6 @@ class Auto:
       self._move(autoPath)
       .andThen(self._alignForScoring())
       .andThen(self._alignToTarget(targetAlignmentLocation))
-      .andThen(cmd.waitSeconds(0.02))
       .andThen(self._robot.game.score(GamePiece.Coral))
     )
   

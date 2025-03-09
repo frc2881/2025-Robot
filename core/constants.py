@@ -116,7 +116,7 @@ class Subsystems:
     )
 
     kLowerStageConfig = PositionControlModuleConfig("Elevator/LowerStage", 10, None, False, _lowerStageModuleConstants)
-    kLowerStage2Config = PositionControlModuleConfig("Elevator/LowerStage2", 20, 10, True, _lowerStageModuleConstants)
+    kLowerStageHelperConfig = PositionControlModuleConfig("Elevator/LowerStage2", 20, 10, True, _lowerStageModuleConstants)
 
     kUpperStageConfig = PositionControlModuleConfig("Elevator/UpperStage", 11, None, False, PositionControlModuleConstants(
       distancePerRotation = 1.0,
@@ -125,6 +125,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.01),
+      # TODO: try adding velocityFF per REV example?
       motorOutputRange = Range(-0.4, 1.0),
       motorMotionMaxVelocity = 600.0,
       motorMotionMaxAcceleration = 200.0,
@@ -208,21 +209,21 @@ class Sensors:
       PoseSensorConfig(
         "FrontLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-4.1391), units.inchesToMeters(8.125), units.inchesToMeters(39.3044)),
+          Translation3d(units.inchesToMeters(-4.0972), units.inchesToMeters(8.125), units.inchesToMeters(39.3044)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(0))
         ), _poseSensorConstants
       ),
       PoseSensorConfig(
         "FrontRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(-4.0972), units.inchesToMeters(-8.125), units.inchesToMeters(38.3683)),
+          Translation3d(units.inchesToMeters(-4.1391), units.inchesToMeters(-8.125), units.inchesToMeters(38.3683)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(32.0), units.degreesToRadians(0))
         ), _poseSensorConstants
       ),
       PoseSensorConfig(
         "RearLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-8.8236), units.inchesToMeters(-7.2958), units.inchesToMeters(36.1419)),
+          Translation3d(units.inchesToMeters(-8.8236), units.inchesToMeters(7.2958), units.inchesToMeters(36.1419)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(165.0))
         ), _poseSensorConstants
       ),
@@ -307,12 +308,12 @@ class Game:
       }
 
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
-        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), Value.min, Position.Up),
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.5, Value.max), 7.5, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(Value.min, Value.max), 3.6, Position.Down),
         TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 11.30), 1.0, Position.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 23.0), 30, Position.Up),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, Value.max), 19.3, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),
-        TargetPositionType.CageEntry: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up)
+        TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), Value.min, Position.Up),
+        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, Value.max), Value.max, Position.Up)
       }

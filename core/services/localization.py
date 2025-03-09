@@ -54,15 +54,16 @@ class Localization():
     for poseSensor in self._poseSensors:
       if self._getIsAligningToTarget() and poseSensor.getCameraName() in ["RearLeft", "RearRight"]:
         continue
-
       estimatedRobotPose = poseSensor.getEstimatedRobotPose()
       if estimatedRobotPose is not None:
         pose = estimatedRobotPose.estimatedPose.toPose2d()
         if utils.isPoseInBounds(pose, constants.Game.Field.kBounds):
           if estimatedRobotPose.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR:
+            SmartDashboard.putNumber(f'Robot/Sensors/Pose/{poseSensor.getCameraName()}/Ambiguity', -1)
             self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
           else:
             for target in estimatedRobotPose.targetsUsed:
+              SmartDashboard.putNumber(f'Robot/Sensors/Pose/{poseSensor.getCameraName()}/Ambiguity', target.getPoseAmbiguity())
               if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Services.Localization.kVisionMaxPoseAmbiguity):
                 self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
                 break

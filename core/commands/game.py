@@ -14,11 +14,7 @@ class Game:
     ) -> None:
     self._robot = robot
 
-  def alignRobotToTarget(
-      self, 
-      targetAlignmentMode: TargetAlignmentMode, 
-      targetAlignmentLocation: TargetAlignmentLocation
-    ) -> Command:
+  def alignRobotToTarget(self, targetAlignmentMode: TargetAlignmentMode, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return self._robot.drive.alignToTarget(
       self._robot.localization.getRobotPose, 
       lambda: self._robot.localization.getTargetPose(targetAlignmentLocation, self._robot.elevator.isReefCoralL4()),
@@ -34,21 +30,22 @@ class Game:
   def alignRobotToTargetPosition(self, targetPositionType: TargetPositionType) -> Command:
     return cmd.select(
       {
-        TargetPositionType.CoralStation: self._alignRobotToTargetPositionArmSafety(TargetPositionType.CoralStation),
-        TargetPositionType.ReefCoralL4: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL4),
-        TargetPositionType.ReefCoralL3: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL3),
-        TargetPositionType.ReefCoralL2: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL2),
-        TargetPositionType.ReefCoralL1: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefCoralL1),
-        TargetPositionType.ReefAlgaeL3: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefAlgaeL3),
-        TargetPositionType.ReefAlgaeL2: self._alignRobotToTargetPositionParallel(TargetPositionType.ReefAlgaeL2),
-        TargetPositionType.CageEntry: self._alignRobotToTargetPositionCageEntry()
+        TargetPositionType.ReefCoralL4: self._alignRobotToTargetPosition(TargetPositionType.ReefCoralL4),
+        TargetPositionType.ReefCoralL3: self._alignRobotToTargetPosition(TargetPositionType.ReefCoralL3),
+        TargetPositionType.ReefCoralL2: self._alignRobotToTargetPosition(TargetPositionType.ReefCoralL2),
+        TargetPositionType.ReefCoralL1: self._alignRobotToTargetPosition(TargetPositionType.ReefCoralL1),
+        TargetPositionType.ReefAlgaeL3: self._alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3),
+        TargetPositionType.ReefAlgaeL2: self._alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2),
+        TargetPositionType.CoralStation: self._alignRobotToTargetPositionCoralStation(),
+        TargetPositionType.CageDeepClimb: self._alignRobotToTargetPositionCageDeepClimb()
       }, 
       lambda: targetPositionType
     ).withName(f'Game:AlignRobotToTargetPosition:{ targetPositionType.name }')
   
-  def _alignRobotToTargetPositionParallel(self, targetPositionType: TargetPositionType):
+  def _alignRobotToTargetPosition(self, targetPositionType: TargetPositionType):
     return cmd.parallel(
-      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
+      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator, isParallel = True),
+      # TODO: remove the wait on elevator to move arm/wrist in parallel?
       cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
       ),
@@ -64,30 +61,25 @@ class Game:
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Operator))
     )
 
-  def _alignRobotToTargetPositionArmSafety(self, targetPositionType: TargetPositionType):
+  def _alignRobotToTargetPositionCoralStation(self):
     return cmd.parallel(
-      self._robot.elevator.alignToPositonSafety(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
-      self._robot.arm.setPosition(Value.min).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm)
-      ),
-      self._robot.wrist.setPosition(Position.Up).until(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist)
-      ),
-      self._intakeAligned(GamePiece.Coral)
+      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].elevator, isParallel = False),
+      self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].arm),
+      self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].wrist)
     ).alongWith(
-      cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Operator))
+      cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self._intakeAligned(GamePiece.Coral))
     )
   
-  def _alignRobotToTargetPositionCageEntry(self) -> Command:
+  def _alignRobotToTargetPositionCageDeepClimb(self) -> Command:
     return cmd.sequence(
       self._robot.shield.setPosition(Position.Open),
       cmd.parallel(
-        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageEntry].elevator),
+        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
         cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-          self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageEntry].arm)
+          self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
         ),
         cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-          self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageEntry].wrist)
+          self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist)
         )
       )
     ).alongWith(

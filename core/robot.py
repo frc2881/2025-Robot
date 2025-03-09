@@ -153,7 +153,7 @@ class RobotCore:
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3)
     )
     self.operator.x().whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.CageEntry)
+      self.game.alignRobotToTargetPosition(TargetPositionType.CageDeepClimb)
     )
     self.operator.start().and_(self.operator.povDown()).whileTrue(
       self.elevator.resetLowerStageToZero()

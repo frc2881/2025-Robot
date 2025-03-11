@@ -90,7 +90,7 @@ class Subsystems:
     kTargetAlignmentConstants = TargetAlignmentConstants(
       rotationPID = PID(0.075, 0, 0.001),
       rotationTolerance = Tolerance(0.5, 1.0),
-      rotationSpeedMax = kRotationSpeedMax * 0.3, 
+      rotationSpeedMax = kRotationSpeedMax * 0.4, 
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
@@ -126,7 +126,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.8, 1.0),
+      motorOutputRange = Range(-0.9, 1.0),
       motorMotionMaxVelocity = 6500.0,
       motorMotionMaxAcceleration = 13000.0,
       motorMotionVelocityFF = 1.0 / 6784,
@@ -138,6 +138,10 @@ class Subsystems:
 
     kLowerStageSoftLimitBuffer: units.inches = 1.5
     kLowerStageReefCoralL4Position: units.inches = 15.0
+    
+    kCageDeepClimbUpSpeed = -0.5
+    kCageDeepClimbDownSpeed = 0.3
+
     kInputLimit: units.percent = 0.5
 
   class Arm:
@@ -149,7 +153,7 @@ class Subsystems:
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
       motorOutputRange = Range(-0.7, 1.0),
-      motorMotionMaxVelocity = 9000,
+      motorMotionMaxVelocity = 9000.0,
       motorMotionMaxAcceleration = 18000.0,
       motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.1,
@@ -175,7 +179,7 @@ class Subsystems:
     kGripperMotorCurrentLimit: int = 40
     kGripperMotorIntakeSpeed: units.percent = 0.8
     kGripperMotorReleaseSpeed: units.percent = 1.0
-    kGripperReleaseTimeout: units.seconds = 0.5
+    kGripperReleaseTimeout: units.seconds = 0.75
 
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20
@@ -192,7 +196,7 @@ class Subsystems:
 class Services:
   class Localization:
     kStateStandardDeviations: tuple[float, float, float] = (0.04, 0.04, units.degreesToRadians(1))
-    kVisionStandardDeviations: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(4))
+    kVisionStandardDeviations: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(10))
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 

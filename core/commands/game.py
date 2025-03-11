@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING
 from commands2 import Command, cmd
 from wpilib import RobotBase
 from lib import logger, utils
-from lib.classes import Value, TargetAlignmentMode, ControllerRumbleMode, ControllerRumblePattern
+from lib.classes import TargetAlignmentMode, ControllerRumbleMode, ControllerRumblePattern
 if TYPE_CHECKING: from core.robot import RobotCore
-from core.classes import Position, TargetAlignmentLocation, TargetPositionType, TargetPosition, GamePiece
+from core.classes import Position, TargetAlignmentLocation, TargetPositionType, ElevatorStage, GamePiece
 import core.constants as constants
 
 class Game:
@@ -48,12 +48,12 @@ class Game:
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist),
       cmd.either(
-        self._intakeAligned(GamePiece.Algae), 
-        self._intakeAligned(GamePiece.Coral), 
+        self._intakeWithAlignment(GamePiece.Algae), 
+        self._intakeWithAlignment(GamePiece.Coral), 
         lambda: targetPositionType in [ TargetPositionType.ReefAlgaeL3, TargetPositionType.ReefAlgaeL2 ]
       )
     ).alongWith(
-      cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Operator))
+      cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver))
     )
 
   def _alignRobotToTargetPositionCoralStation(self):
@@ -61,14 +61,20 @@ class Game:
       self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].elevator, isParallel = False),
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].wrist),
-      self._intakeAligned(GamePiece.Coral)
+      self._intakeWithAlignment(GamePiece.Coral)
+    ).alongWith(
+      cmd.waitUntil(lambda: self.isIntakeHolding()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver))
     )
   
   def _alignRobotToTargetPositionCageDeepClimb(self) -> Command:
     return cmd.sequence(
       self._robot.shield.setPosition(Position.Open),
       cmd.runOnce(
-        lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)
+        lambda: self._robot.elevator.overrideElevatorStageDefaultSoftLimits(
+          ElevatorStage.Upper,
+          0.0,
+          constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator.upperStage 
+        )
       ),
       cmd.parallel(
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
@@ -82,13 +88,13 @@ class Game:
     ).alongWith(
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver))
     ).finallyDo(
-      lambda end: self._robot.elevator.setUpperStageSoftLimitsEnabled(True)
+      lambda end: self._robot.elevator.restoreElevatorStageDefaultSoftLimits(ElevatorStage.Upper)
     )
 
   def isRobotAlignedToTargetPosition(self) -> bool:
     return self._robot.elevator.isAlignedToPosition() and self._robot.arm.isAlignedToPosition() and self._robot.wrist.isAlignedToPosition()
 
-  def _intakeAligned(self, gamePiece: GamePiece) -> Command:
+  def _intakeWithAlignment(self, gamePiece: GamePiece) -> Command:
     return cmd.either(
       self._robot.hand.runGripper(),
       self._robot.hand.runSuction(),
@@ -104,6 +110,9 @@ class Game:
       self._robot.wrist.refreshPosition()
     ).withName(f'Game:IntakeManual:{ gamePiece.name }')
   
+  def isIntakeHolding(self) -> bool:
+    return self._robot.hand.isGripperHolding or self._robot.hand.isSuctionHolding
+
   def score(self, gamePiece: GamePiece) -> Command:
     return cmd.either(
       self._robot.hand.releaseGripper(),

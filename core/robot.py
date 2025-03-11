@@ -93,10 +93,10 @@ class RobotCore:
     # self.driver.a().onTrue(cmd.none())
     # self.driver.b().whileTrue(cmd.none())
     self.driver.y().whileTrue(
-      self.elevator.default(lambda: 0.3, ElevatorStage.Lower)
+      self.elevator.default(lambda: constants.Subsystems.Elevator.kCageDeepClimbDownSpeed, ElevatorStage.Lower)
     )
     self.driver.x().whileTrue(
-      self.elevator.default(lambda: -0.5, ElevatorStage.Lower)
+      self.elevator.default(lambda: constants.Subsystems.Elevator.kCageDeepClimbUpSpeed, ElevatorStage.Lower)
     )
     # self.driver.start().and_((
     #     self.driver.povLeft()
@@ -191,22 +191,22 @@ class RobotCore:
     utils.addRobotPeriodic(self._updateLights)
 
   def _updateLights(self) -> None:
-    lightsMode = LightsMode.Default
     if not DriverStation.isDSAttached():
-      lightsMode = LightsMode.RobotNotConnected
-    else: 
-      match utils.getRobotState():
-        case RobotState.Disabled:
-          if not self._hasZeroResets():
-            lightsMode = LightsMode.RobotNotReady
-          elif not self.localization.hasVisionTarget():
-            lightsMode = LightsMode.VisionNotReady
-        case RobotState.Enabled:
-          if self.game.isRobotAlignedToTargetPosition():
-            lightsMode = LightsMode.AlignedToPosition
-          if self.shield.getPosition() == Position.Open and self.game.isRobotAlignedToTargetPosition():
-            lightsMode = LightsMode.ReadyForClimb
-    self.lightsController.setMode(lightsMode.name)
+      self.lightsController.setMode(LightsMode.RobotNotConnected)
+      return
+    if not utils.isCompetitionMode() and not self._hasZeroResets():
+      self.lightsController.setMode(LightsMode.RobotNotReady)
+      return
+    if utils.isCompetitionMode() and utils.getRobotState() == RobotState.Disabled and not self.localization.hasVisionTarget():
+      self.lightsController.setMode(LightsMode.VisionNotReady)
+      return
+    if utils.getRobotState() == RobotState.Enabled and self.shield.getPosition() == Position.Open:
+      self.lightsController.setMode(LightsMode.ReadyForClimb)
+      return
+    if utils.getRobotState() == RobotState.Enabled and self.game.isRobotAlignedToTargetPosition():
+      self.lightsController.setMode(LightsMode.AlignedToPosition)
+      return
+    self.lightsController.setMode(LightsMode.Default)
 
   def _periodic(self) -> None:
     self._updateTelemetry()

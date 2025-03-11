@@ -83,6 +83,7 @@ class Auto:
     return self._robot.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4).until(lambda: self._robot.game.isRobotAlignedToTargetPosition())
   
   def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
+    # TODO: update and test to align for scoring in parallel with move to gain time (same as moveAlignIntake command)
     return (
       self._move(autoPath)
       .andThen(self._alignForScoring())
@@ -94,7 +95,7 @@ class Auto:
     return (
       self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation).alongWith(
         self._move(autoPath).andThen(self._alignToTarget(targetAlignmentLocation))
-      ).until(lambda: self._robot.hand.isGripperHolding())
+      ).until(lambda: self._robot.game.isIntakeHolding())
     )
   
   def _getStartingPose(self, position: int) -> Pose2d:
@@ -157,3 +158,6 @@ class Auto:
       self._moveAlignScore(AutoPath.Move2_4, TargetAlignmentLocation.Left),
       self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center),
     ).withName("Auto:[3]_3_4_")
+  
+  # TODO: extend existing autos to do 3-coral sequences to go as far as they can in 15 seconds after tuning/optimization
+  # TODO: update the center 2_2 auto to at least move around over to coral station pickup for start of teleop

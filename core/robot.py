@@ -195,17 +195,19 @@ class RobotCore:
       self.lightsController.setMode(LightsMode.RobotNotConnected)
       return
     if not utils.isCompetitionMode() and not self._hasZeroResets():
-      self.lightsController.setMode(LightsMode.RobotNotReady)
+      self.lightsController.setMode(LightsMode.RobotNotReset)
       return
-    if utils.isCompetitionMode() and utils.getRobotState() == RobotState.Disabled and not self.localization.hasVisionTarget():
-      self.lightsController.setMode(LightsMode.VisionNotReady)
-      return
-    if utils.getRobotState() == RobotState.Enabled and self.shield.getPosition() == Position.Open:
-      self.lightsController.setMode(LightsMode.ReadyForClimb)
-      return
-    if utils.getRobotState() == RobotState.Enabled and self.game.isRobotAlignedToTargetPosition():
-      self.lightsController.setMode(LightsMode.AlignedToPosition)
-      return
+    if utils.getRobotState() == RobotState.Disabled:
+      if utils.isCompetitionMode() and not self.localization.hasVisionTarget():
+        self.lightsController.setMode(LightsMode.VisionNotReady)
+        return
+    else:
+      if self.shield.getPosition() == Position.Open:
+        self.lightsController.setMode(LightsMode.ReadyForClimb)
+        return
+      if self.game.isRobotAlignedToTargetPosition():
+        self.lightsController.setMode(LightsMode.AlignedToPosition)
+        return
     self.lightsController.setMode(LightsMode.Default)
 
   def _periodic(self) -> None:

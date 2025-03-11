@@ -62,7 +62,7 @@ class TargetPosition:
 class LightsMode(Enum):
   Default = auto()
   RobotNotConnected = auto()
-  RobotNotReady = auto()
+  RobotNotReset = auto()
   VisionNotReady = auto()
   AlignedToPosition = auto()
   ReadyForClimb = auto()

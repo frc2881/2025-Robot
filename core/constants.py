@@ -90,7 +90,7 @@ class Subsystems:
     kTargetAlignmentConstants = TargetAlignmentConstants(
       rotationPID = PID(0.075, 0, 0.001),
       rotationTolerance = Tolerance(0.5, 1.0),
-      rotationSpeedMax = kRotationSpeedMax * 0.4, 
+      rotationSpeedMax = kRotationSpeedMax * 0.3, 
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
@@ -157,13 +157,12 @@ class Subsystems:
       motorMotionMaxAcceleration = 18000.0,
       motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.1,
-      motorSoftLimitForward = 69.8,
+      motorSoftLimitForward = 70.75,
       motorSoftLimitReverse = 1.5,
       motorResetSpeed = 0.2
     ))
 
     kInputLimit: units.percent = 0.6
-    kCoralStageReadyPosition: float = 11.2
 
   class Wrist:
     kMotorCANId: int = 13
@@ -179,7 +178,7 @@ class Subsystems:
     kGripperMotorCurrentLimit: int = 40
     kGripperMotorIntakeSpeed: units.percent = 0.8
     kGripperMotorReleaseSpeed: units.percent = 1.0
-    kGripperReleaseTimeout: units.seconds = 0.75
+    kGripperReleaseTimeout: units.seconds = 0.5
 
     kSuctionMotorCANId: int = 15
     kSuctionMotorCurrentLimit: int = 20
@@ -265,8 +264,8 @@ class Controllers:
 
 class Game:
   class Commands:
-    kTargetAlignmentTimeout: units.seconds = 2.0 
-    kAutoMoveTimeout: units.seconds = 4.0
+    kTargetAlignmentTimeout: units.seconds = 1.5 
+    kAutoMoveTimeout: units.seconds = 3.5
 
   class Field:
     kAprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT
@@ -316,6 +315,11 @@ class Game:
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(23), units.inchesToMeters(0.0), 0, Rotation3d()),
           TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(23), units.inchesToMeters(-24.0), 0, Rotation3d()),
           TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(23), units.inchesToMeters(24.0), 0, Rotation3d())
+        },
+        TargetType.AlgaeProcessor: {
+          TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(23), units.inchesToMeters(0.0), 0, Rotation3d()),
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(23), units.inchesToMeters(0.0), 0, Rotation3d()),
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(23), units.inchesToMeters(0.0), 0, Rotation3d())
         }
       }
 

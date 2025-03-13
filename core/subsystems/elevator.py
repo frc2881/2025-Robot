@@ -67,17 +67,8 @@ class Elevator(Subsystem):
   def isReefCoralL4(self) -> bool:
     return self.getPosition().lowerStage > self._constants.kLowerStageReefCoralL4Position
 
-  def overrideElevatorStageDefaultSoftLimits(self, elevatorStage: ElevatorStage, positionReverse: float, positionForward: float) -> None:
-    if elevatorStage == ElevatorStage.Lower:
-      self._lowerStage.overrideDefaultSoftLimits(positionReverse, positionForward)
-    else:
-      self._upperStage.overrideDefaultSoftLimits(positionReverse, positionForward)
-
-  def restoreElevatorStageDefaultSoftLimits(self, elevatorStage: ElevatorStage) -> None:
-    if elevatorStage == ElevatorStage.Lower:
-      self._lowerStage.restoreDefaultSoftLimits()
-    else:
-      self._upperStage.restoreDefaultSoftLimits()
+  def setUpperStageSoftLimitsEnabled(self, isEnabled: bool) -> None:
+    self._upperStage.setSoftLimitsEnabled(isEnabled)
 
   def resetLowerStageToZero(self) -> Command:
     return self._lowerStage.resetToZero(self).withName("Elevator:ResetLowerStageToZero")

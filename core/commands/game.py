@@ -69,13 +69,7 @@ class Game:
   def _alignRobotToTargetPositionCageDeepClimb(self) -> Command:
     return cmd.sequence(
       self._robot.shield.setPosition(Position.Open),
-      cmd.runOnce(
-        lambda: self._robot.elevator.overrideElevatorStageDefaultSoftLimits(
-          ElevatorStage.Upper,
-          0.0,
-          constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator.upperStage 
-        )
-      ),
+      cmd.runOnce(lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)),
       cmd.parallel(
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
         cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
@@ -86,9 +80,9 @@ class Game:
         )
       )
     ).alongWith(
-      cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver))
+      cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
     ).finallyDo(
-      lambda end: self._robot.elevator.restoreElevatorStageDefaultSoftLimits(ElevatorStage.Upper)
+      lambda end: self._robot.elevator.setUpperStageSoftLimitsEnabled(True)
     )
 
   def isRobotAlignedToTargetPosition(self) -> bool:
@@ -111,7 +105,7 @@ class Game:
     ).withName(f'Game:IntakeManual:{ gamePiece.name }')
   
   def isIntakeHolding(self) -> bool:
-    return self._robot.hand.isGripperHolding or self._robot.hand.isSuctionHolding
+    return self._robot.hand.isGripperHolding() or self._robot.hand.isSuctionHolding()
 
   def score(self, gamePiece: GamePiece) -> Command:
     return cmd.either(

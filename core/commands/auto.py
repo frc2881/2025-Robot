@@ -16,8 +16,8 @@ class AutoPath(Enum):
   Start2_2 = auto()
   Start3_3 = auto()
   Pickup1_1 = auto()
-  #Pickup2_1 = auto()?
-  #Pickup2_2 = auto()?
+  Pickup2_1 = auto()
+  Pickup2_2 = auto()
   Pickup3_2 = auto()
   Pickup4_2 = auto()
   Pickup5_1 = auto()
@@ -42,7 +42,7 @@ class Auto:
 
     AutoBuilder.configure(
       self._robot.localization.getRobotPose, 
-      self._robot.localization.resetRobotPose, 
+      self._robot.localization.resetRobotPose,
       self._robot.drive.getChassisSpeeds, 
       self._robot.drive.drive, 
       constants.Subsystems.Drive.kPathPlannerController,
@@ -54,12 +54,11 @@ class Auto:
     self._autos = SendableChooser()
     self._autos.setDefaultOption("None", cmd.none)
     
-    self._autos.addOption("[1]_1", self.auto_1_1)
-    self._autos.addOption("[1]_1_6", self.auto_1_1_6)
+    self._autos.addOption("[1]_1_6_6_", self.auto_1_1_6_6_)
     self._autos.addOption("[2]_2", self.auto_2_2)
-    self._autos.addOption("[3]_3", self.auto_3_3)
-    self._autos.addOption("[3]_3_4", self.auto_3_3_4)
-    self._autos.addOption("[3]_3_4_", self.auto_3_3_4_)
+    self._autos.addOption("[2]_21", self.auto_2_21)
+    self._autos.addOption("[2]_22", self.auto_2_22)
+    self._autos.addOption("[3]_3_4_4_", self.auto_3_3_4_4_)
 
     self._autos.onChange(lambda auto: setattr(self, "_auto", auto()))
     SmartDashboard.putData("Robot/Auto", self._autos)
@@ -83,12 +82,12 @@ class Auto:
     return self._robot.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4).until(lambda: self._robot.game.isRobotAlignedToTargetPosition())
   
   def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
-    # TODO: update and test to align for scoring in parallel with move to gain time (same as moveAlignIntake command)
+    # TODO: update the logic sequence to hold the scoring position while moving and aligning and then immediately score
     return (
       self._move(autoPath)
-      .andThen(self._alignForScoring())
+      .alongWith(cmd.waitSeconds(0.5).andThen(self._alignForScoring()))
       .andThen(self._alignToTarget(targetAlignmentLocation))
-      .andThen(self._robot.game.score(GamePiece.Coral))
+      .andThen(cmd.waitSeconds(0.1).andThen(self._robot.game.score(GamePiece.Coral)))
     )
   
   def _moveAlignIntake(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
@@ -112,52 +111,40 @@ class Auto:
     ).onlyIf(
       lambda: not utils.isCompetitionMode()
     ).withName("Auto:MoveToStartingPosition")
-
-  def auto_1_1(self) -> Command:
-    return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Right)
-    ).withName("Auto:[1]_1")
   
-  def auto_1_1_6(self) -> Command:
-    return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
-      self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Left)
-    ).withName("Auto:[1]_1_6")
-  
-  def auto_1_1_6_6(self) -> Command:
+  def auto_1_1_6_6_(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Right),
       self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
-      self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Right)
-    ).withName("Auto:[1]_1_6_6")
+      self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center),
+      self._moveAlignScore(AutoPath.Move1_6, TargetAlignmentLocation.Right),
+      self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center)
+    ).withName("Auto:[1]_1_6_6_")
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start2_2, TargetAlignmentLocation.Left)
     ).withName("Auto:[2]_2")
   
-  def auto_3_3(self) -> Command:
+  def auto_2_21(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left)
-    ).withName("Auto:[3]_3")
+      self._moveAlignScore(AutoPath.Start2_2, TargetAlignmentLocation.Right),
+      self._moveAlignIntake(AutoPath.Pickup2_1, TargetAlignmentLocation.Center)
+    ).withName("Auto:[2]_21")
   
-  def auto_3_3_4(self) -> Command:
+  def auto_2_22(self) -> Command:
+    return cmd.sequence(
+      self._moveAlignScore(AutoPath.Start2_2, TargetAlignmentLocation.Left),
+      self._moveAlignIntake(AutoPath.Pickup2_2, TargetAlignmentLocation.Center)
+    ).withName("Auto:[2]_22")
+  
+  def auto_3_3_4_4_(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left),
       self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Center),
-      self._moveAlignScore(AutoPath.Move2_4, TargetAlignmentLocation.Left)
-    ).withName("Auto:[3]_3_4")
-  
-  def auto_3_3_4_(self) -> Command:
-    return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Center),
-      self._moveAlignScore(AutoPath.Move2_4, TargetAlignmentLocation.Left),
+      self._moveAlignScore(AutoPath.Move2_4, TargetAlignmentLocation.Right),
       self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center),
-    ).withName("Auto:[3]_3_4_")
-  
-  # TODO: extend existing autos to do 3-coral sequences to go as far as they can in 15 seconds after tuning/optimization
-  # TODO: update the center 2_2 auto to at least move around over to coral station pickup for start of teleop
+      self._moveAlignScore(AutoPath.Move2_4, TargetAlignmentLocation.Left),
+      self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center)
+    ).withName("Auto:[3]_3_4_4_")

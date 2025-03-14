@@ -202,7 +202,7 @@ class RobotCore:
         self.lightsController.setMode(LightsMode.VisionNotReady)
         return
     else:
-      if self.shield.getPosition() == Position.Open:
+      if self.shield.getPosition() == Position.Open or utils.isValueInRange(utils.getMatchTime(), 0.1, 20):
         self.lightsController.setMode(LightsMode.ReadyForClimb)
         return
       if self.game.isRobotAlignedToTargetPosition():

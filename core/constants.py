@@ -90,12 +90,12 @@ class Subsystems:
     kTargetAlignmentConstants = TargetAlignmentConstants(
       rotationPID = PID(0.075, 0, 0.001),
       rotationTolerance = Tolerance(0.5, 1.0),
-      rotationSpeedMax = kRotationSpeedMax * 0.3, 
+      rotationSpeedMax = kRotationSpeedMax * 0.4, 
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
       translationTolerance = Tolerance(0.025, 0.05),
-      translationSpeedMax = kTranslationSpeedMax * 0.3
+      translationSpeedMax = kTranslationSpeedMax * 0.4
     )
 
   class Elevator:
@@ -110,7 +110,7 @@ class Subsystems:
       motorMotionMaxVelocity = 7000.0,
       motorMotionMaxAcceleration = 14000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.1,
+      motorMotionAllowedClosedLoopError = 0.5,
       motorSoftLimitForward = 29.0,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.2
@@ -130,7 +130,7 @@ class Subsystems:
       motorMotionMaxVelocity = 6500.0,
       motorMotionMaxAcceleration = 13000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.1,
+      motorMotionAllowedClosedLoopError = 0.5,
       motorSoftLimitForward = 28.0,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.1
@@ -326,7 +326,7 @@ class Game:
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.5, 28.0), 7.4, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(4.2, 28.0), 6.0, Position.Down),
-        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 11.30), 1.0, Position.Down),
+        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 14.30), 5.0, Position.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 23.0), 30, Position.Up),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, 28.0), 19.3, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),

@@ -4,7 +4,7 @@ from wpilib import RobotBase
 from lib import logger, utils
 from lib.classes import TargetAlignmentMode, ControllerRumbleMode, ControllerRumblePattern
 if TYPE_CHECKING: from core.robot import RobotCore
-from core.classes import Position, TargetAlignmentLocation, TargetPositionType, ElevatorStage, GamePiece
+from core.classes import Position, TargetAlignmentLocation, TargetPositionType, GamePiece
 import core.constants as constants
 
 class Game:

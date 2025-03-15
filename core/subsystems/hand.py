@@ -47,10 +47,15 @@ class Hand(Subsystem):
     self._updateTelemetry()
       
   def runGripper(self) -> Command:
-    return self.startEnd(
-      lambda: self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed),
-      lambda: self._gripperMotor.stopMotor()
-    ).withName("Hand:RunGripper")
+    return self.run(
+      lambda: self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed)
+    ).until(
+      lambda: self._intakeDistanceSensorHasTarget()
+    ).andThen(
+      self.run(
+        lambda: self._gripperMotor.set(self._constants.kGripperMotorHoldSpeed)
+      )
+    ).finallyDo(lambda end: self._gripperMotor.stopMotor()).withName("Hand:RunGripper")
   
   def releaseGripper(self) -> Command:
     return self.startEnd(

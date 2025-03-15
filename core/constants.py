@@ -177,6 +177,7 @@ class Subsystems:
     kGripperMotorCANId: int = 14
     kGripperMotorCurrentLimit: int = 40
     kGripperMotorIntakeSpeed: units.percent = 0.8
+    kGripperMotorHoldSpeed: units.percent = 0.01
     kGripperMotorReleaseSpeed: units.percent = 1.0
     kGripperReleaseTimeout: units.seconds = 0.5
 

@@ -46,16 +46,15 @@ class Hand(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
       
-  def runGripper(self) -> Command:
-    return self.run(
-      lambda: self._gripperMotor.set(self._constants.kGripperMotorIntakeSpeed)
-    ).until(
-      lambda: self._intakeDistanceSensorHasTarget()
-    ).andThen(
-      self.run(
-        lambda: self._gripperMotor.set(self._constants.kGripperMotorHoldSpeed)
-      )
-    ).finallyDo(lambda end: self._gripperMotor.stopMotor()).withName("Hand:RunGripper")
+  def runGripper(self, isManual: bool = False) -> Command:
+    return self.runEnd(
+      lambda: self._gripperMotor.set(
+        self._constants.kGripperMotorHoldSpeed 
+        if self._intakeDistanceSensorHasTarget() and not isManual else
+        self._constants.kGripperMotorIntakeSpeed
+      ),
+      lambda: self._resetGripper()
+    ).withName("Hand:RunGripper")
   
   def releaseGripper(self) -> Command:
     return self.startEnd(

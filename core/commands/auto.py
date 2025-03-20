@@ -89,7 +89,7 @@ class Auto:
         self._move(autoPath),
         self._alignToTarget(targetAlignmentLocation))
       .deadlineFor(cmd.waitSeconds(0.5).andThen(self._alignForScoring()))
-      .andThen(self._robot.game.score(GamePiece.Coral))
+      .andThen(cmd.waitSeconds(0.5).andThen(self._robot.game.score(GamePiece.Coral)))
     )
   
   def _moveAlignIntake(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:

@@ -32,7 +32,7 @@ class Shield(Subsystem):
     return self._position
 
   def reset(self) -> None:
-    # self._servo.setPosition(self._constants.kPositionClosed)
+    self._servo.setPosition(self._constants.kPositionClosed)
     self._position = Position.Closed
 
   def _updateTelemetry(self) -> None:

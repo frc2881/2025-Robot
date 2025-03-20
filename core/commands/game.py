@@ -68,6 +68,7 @@ class Game:
   
   def _alignRobotToTargetPositionCageDeepClimb(self) -> Command:
     return cmd.sequence(
+      cmd.waitSeconds(0.5),
       self._robot.shield.setPosition(Position.Open),
       cmd.runOnce(lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)),
       cmd.parallel(
@@ -97,7 +98,7 @@ class Game:
   
   def intakeManual(self, gamePiece: GamePiece) -> Command:
     return cmd.either(
-      self._robot.hand.runGripper(),
+      self._robot.hand.runGripper(isManual=True),
       self._robot.hand.runSuction(),
       lambda: gamePiece == GamePiece.Coral
     ).alongWith(

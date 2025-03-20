@@ -11,8 +11,6 @@ class GamePiece(Enum):
 class TargetType(Enum):
   Reef = auto()
   CoralStation = auto()
-  AlgaeProcessor = auto()
-  Barge = auto()
 
 class TargetPositionType(Enum):
   ReefCoralL4 = auto()

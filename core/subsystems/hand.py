@@ -40,7 +40,7 @@ class Hand(Subsystem):
       lambda: self._resetGripper()
     ).withName("Hand:RunGripper")
   
-  def releaseGripper(self, isLowSpeed: bool = True) -> Command:
+  def releaseGripper(self, isLowSpeed: bool = False) -> Command:
     return self.startEnd(
       lambda: self._gripperMotor.set(
         -self._constants.kGripperMotorReleaseSpeedLow 

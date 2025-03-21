@@ -1,4 +1,5 @@
 from typing import Callable
+from ntcore import NetworkTableInstance
 from commands2 import Subsystem, Command
 from wpilib import SmartDashboard, SendableChooser
 from wpimath import units
@@ -23,6 +24,7 @@ class Drive(Subsystem):
     self._constants = constants.Subsystems.Drive
 
     self._swerveModules = tuple(SwerveModule(c) for c in self._constants.kSwerveModuleConfigs)
+    self._swerveModuleStatesPublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/SmartDashboard/Robot/Drive/Modules/States", SwerveModuleState).publish()
 
     self._isDriftCorrectionActive: bool = False
     self._driftCorrectionController = PIDController(*self._constants.kDriftCorrectionConstants.rotationPID)
@@ -75,9 +77,6 @@ class Drive(Subsystem):
 
     SmartDashboard.putNumber("Robot/Drive/Chassis/RobotLength", self._constants.kRobotLength)
     SmartDashboard.putNumber("Robot/Drive/Chassis/RobotWidth", self._constants.kRobotWidth)
-    SmartDashboard.putNumber("Robot/Drive/Chassis/WheelBase", self._constants.kWheelBase)
-    SmartDashboard.putNumber("Robot/Drive/Chassis/TrackWidth", self._constants.kTrackWidth)
-    SmartDashboard.putNumber("Robot/Drive/Speed/Max", self._constants.kTranslationSpeedMax)
 
   def periodic(self) -> None:
     self._updateTelemetry()
@@ -124,12 +123,23 @@ class Drive(Subsystem):
       self.drive(ChassisSpeeds(speedX, speedY, speedRotation))      
 
   def drive(self, chassisSpeeds: ChassisSpeeds, driveFeedforwards: DriveFeedforwards = None) -> None:
-    self._setSwerveModuleStates(self._constants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(chassisSpeeds, 0.02)))
+    self._setSwerveModuleStates(chassisSpeeds)
     if chassisSpeeds.vx != 0 or chassisSpeeds.vy != 0:
       self._resetTargetAlignment()
 
-  def _setSwerveModuleStates(self, swerveModuleStates: tuple[SwerveModuleState, ...]) -> None:
-    SwerveDrive4Kinematics.desaturateWheelSpeeds(swerveModuleStates, self._constants.kTranslationSpeedMax)
+  def _setSwerveModuleStates(self, chassisSpeeds: ChassisSpeeds) -> None: 
+    swerveModuleStates = SwerveDrive4Kinematics.desaturateWheelSpeeds(
+      self._constants.kDriveKinematics.toSwerveModuleStates(
+        ChassisSpeeds.discretize(
+          self._constants.kDriveKinematics.toChassisSpeeds(
+            SwerveDrive4Kinematics.desaturateWheelSpeeds(
+              self._constants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds), 
+              self._constants.kTranslationSpeedMax
+            )
+          ), 0.02
+        )
+      ), self._constants.kTranslationSpeedMax
+    )
     for i, m in enumerate(self._swerveModules):
       m.setTargetState(swerveModuleStates[i])
 
@@ -215,8 +225,7 @@ class Drive(Subsystem):
         -self._constants.kTargetAlignmentConstants.rotationSpeedMax, 
         self._constants.kTargetAlignmentConstants.rotationSpeedMax
       )
-    chassisSpeeds = ChassisSpeeds(speedTranslationX, speedTranslationY, speedRotation)
-    self._setSwerveModuleStates(self._constants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(chassisSpeeds, 0.02)))
+    self._setSwerveModuleStates(ChassisSpeeds(speedTranslationX, speedTranslationY, speedRotation))
     if speedRotation == 0 and speedTranslationX == 0 and speedTranslationY == 0:
       self._isAlignedToTarget = True
       self._isAligningToTarget = False
@@ -240,3 +249,4 @@ class Drive(Subsystem):
     SmartDashboard.putBoolean("Robot/Drive/IsAlignedToTarget", self._isAlignedToTarget)
     SmartDashboard.putBoolean("Robot/Drive/IsAligningToTarget", self._isAligningToTarget)
     SmartDashboard.putString("Robot/Drive/LockState", self._lockState.name)
+    self._swerveModuleStatesPublisher.set(self._getSwerveModuleStates())

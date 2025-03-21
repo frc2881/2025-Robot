@@ -1,6 +1,6 @@
 import math
 from wpimath import units
-from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d
+from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d, Rotation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
 import wpilib
 from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
@@ -152,11 +152,11 @@ class Subsystems:
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.7, 1.0),
+      motorOutputRange = Range(-0.8, 1.0),
       motorMotionMaxVelocity = 9000.0,
       motorMotionMaxAcceleration = 18000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.1,
+      motorMotionAllowedClosedLoopError = 0.25,
       motorSoftLimitForward = 70.75,
       motorSoftLimitReverse = 1.5,
       motorResetSpeed = 0.2
@@ -169,8 +169,8 @@ class Subsystems:
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.7
     kMotorDownSpeed: units.percent = 0.2
-    kMotorHoldUpSpeed: units.percent = 0.20
-    kMotorHoldDownSpeed: units.percent = 0.80
+    kMotorHoldUpSpeed: units.percent = 0.4
+    kMotorHoldDownSpeed: units.percent = 0.8
     kSetPositionTimeout: units.seconds = 0.8
 
   class Hand:
@@ -191,7 +191,7 @@ class Subsystems:
 class Services:
   class Localization:
     kStateStandardDeviations: tuple[float, float, float] = (0.04, 0.04, units.degreesToRadians(1))
-    kVisionStandardDeviations: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(10))
+    kVisionStandardDeviations: tuple[float, float, float] = (0.4, 0.4, units.degreesToRadians(4))
     kVisionMaxPoseAmbiguity: units.percent = 0.2
 
 class Sensors: 

@@ -1,5 +1,5 @@
 from commands2 import Command, cmd
-from wpilib import DriverStation, SmartDashboard, RobotBase
+from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
 from lib.classes import RobotState, TargetAlignmentMode, Position
 from lib.controllers.xbox import Xbox

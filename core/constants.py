@@ -88,15 +88,14 @@ class Subsystems:
     )
 
     kTargetAlignmentConstants = TargetAlignmentConstants(
-      rotationPID = PID(0.075, 0, 0.001),
-      rotationTolerance = Tolerance(0.5, 1.0),
-      rotationSpeedMax = kRotationSpeedMax * 0.3, 
+      rotationPID = PID(0.1, 0, 0),
+      rotationTolerance = Tolerance(0.25, 0.5),
+      rotationSpeedMax = kRotationSpeedMax * 0.2, 
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
       translationTolerance = Tolerance(0.025, 0.05),
-      translationSpeedMax = kTranslationSpeedMax * 0.3
-
+      translationSpeedMax = kTranslationSpeedMax * 0.2
     )
 
   class Elevator:
@@ -180,13 +179,8 @@ class Subsystems:
     kGripperMotorIntakeSpeed: units.percent = 0.8
     kGripperMotorHoldSpeed: units.percent = 0.03
     kGripperMotorReleaseSpeed: units.percent = 1.0
-    kGripperReleaseTimeout: units.seconds = 0.5
-
-    kSuctionMotorCANId: int = 15
-    kSuctionMotorCurrentLimit: int = 20
-    kSuctionMotorCurrentTrigger: int = 5
-    kSuctionMotorSpeed: units.percent = 0.5
-    kSuctionReleaseTimeout: units.seconds = 3.0
+    kGripperMotorReleaseSpeedLow: units.percent = 0.2
+    kGripperReleaseTimeout: units.seconds = 0.2
 
   class Shield:
     kServoChannel: int = 9
@@ -209,7 +203,7 @@ class Sensors:
     class Intake:
       kSensorName = "Intake"
       kMinTargetDistance: units.millimeters = 1
-      kMaxTargetDistance: units.millimeters = 85
+      kMaxTargetDistance: units.millimeters = 60
 
   class Pose:
     _poseSensorConstants = PoseSensorConstants(
@@ -266,7 +260,7 @@ class Controllers:
 
 class Game:
   class Commands:
-    kTargetAlignmentTimeout: units.seconds = 1.5 
+    kTargetAlignmentTimeout: units.seconds = 2.0
     kAutoMoveTimeout: units.seconds = 3.5
 
   class Field:

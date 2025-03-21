@@ -4,7 +4,7 @@ from wpilib import RobotBase
 from lib import logger, utils
 from lib.classes import TargetAlignmentMode, ControllerRumbleMode, ControllerRumblePattern
 if TYPE_CHECKING: from core.robot import RobotCore
-from core.classes import Position, TargetAlignmentLocation, TargetPositionType, GamePiece
+from core.classes import Position, TargetAlignmentLocation, TargetPositionType
 import core.constants as constants
 
 class Game:
@@ -47,9 +47,7 @@ class Game:
       self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator, isParallel = True),
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist),
-      cmd.either(
-        self._intakeWithAlignment(GamePiece.Algae), 
-        self._intakeWithAlignment(GamePiece.Coral), 
+      self._robot.hand.runGripper().unless(
         lambda: targetPositionType in [ TargetPositionType.ReefAlgaeL3, TargetPositionType.ReefAlgaeL2 ]
       )
     ).alongWith(
@@ -61,7 +59,7 @@ class Game:
       self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].elevator, isParallel = False),
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].wrist),
-      self._intakeWithAlignment(GamePiece.Coral)
+      self._robot.hand.runGripper()
     ).alongWith(
       cmd.waitUntil(lambda: self.isIntakeHolding()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver))
     )
@@ -87,35 +85,26 @@ class Game:
     )
 
   def isRobotAlignedToTargetPosition(self) -> bool:
-    return self._robot.elevator.isAlignedToPosition() and self._robot.arm.isAlignedToPosition() and self._robot.wrist.isAlignedToPosition()
-
-  def _intakeWithAlignment(self, gamePiece: GamePiece) -> Command:
-    return cmd.either(
-      self._robot.hand.runGripper(),
-      self._robot.hand.runSuction(),
-      lambda: gamePiece == GamePiece.Coral
+    return (
+      self._robot.elevator.isAlignedToPosition() and 
+      self._robot.arm.isAlignedToPosition() and 
+      self._robot.wrist.isAlignedToPosition()
     )
-  
-  def intakeManual(self, gamePiece: GamePiece) -> Command:
-    return cmd.either(
-      self._robot.hand.runGripper(isManual=True),
-      self._robot.hand.runSuction(),
-      lambda: gamePiece == GamePiece.Coral
+
+  def intake(self) -> Command:
+    return self._robot.hand.runGripper(
+      isManual = True
     ).alongWith(
       self._robot.wrist.refreshPosition()
-    ).withName(f'Game:IntakeManual:{ gamePiece.name }')
+    ).withName("Game:IntakeManual")
   
   def isIntakeHolding(self) -> bool:
-    return self._robot.hand.isGripperHolding() or self._robot.hand.isSuctionHolding()
+    return self._robot.hand.isGripperHolding()
 
-  def score(self, gamePiece: GamePiece) -> Command:
-    return cmd.either(
-      self._robot.hand.releaseGripper(),
-      self._robot.hand.releaseSuction(),
-      lambda: gamePiece == GamePiece.Coral
-    ).andThen(
+  def score(self) -> Command:
+    return self._robot.hand.releaseGripper().andThen(
       self.rumbleControllers(ControllerRumbleMode.Driver)
-    ).withName(f'Game:Score:{ gamePiece.name }')
+    ).withName("Game:Score")
   
   def rumbleControllers(
     self, 

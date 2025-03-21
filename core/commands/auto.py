@@ -8,7 +8,7 @@ from pathplannerlib.path import PathPlannerPath
 from lib import logger, utils
 from lib.classes import Alliance, TargetAlignmentMode
 if TYPE_CHECKING: from core.robot import RobotCore
-from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, TargetType
+from core.classes import TargetAlignmentLocation, TargetPositionType
 import core.constants as constants
 
 class AutoPath(Enum):
@@ -88,14 +88,16 @@ class Auto:
       cmd.sequence(
         self._move(autoPath),
         self._alignToTarget(targetAlignmentLocation))
-      .deadlineFor(cmd.waitSeconds(0.5).andThen(self._alignForScoring()))
-      .andThen(cmd.waitSeconds(0.5).andThen(self._robot.game.score(GamePiece.Coral)))
+      .deadlineFor(self._alignForScoring())
+      .andThen(self._robot.game.score())
     )
   
   def _moveAlignIntake(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return (
       self._robot.game.alignRobotToTargetPosition(TargetPositionType.CoralStation).alongWith(
-        self._move(autoPath).andThen(self._alignToTarget(targetAlignmentLocation))
+        self._move(autoPath).andThen(
+          self._alignToTarget(targetAlignmentLocation
+        ))
       ).until(lambda: self._robot.game.isIntakeHolding())
     )
   

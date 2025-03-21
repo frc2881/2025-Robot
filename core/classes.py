@@ -4,10 +4,6 @@ from wpimath import units
 from wpimath.geometry import Pose2d, Pose3d
 from lib.classes import Position
 
-class GamePiece(Enum):
-  Coral = auto()
-  Algae = auto()
-
 class TargetType(Enum):
   Reef = auto()
   CoralStation = auto()

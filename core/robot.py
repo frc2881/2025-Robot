@@ -16,7 +16,7 @@ from core.subsystems.wrist import Wrist
 from core.subsystems.hand import Hand
 from core.subsystems.shield import Shield
 from core.services.localization import Localization
-from core.classes import TargetAlignmentLocation, TargetPositionType, GamePiece, LightsMode, ElevatorStage
+from core.classes import TargetAlignmentLocation, TargetPositionType, LightsMode, ElevatorStage
 import core.constants as constants
 
 class RobotCore:
@@ -126,17 +126,17 @@ class RobotCore:
       self.arm.default(self.operator.getRightY)
     )
     self.operator.leftTrigger().whileTrue(
-      self.game.intakeManual(GamePiece.Coral)
+      self.game.intake()
     )
     self.operator.rightTrigger().onTrue(
-      self.game.score(GamePiece.Coral)
+      self.game.score()
     )
-    self.operator.leftBumper().onTrue(
-      self.game.intakeManual(GamePiece.Algae)
-    )
-    self.operator.rightBumper().onTrue(
-      self.game.score(GamePiece.Algae)
-    )
+    # self.operator.leftBumper().onTrue(
+    #   cmd.none()
+    # )
+    # self.operator.rightBumper().onTrue(
+    #   cmd.none()
+    # )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )

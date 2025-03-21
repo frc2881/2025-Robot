@@ -215,7 +215,8 @@ class Drive(Subsystem):
         -self._constants.kTargetAlignmentConstants.rotationSpeedMax, 
         self._constants.kTargetAlignmentConstants.rotationSpeedMax
       )
-    self._setSwerveModuleStates(self._constants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds(speedTranslationX, speedTranslationY, speedRotation)))
+    chassisSpeeds = ChassisSpeeds(speedTranslationX, speedTranslationY, speedRotation)
+    self._setSwerveModuleStates(self._constants.kDriveKinematics.toSwerveModuleStates(ChassisSpeeds.discretize(chassisSpeeds, 0.02)))
     if speedRotation == 0 and speedTranslationX == 0 and speedTranslationY == 0:
       self._isAlignedToTarget = True
       self._isAligningToTarget = False

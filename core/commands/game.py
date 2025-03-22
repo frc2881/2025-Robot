@@ -122,7 +122,7 @@ class Game:
     return self._robot.funnelDistanceSensor.hasTarget()
 
   def score(self) -> Command:
-    return self._robot.hand.releaseGripper().andThen(
+    return self._robot.hand.releaseGripper(lambda: self._robot.arm.isReefCoralL1()).andThen(
       self.rumbleControllers(ControllerRumbleMode.Driver)
     ).withName("Game:Score")
   

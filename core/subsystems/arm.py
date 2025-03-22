@@ -40,6 +40,9 @@ class Arm(Subsystem):
   def isAlignedToPosition(self) -> bool:
     return self._arm.isAlignedToPosition()
   
+  def isReefCoralL1(self) -> bool:
+    return self._arm.getPosition() > 25.0
+  
   def resetToZero(self) -> Command:
     return self._arm.resetToZero(self).withName("Arm:ResetToZero")
 

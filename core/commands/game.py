@@ -17,7 +17,7 @@ class Game:
   def alignRobotToTarget(self, targetAlignmentMode: TargetAlignmentMode, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return self._robot.drive.alignToTarget(
       self._robot.localization.getRobotPose, 
-      lambda: self._robot.localization.getTargetPose(targetAlignmentLocation, self._robot.elevator.isReefCoralL4()),
+      lambda: self._robot.localization.getTargetPose(targetAlignmentLocation, self._robot.elevator.isAtReefCoralL4Position()),
       targetAlignmentMode
     ).until(
       lambda: self._robot.drive.isAlignedToTarget()
@@ -122,7 +122,7 @@ class Game:
     return self._robot.funnelDistanceSensor.hasTarget()
 
   def score(self) -> Command:
-    return self._robot.hand.releaseGripper(lambda: self._robot.arm.isReefCoralL1()).andThen(
+    return self._robot.hand.releaseGripper(lambda: self._robot.arm.isAtReefCoralL1Position()).andThen(
       self.rumbleControllers(ControllerRumbleMode.Driver)
     ).withName("Game:Score")
   

@@ -33,9 +33,9 @@ class RobotCore:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
     self.intakeDistanceSensor = DistanceSensor(
-      constants.Sensors.Distance.Intake.kSensorName,
-      constants.Sensors.Distance.Intake.kMinTargetDistance,
-      constants.Sensors.Distance.Intake.kMaxTargetDistance
+      constants.Sensors.Distance.Gripper.kSensorName,
+      constants.Sensors.Distance.Gripper.kMinTargetDistance,
+      constants.Sensors.Distance.Gripper.kMaxTargetDistance
     )
     self.funnelDistanceSensor = DistanceSensor(
       constants.Sensors.Distance.Funnel.kSensorName,

@@ -206,7 +206,7 @@ class Drive(Subsystem):
     speedTranslationY = 0
     speedRotation = 0
     if targetAlignmentMode == TargetAlignmentMode.Translation:
-      targetTranslation = self._targetPose.__sub__(Pose3d(robotPose))
+      targetTranslation = self._targetPose.toPose2d() - robotPose
       if not self._targetAlignmentTranslationXController.atSetpoint():
         speedTranslationX = -utils.clampValue(
           self._targetAlignmentTranslationXController.calculate(targetTranslation.X()), 

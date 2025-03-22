@@ -1,9 +1,9 @@
 import math
 from wpimath import units
-from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d, Rotation2d
+from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
 import wpilib
-from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
+from robotpy_apriltag import AprilTagFieldLayout
 from navx import AHRS
 from pathplannerlib.config import RobotConfig
 from pathplannerlib.controller import PPHolonomicDriveController, PIDConstants
@@ -38,7 +38,6 @@ from core.classes import (
 )
 
 APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout(f'{ wpilib.getDeployDirectory() }/localization/2025-reefscape-andymark-filtered.json')
-# APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout().loadField(AprilTagField.k2025ReefscapeAndyMark)
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
 
 class Subsystems:
@@ -66,7 +65,7 @@ class Subsystems:
       drivingMotorCurrentLimit = 80,
       drivingMotorPID = PID(0.04, 0, 0),
       turningMotorCurrentLimit = 20,
-      turningMotorPID = PID(1, 0, 0)
+      turningMotorPID = PID(1.0, 0, 0)
     )
 
     kSwerveModuleConfigs: tuple[SwerveModuleConfig, ...] = (
@@ -162,6 +161,8 @@ class Subsystems:
       motorResetSpeed = 0.2
     ))
 
+    kReefCoralL1Position: units.inches = 25.0
+
     kInputLimit: units.percent = 0.6
 
   class Wrist:
@@ -169,18 +170,18 @@ class Subsystems:
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.7
     kMotorDownSpeed: units.percent = 0.2
-    kMotorHoldUpSpeed: units.percent = 0.4
+    kMotorHoldUpSpeed: units.percent = 0.5
     kMotorHoldDownSpeed: units.percent = 0.8
     kSetPositionTimeout: units.seconds = 0.8
 
   class Hand:
     kGripperMotorCANId: int = 14
     kGripperMotorCurrentLimit: int = 40
-    kGripperMotorIntakeSpeed: units.percent = 0.8
+    kGripperMotorIntakeSpeed: units.percent = 1.0
     kGripperMotorHoldSpeed: units.percent = 0.03
     kGripperMotorReleaseSpeed: units.percent = 1.0
     kGripperMotorReleaseSpeedLow: units.percent = 0.2
-    kGripperReleaseTimeout: units.seconds = 0.2
+    kGripperReleaseTimeout: units.seconds = 0.5
 
   class Shield:
     kServoChannel: int = 9
@@ -200,15 +201,15 @@ class Sensors:
       kComType = AHRS.NavXComType.kUSB1
 
   class Distance:
-    class Intake:
-      kSensorName = "Intake"
+    class Gripper:
+      kSensorName = "Gripper"
       kMinTargetDistance: units.millimeters = 1
       kMaxTargetDistance: units.millimeters = 60
 
     class Funnel:
       kSensorName = "Funnel"
       kMinTargetDistance: units.millimeters = 1
-      kMaxTargetDistance: units.millimeters = 60
+      kMaxTargetDistance: units.millimeters = 60 # TODO: calculate correct value once installed
 
   class Pose:
     _poseSensorConstants = PoseSensorConstants(

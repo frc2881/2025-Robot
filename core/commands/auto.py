@@ -98,7 +98,7 @@ class Auto:
         self._move(autoPath).andThen(
           self._alignToTarget(targetAlignmentLocation
         ))
-      ).until(lambda: self._robot.game.isIntakeHolding())
+      ).until(lambda: self._robot.game.isGripperHolding())
     )
   
   def _getStartingPose(self, position: int) -> Pose2d:

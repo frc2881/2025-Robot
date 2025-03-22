@@ -222,8 +222,8 @@ class Sensors:
       PoseSensorConfig(
         "FrontLeft",
         Transform3d(
-          Translation3d(units.inchesToMeters(-4.0972), units.inchesToMeters(8.125), units.inchesToMeters(39.3044)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(0))
+          Translation3d(units.inchesToMeters(-4.5972), units.inchesToMeters(8.125), units.inchesToMeters(39.3044)),
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(-30.0), units.degreesToRadians(1.0))
         ), _poseSensorConstants
       ),
       PoseSensorConfig(
@@ -237,13 +237,13 @@ class Sensors:
         "RearLeft",
         Transform3d(
           Translation3d(units.inchesToMeters(-8.8236), units.inchesToMeters(7.2958), units.inchesToMeters(36.1419)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(165.0))
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(167.5))
         ), _poseSensorConstants
       ),
       PoseSensorConfig(
         "RearRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(-8.8236), units.inchesToMeters(-7.2958), units.inchesToMeters(36.1515)),
+          Translation3d(units.inchesToMeters(-8.3236), units.inchesToMeters(-7.2958), units.inchesToMeters(36.1515)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(-165.0))
         ), _poseSensorConstants
       )

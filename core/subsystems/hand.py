@@ -7,11 +7,11 @@ from lib.classes import Position
 import core.constants as constants
 
 class Hand(Subsystem):
-  def __init__(self, intakeDistanceSensorHasTarget: Callable[[], bool],):
+  def __init__(self, gripperDistanceSensorHasTarget: Callable[[], bool]):
     super().__init__()
     self._constants = constants.Subsystems.Hand
 
-    self._intakeDistanceSensorHasTarget = intakeDistanceSensorHasTarget
+    self._gripperDistanceSensorHasTarget = gripperDistanceSensorHasTarget
 
     self._gripperMotor = SparkFlex(self._constants.kGripperMotorCANId, SparkBase.MotorType.kBrushless)
     self._sparkConfig = SparkBaseConfig()
@@ -34,13 +34,13 @@ class Hand(Subsystem):
     return self.runEnd(
       lambda: self._gripperMotor.set(
         self._constants.kGripperMotorHoldSpeed 
-        if self._intakeDistanceSensorHasTarget() and not isManual else
+        if self._gripperDistanceSensorHasTarget() and not isManual else
         self._constants.kGripperMotorIntakeSpeed
       ),
       lambda: self._resetGripper()
     ).withName("Hand:RunGripper")
   
-  def releaseGripper(self, isLowSpeed: Callable[[], bool] = False) -> Command:
+  def releaseGripper(self, isLowSpeed: bool = False) -> Command:
     return self.startEnd(
       lambda: self._gripperMotor.set(
         -self._constants.kGripperMotorReleaseSpeedLow 
@@ -56,7 +56,7 @@ class Hand(Subsystem):
     return self._gripperMotor.get() != 0
   
   def isGripperHolding(self) -> bool:
-    return self._intakeDistanceSensorHasTarget()
+    return self._gripperDistanceSensorHasTarget()
   
   def _resetGripper(self) -> None:
     self._gripperMotor.stopMotor()

@@ -32,7 +32,7 @@ class RobotCore:
   def _initSensors(self) -> None:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
-    self.intakeDistanceSensor = DistanceSensor(
+    self.gripperDistanceSensor = DistanceSensor(
       constants.Sensors.Distance.Gripper.kSensorName,
       constants.Sensors.Distance.Gripper.kMinTargetDistance,
       constants.Sensors.Distance.Gripper.kMaxTargetDistance
@@ -49,7 +49,7 @@ class RobotCore:
     self.elevator = Elevator()
     self.arm = Arm()
     self.wrist = Wrist()
-    self.hand = Hand(self.intakeDistanceSensor.hasTarget)
+    self.hand = Hand(self.gripperDistanceSensor.hasTarget)
     self.shield = Shield()
     
   def _initServices(self) -> None:
@@ -136,11 +136,11 @@ class RobotCore:
     self.operator.rightTrigger().onTrue(
       self.game.score()
     )
-    # self.operator.leftBumper().onTrue(
-    #   cmd.none()
-    # )
+    self.operator.leftBumper().onTrue(
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2)
+    )
     self.operator.rightBumper().onTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.FunnelIntake)
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3)
     )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
@@ -158,11 +158,11 @@ class RobotCore:
       self.game.alignRobotToTargetPosition(TargetPositionType.CoralStation)
     )
     self.operator.b().whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2)
+      self.game.alignRobotToTargetPosition(TargetPositionType.FunnelIntake)
     )
-    self.operator.y().whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3)
-    )
+    # self.operator.y().whileTrue(
+    #   cmd.none()
+    # )
     self.operator.x().whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.CageDeepClimb)
     )

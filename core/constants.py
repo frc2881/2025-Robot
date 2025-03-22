@@ -205,6 +205,11 @@ class Sensors:
       kMinTargetDistance: units.millimeters = 1
       kMaxTargetDistance: units.millimeters = 60
 
+    class Funnel:
+      kSensorName = "Funnel"
+      kMinTargetDistance: units.millimeters = 1
+      kMaxTargetDistance: units.millimeters = 60
+
   class Pose:
     _poseSensorConstants = PoseSensorConstants(
       aprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT,
@@ -316,5 +321,7 @@ class Game:
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, 28.0), 19.3, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), Value.min, Position.Up),
+        TargetPositionType.FunnelReady: TargetPosition(ElevatorPosition(Value.min, Value.max), Value.min, Position.Down),
+        TargetPositionType.FunnelIntake: TargetPosition(ElevatorPosition(Value.min, Value.max), Value.min, Position.Down),
         TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.0), Value.max, Position.Up)
       }

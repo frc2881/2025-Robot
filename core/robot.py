@@ -37,6 +37,11 @@ class RobotCore:
       constants.Sensors.Distance.Intake.kMinTargetDistance,
       constants.Sensors.Distance.Intake.kMaxTargetDistance
     )
+    self.funnelDistanceSensor = DistanceSensor(
+      constants.Sensors.Distance.Funnel.kSensorName,
+      constants.Sensors.Distance.Funnel.kMinTargetDistance,
+      constants.Sensors.Distance.Funnel.kMaxTargetDistance
+    )
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
   def _initSubsystems(self) -> None:
@@ -134,9 +139,9 @@ class RobotCore:
     # self.operator.leftBumper().onTrue(
     #   cmd.none()
     # )
-    # self.operator.rightBumper().onTrue(
-    #   cmd.none()
-    # )
+    self.operator.rightBumper().onTrue(
+      self.game.alignRobotToTargetPosition(TargetPositionType.FunnelIntake)
+    )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )

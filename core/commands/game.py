@@ -37,6 +37,7 @@ class Game:
         TargetPositionType.ReefAlgaeL3: self._alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3),
         TargetPositionType.ReefAlgaeL2: self._alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2),
         TargetPositionType.CoralStation: self._alignRobotToTargetPositionCoralStation(),
+        TargetPositionType.FunnelIntake: self._alignRobotToTargetPositionFunnelIntake(),
         TargetPositionType.CageDeepClimb: self._alignRobotToTargetPositionCageDeepClimb()
       }, 
       lambda: targetPositionType
@@ -60,6 +61,22 @@ class Game:
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].wrist),
       self._robot.hand.runGripper()
+    ).alongWith(
+      cmd.waitUntil(lambda: self.isIntakeHolding()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver))
+    )
+  
+  def _alignRobotToTargetPositionFunnelIntake(self):
+    return cmd.parallel(
+      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelReady].elevator, isParallel = False),
+      self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelReady].arm),
+      self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelReady].wrist)
+    ).until(
+      lambda: self.isFunnelHolding()
+    ).andThen(
+      cmd.parallel(
+        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelIntake].arm),
+        self._robot.hand.runGripper()
+      )
     ).alongWith(
       cmd.waitUntil(lambda: self.isIntakeHolding()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver))
     )
@@ -100,6 +117,9 @@ class Game:
   
   def isIntakeHolding(self) -> bool:
     return self._robot.hand.isGripperHolding()
+  
+  def isFunnelHolding(self) -> bool:
+    return self._robot.funnelDistanceSensor.hasTarget()
 
   def score(self) -> Command:
     return self._robot.hand.releaseGripper().andThen(

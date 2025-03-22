@@ -62,9 +62,10 @@ class Localization():
             self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
           else:
             for target in estimatedRobotPose.targetsUsed:
-              if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Services.Localization.kVisionMaxPoseAmbiguity):
-                self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
-                break
+              if target.getBestCameraToTarget().translation().norm() < 4.0:
+                if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Services.Localization.kVisionMaxPoseAmbiguity):
+                  self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
+                  break
     self._robotPose = self._poseEstimator.getEstimatedPosition()
 
   def getRobotPose(self) -> Pose2d:

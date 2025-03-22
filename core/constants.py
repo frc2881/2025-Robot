@@ -161,7 +161,7 @@ class Subsystems:
       motorResetSpeed = 0.2
     ))
 
-    kReefCoralL1Position: units.inches = 25.0
+    kReefCoralL1Position: units.inches = 20.0
 
     kInputLimit: units.percent = 0.6
 
@@ -180,7 +180,7 @@ class Subsystems:
     kGripperMotorIntakeSpeed: units.percent = 1.0
     kGripperMotorHoldSpeed: units.percent = 0.03
     kGripperMotorReleaseSpeed: units.percent = 1.0
-    kGripperMotorReleaseSpeedLow: units.percent = 0.2
+    kGripperMotorReleaseSpeedLow: units.percent = 0.3
     kGripperReleaseTimeout: units.seconds = 0.5
 
   class Shield:
@@ -318,7 +318,7 @@ class Game:
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.5, 28.0), 7.2, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(4.2, 28.0), 6.0, Position.Down),
         TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 14.30), 5.0, Position.Down),
-        TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 23.0), 30, Position.Up),
+        TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 15.0), 23.0, Position.Up),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, 28.0), 19.3, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), Value.min, Position.Up),

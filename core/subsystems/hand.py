@@ -44,7 +44,7 @@ class Hand(Subsystem):
     return self.startEnd(
       lambda: self._gripperMotor.set(
         -self._constants.kGripperMotorReleaseSpeedLow 
-        if isLowSpeed() else 
+        if isLowSpeed else 
         -self._constants.kGripperMotorReleaseSpeed
       ),
       lambda: self._resetGripper()

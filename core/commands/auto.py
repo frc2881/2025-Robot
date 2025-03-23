@@ -13,27 +13,21 @@ import core.constants as constants
 
 class AutoPath(Enum):
   Start1_1 = auto()
-  Start2_2L = auto()
-  Start2_2R = auto()
+  Start2L_2 = auto()
+  Start2R_2 = auto()
   Start3_3 = auto()
   Pickup1_1 = auto()
   Pickup2_1 = auto()
   Pickup2_2 = auto()
   Pickup3_2 = auto()
   Pickup4_2 = auto()
-  Pickup5_1 = auto()
-  Pickup5_2 = auto()
   Pickup6_1 = auto()
-  Move1_1 = auto()
   Move1_2 = auto()
-  Move1_5 = auto()
   Move1_6L = auto()
   Move1_6R = auto()
   Move2_2 = auto()
-  Move2_3 = auto()
   Move2_4L = auto()
   Move2_4R = auto()
-  Move2_5 = auto()
 
 class Auto:
   def __init__(
@@ -60,11 +54,11 @@ class Auto:
     self._autos.setDefaultOption("None", cmd.none)
     
     self._autos.addOption("[1]_166", self.auto_1_166)
-    self._autos.addOption("[2]_2", self.auto_2_2)
-    self._autos.addOption("[2]_21", self.auto_2_21)
-    self._autos.addOption("[2]_212", self.auto_2_212)
-    self._autos.addOption("[2]_22", self.auto_2_22)
-    self._autos.addOption("[2]_222", self.auto_2_222)
+    self._autos.addOption("[2L]_2", self.auto_2L_2)
+    self._autos.addOption("[2L]_21", self.auto_2L_21)
+    self._autos.addOption("[2L]_212", self.auto_2L_212)
+    self._autos.addOption("[2R]_22", self.auto_2R_22)
+    self._autos.addOption("[2R]_222", self.auto_2R_222)
     self._autos.addOption("[3]_344", self.auto_3_344)
 
     self._autos.onChange(lambda auto: setattr(self, "_auto", auto()))
@@ -109,7 +103,7 @@ class Auto:
   def _getStartingPose(self, position: int) -> Pose2d:
     match position:
       case 1: return self._paths.get(AutoPath.Start1_1).getStartingHolonomicPose()
-      case 2: return self._paths.get(AutoPath.Start2_2L).getStartingHolonomicPose()
+      case 2: return self._paths.get(AutoPath.Start2L_2).getStartingHolonomicPose()
       case 3: return self._paths.get(AutoPath.Start3_3).getStartingHolonomicPose()
       case _: return None
 
@@ -131,36 +125,36 @@ class Auto:
       self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center)
     ).withName("Auto:[1]_166")
   
-  def auto_2_2(self) -> Command:
+  def auto_2L_2(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2_2L, TargetAlignmentLocation.Left)
-    ).withName("Auto:[2]_2")
+      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left)
+    ).withName("Auto:[2L]_2")
   
-  def auto_2_21(self) -> Command:
+  def auto_2L_21(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2_2L, TargetAlignmentLocation.Left),
+      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left),
       self._moveAlignIntake(AutoPath.Pickup2_1, TargetAlignmentLocation.Right)
-    ).withName("Auto:[2]_21")
+    ).withName("Auto:[2L]_21")
   
-  def auto_2_212(self) -> Command:
+  def auto_2L_212(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2_2L, TargetAlignmentLocation.Left),
+      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left),
       self._moveAlignIntake(AutoPath.Pickup2_1, TargetAlignmentLocation.Right),
       self._moveAlignScore(AutoPath.Move1_2, TargetAlignmentLocation.Right)
-    ).withName("Auto:[2]_212")
+    ).withName("Auto:[2L]_212")
   
-  def auto_2_22(self) -> Command:
+  def auto_2R_22(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2_2R, TargetAlignmentLocation.Right),
+      self._moveAlignScore(AutoPath.Start2R_2, TargetAlignmentLocation.Right),
       self._moveAlignIntake(AutoPath.Pickup2_2, TargetAlignmentLocation.Left)
-    ).withName("Auto:[2]_22")
+    ).withName("Auto:[2R]_22")
   
-  def auto_2_222(self) -> Command:
+  def auto_2R_222(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2_2R, TargetAlignmentLocation.Right),
+      self._moveAlignScore(AutoPath.Start2R_2, TargetAlignmentLocation.Right),
       self._moveAlignIntake(AutoPath.Pickup2_2, TargetAlignmentLocation.Left),
       self._moveAlignScore(AutoPath.Move2_2, TargetAlignmentLocation.Left)
-    ).withName("Auto:[2]_222")
+    ).withName("Auto:[2R]_222")
   
   def auto_3_344(self) -> Command:
     return cmd.sequence(

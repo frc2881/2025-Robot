@@ -66,7 +66,7 @@ class Elevator(Subsystem):
   
   def isAtReefCoralL4Position(self) -> bool:
     return self.getPosition().lowerStage > self._constants.kLowerStageReefCoralL4Position
-
+  
   def setUpperStageSoftLimitsEnabled(self, isEnabled: bool) -> None:
     self._upperStage.setSoftLimitsEnabled(isEnabled)
 

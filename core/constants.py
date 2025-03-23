@@ -109,7 +109,7 @@ class Subsystems:
       motorMotionMaxVelocity = 7000.0,
       motorMotionMaxAcceleration = 14000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.5,
+      motorMotionAllowedClosedLoopError = 0.25,
       motorSoftLimitForward = 29.0,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.2
@@ -129,15 +129,15 @@ class Subsystems:
       motorMotionMaxVelocity = 6500.0,
       motorMotionMaxAcceleration = 13000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.5,
-      motorSoftLimitForward = 28.0,
+      motorMotionAllowedClosedLoopError = 0.25,
+      motorSoftLimitForward = 29.0,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.1
     ))
 
     kLowerStageSoftLimitBuffer: units.inches = 1.5
     kLowerStageReefCoralL4Position: units.inches = 15.0
-    
+
     kCageDeepClimbUpSpeed = -0.5
     kCageDeepClimbDownSpeed = 0.3
 
@@ -148,21 +148,22 @@ class Subsystems:
       distancePerRotation = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
-      motorCurrentLimit = 60,
+      motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.8, 1.0),
-      motorMotionMaxVelocity = 9000.0,
-      motorMotionMaxAcceleration = 18000.0,
+      motorOutputRange = Range(-0.9, 1.0),
+      motorMotionMaxVelocity = 12000.0,
+      motorMotionMaxAcceleration = 24000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.25,
+      motorMotionAllowedClosedLoopError = 0.5,
       motorSoftLimitForward = 70.75,
-      motorSoftLimitReverse = 1.5,
+      motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.2
     ))
 
+    kCoralStationSafePosition: units.inches = 30.0
     kReefCoralL1Position: units.inches = 20.0
-
+    
     kInputLimit: units.percent = 0.6
 
   class Wrist:
@@ -177,7 +178,7 @@ class Subsystems:
   class Hand:
     kGripperMotorCANId: int = 14
     kGripperMotorCurrentLimit: int = 40
-    kGripperMotorIntakeSpeed: units.percent = 1.0
+    kGripperMotorIntakeSpeed: units.percent = 0.8
     kGripperMotorHoldSpeed: units.percent = 0.03
     kGripperMotorReleaseSpeed: units.percent = 1.0
     kGripperMotorReleaseSpeedLow: units.percent = 0.3
@@ -268,7 +269,7 @@ class Controllers:
 class Game:
   class Commands:
     kTargetAlignmentTimeout: units.seconds = 2.0
-    kAutoMoveTimeout: units.seconds = 3.5
+    kAutoMoveTimeout: units.seconds = 4.0
 
   class Field:
     kAprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT
@@ -323,7 +324,8 @@ class Game:
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(6.5, 28.0), 19.3, Position.Down),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Down),
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), Value.min, Position.Up),
-        TargetPositionType.FunnelReady: TargetPosition(ElevatorPosition(Value.min, Value.max), Value.min, Position.Down),
-        TargetPositionType.FunnelIntake: TargetPosition(ElevatorPosition(Value.min, Value.max), Value.min, Position.Down),
-        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.0), Value.max, Position.Up)
+        TargetPositionType.FunnelReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Up),
+        TargetPositionType.FunnelIntake: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
+        TargetPositionType.FunnelLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
+        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.5), Value.max, Position.Up)
       }

@@ -18,6 +18,7 @@ class TargetPositionType(Enum):
   CoralStation = auto()
   FunnelReady = auto()
   FunnelIntake = auto()
+  FunnelLift = auto()
   CageDeepClimb = auto()
 
 class TargetAlignmentLocation(Enum):

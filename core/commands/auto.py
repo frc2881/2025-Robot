@@ -59,13 +59,13 @@ class Auto:
     self._autos = SendableChooser()
     self._autos.setDefaultOption("None", cmd.none)
     
-    self._autos.addOption("[1]_1_6_6_", self.auto_1_1_6_6_)
+    self._autos.addOption("[1]_166", self.auto_1_166)
     self._autos.addOption("[2]_2", self.auto_2_2)
     self._autos.addOption("[2]_21", self.auto_2_21)
     self._autos.addOption("[2]_212", self.auto_2_212)
     self._autos.addOption("[2]_22", self.auto_2_22)
     self._autos.addOption("[2]_222", self.auto_2_222)
-    self._autos.addOption("[3]_3_4_4_", self.auto_3_3_4_4_)
+    self._autos.addOption("[3]_344", self.auto_3_344)
 
     self._autos.onChange(lambda auto: setattr(self, "_auto", auto()))
     SmartDashboard.putData("Robot/Auto", self._autos)
@@ -121,7 +121,7 @@ class Auto:
       lambda: not utils.isCompetitionMode()
     ).withName("Auto:MoveToStartingPosition")
   
-  def auto_1_1_6_6_(self) -> Command:
+  def auto_1_166(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Right),
       self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
@@ -129,7 +129,7 @@ class Auto:
       self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move1_6R, TargetAlignmentLocation.Right),
       self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center)
-    ).withName("Auto:[1]_1_6_6_")
+    ).withName("Auto:[1]_166")
   
   def auto_2_2(self) -> Command:
     return cmd.sequence(
@@ -162,7 +162,7 @@ class Auto:
       self._moveAlignScore(AutoPath.Move2_2, TargetAlignmentLocation.Left)
     ).withName("Auto:[2]_222")
   
-  def auto_3_3_4_4_(self) -> Command:
+  def auto_3_344(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left),
       self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Center),
@@ -170,4 +170,4 @@ class Auto:
       self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move2_4L, TargetAlignmentLocation.Left),
       self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center)
-    ).withName("Auto:[3]_3_4_4_")
+    ).withName("Auto:[3]_344")

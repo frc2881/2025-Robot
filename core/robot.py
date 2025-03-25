@@ -1,9 +1,7 @@
-from commands2 import Command, cmd
 from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
-from lib.classes import RobotState, TargetAlignmentMode, Position
+from lib.classes import TargetAlignmentMode
 from lib.controllers.xbox import Xbox
-from lib.controllers.lights import Lights
 from lib.sensors.distance import DistanceSensor
 from lib.sensors.gyro_navx2 import Gyro_NAVX2
 from lib.sensors.pose import PoseSensor
@@ -16,7 +14,8 @@ from core.subsystems.wrist import Wrist
 from core.subsystems.hand import Hand
 from core.subsystems.shield import Shield
 from core.services.localization import Localization
-from core.classes import TargetAlignmentLocation, TargetPositionType, LightsMode, ElevatorStage
+from core.services.lights import Lights
+from core.classes import TargetAlignmentLocation, TargetPositionType, ElevatorStage
 import core.constants as constants
 
 class RobotCore:
@@ -27,21 +26,13 @@ class RobotCore:
     self._initControllers()
     self._initCommands()
     self._initTriggers()
+    self._initLights()
     utils.addRobotPeriodic(self._periodic)
 
   def _initSensors(self) -> None:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
-    self.gripperDistanceSensor = DistanceSensor(
-      constants.Sensors.Distance.Gripper.kSensorName,
-      constants.Sensors.Distance.Gripper.kMinTargetDistance,
-      constants.Sensors.Distance.Gripper.kMaxTargetDistance
-    )
-    self.funnelDistanceSensor = DistanceSensor(
-      constants.Sensors.Distance.Funnel.kSensorName,
-      constants.Sensors.Distance.Funnel.kMinTargetDistance,
-      constants.Sensors.Distance.Funnel.kMaxTargetDistance
-    )
+    self.gripperDistanceSensor = DistanceSensor(constants.Sensors.Distance.Gripper.kConfig)
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
   def _initSubsystems(self) -> None:
@@ -53,8 +44,13 @@ class RobotCore:
     self.shield = Shield()
     
   def _initServices(self) -> None:
-    self.localization = Localization(self.gyro.getRotation, self.drive.getModulePositions, self.poseSensors, self.drive.isAligningToTarget)
-    
+    self.localization = Localization(
+      self.gyro.getRotation, 
+      self.drive.getModulePositions, 
+      self.poseSensors, 
+      self.drive.isAligningToTarget
+    )
+
   def _initControllers(self) -> None:
     self.driver = Xbox(constants.Controllers.kDriverControllerPort, constants.Controllers.kInputDeadband)
     self.operator = Xbox(constants.Controllers.kOperatorControllerPort, constants.Controllers.kInputDeadband)
@@ -67,7 +63,6 @@ class RobotCore:
   def _initTriggers(self) -> None:
     self._setupDriver()
     self._setupOperator()
-    self._setupLights()
 
   def _setupDriver(self) -> None:
     self.drive.setDefaultCommand(
@@ -131,7 +126,7 @@ class RobotCore:
       self.arm.default(self.operator.getRightY)
     )
     self.operator.leftTrigger().whileTrue(
-      self.game.intake()
+      self.game.intakeGripper()
     )
     self.operator.rightTrigger().onTrue(
       self.game.score()
@@ -191,29 +186,13 @@ class RobotCore:
       self.elevator.default(self.operator.getLeftY, ElevatorStage.Lower)
     )
 
-  def _setupLights(self) -> None:
-    self.lightsController = Lights()
-    utils.addRobotPeriodic(self._updateLights)
-
-  def _updateLights(self) -> None:
-    if not DriverStation.isDSAttached():
-      self.lightsController.setMode(LightsMode.RobotNotConnected)
-      return
-    if not utils.isCompetitionMode() and not self._hasZeroResets():
-      self.lightsController.setMode(LightsMode.RobotNotReset)
-      return
-    if utils.getRobotState() == RobotState.Disabled:
-      if utils.isCompetitionMode() and not self.localization.hasVisionTarget():
-        self.lightsController.setMode(LightsMode.VisionNotReady)
-        return
-    else:
-      if self.shield.getPosition() == Position.Open or utils.isValueInRange(utils.getMatchTime(), 0.1, 20):
-        self.lightsController.setMode(LightsMode.ReadyForClimb)
-        return
-      if self.game.isRobotAlignedToTargetPosition():
-        self.lightsController.setMode(LightsMode.AlignedToPosition)
-        return
-    self.lightsController.setMode(LightsMode.Default)
+  def _initLights(self) -> None:
+    self.lights = Lights(
+      self._hasAllZeroResets,
+      self.localization.hasVisionTarget,
+      self.game.isGripperHolding,
+      self.game.isRobotAlignedForScoring
+    )
 
   def _periodic(self) -> None:
     self._updateTelemetry()
@@ -244,10 +223,10 @@ class RobotCore:
     self.hand.reset()
     self.shield.reset()
 
-  def _hasZeroResets(self) -> bool:
+  def _hasAllZeroResets(self) -> bool:
     return utils.isCompetitionMode() or (
       self.elevator.hasZeroReset() and self.arm.hasZeroReset()
     )
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putBoolean("Robot/Status/HasZeroResets", self._hasZeroResets())
+    SmartDashboard.putBoolean("Robot/Status/HasAllZeroResets", self._hasAllZeroResets())

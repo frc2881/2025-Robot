@@ -21,12 +21,13 @@ from lib.classes import (
   SwerveModuleConstants, 
   SwerveModuleConfig, 
   SwerveModuleLocation, 
-  PoseSensorConstants,
-  PoseSensorConfig, 
   DriftCorrectionConstants, 
-  TargetAlignmentConstants, 
-  PositionControlModuleConstants, 
-  PositionControlModuleConfig 
+  TargetAlignmentConstants,
+  PoseSensorConstants,
+  PoseSensorConfig,
+  PositionControlModuleConstants,
+  PositionControlModuleConfig,
+  DistanceSensorConfig
 )
 from core.classes import (
   Target, 
@@ -204,14 +205,7 @@ class Sensors:
 
   class Distance:
     class Gripper:
-      kSensorName = "Gripper"
-      kMinTargetDistance: units.millimeters = 1
-      kMaxTargetDistance: units.millimeters = 60
-
-    class Funnel:
-      kSensorName = "Funnel"
-      kMinTargetDistance: units.millimeters = 1
-      kMaxTargetDistance: units.millimeters = 60 # TODO: calculate correct value once installed
+      kConfig = DistanceSensorConfig("Gripper", 1, 60)
 
   class Pose:
     _poseSensorConstants = PoseSensorConstants(
@@ -268,7 +262,7 @@ class Controllers:
 
 class Game:
   class Commands:
-    kTargetAlignmentTimeout: units.seconds = 2.0
+    kTargetAlignmentTimeout: units.seconds = 1.5
     kAutoMoveTimeout: units.seconds = 4.0
 
   class Field:

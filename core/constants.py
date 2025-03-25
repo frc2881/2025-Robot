@@ -131,7 +131,7 @@ class Subsystems:
       motorMotionMaxAcceleration = 13000.0,
       motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.25,
-      motorSoftLimitForward = 29.0,
+      motorSoftLimitForward = 28.75,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.1
     ))
@@ -152,11 +152,11 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.9, 1.0),
-      motorMotionMaxVelocity = 12000.0,
-      motorMotionMaxAcceleration = 24000.0,
+      motorOutputRange = Range(-1.0, 0.9),
+      motorMotionMaxVelocity = 48000.0,
+      motorMotionMaxAcceleration = 96000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.5,
+      motorMotionAllowedClosedLoopError = 0.25,
       motorSoftLimitForward = 70.75,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.2
@@ -321,5 +321,5 @@ class Game:
         TargetPositionType.FunnelReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Up),
         TargetPositionType.FunnelIntake: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
         TargetPositionType.FunnelLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
-        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.5), Value.max, Position.Up)
+        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.0), Value.max, Position.Up)
       }

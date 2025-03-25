@@ -64,8 +64,6 @@ class Auto:
     self._autos.onChange(lambda auto: setattr(self, "_auto", auto()))
     SmartDashboard.putData("Robot/Auto", self._autos)
 
-    logger.debug(self._autos)
-
   def get(self) -> Command:
     return self._auto
   

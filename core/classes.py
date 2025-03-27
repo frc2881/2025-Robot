@@ -19,6 +19,9 @@ class TargetPositionType(Enum):
   FunnelReady = auto()
   FunnelIntake = auto()
   FunnelLift = auto()
+  IntakeReady = auto()
+  Intake = auto()
+  IntakeLift = auto()
   CageDeepClimb = auto()
 
 class TargetAlignmentLocation(Enum):

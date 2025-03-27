@@ -43,6 +43,9 @@ class Game:
         TargetPositionType.ReefAlgaeL2: self._alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2),
         TargetPositionType.CoralStation: self._alignRobotToTargetPositionCoralStation(),
         TargetPositionType.FunnelIntake: self._alignRobotToTargetPositionFunnelIntake(),
+        TargetPositionType.IntakeReady: self._alignRobotToTargetPosition(TargetPositionType.IntakeReady),
+        TargetPositionType.Intake: self._alignRobotToTargetPosition(TargetPositionType.Intake),
+        TargetPositionType.IntakeLift: self._alignRobotToTargetPosition(TargetPositionType.IntakeLift),
         TargetPositionType.CageDeepClimb: self._alignRobotToTargetPositionCageDeepClimb()
       }, 
       lambda: targetPositionType
@@ -54,7 +57,7 @@ class Game:
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist),
       self._robot.hand.runGripper().unless(
-        lambda: targetPositionType in [ TargetPositionType.ReefAlgaeL3, TargetPositionType.ReefAlgaeL2 ]
+        lambda: targetPositionType in [ TargetPositionType.ReefAlgaeL3, TargetPositionType.ReefAlgaeL2, TargetPositionType.IntakeReady ]
       ),
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver)),
       cmd.runOnce(lambda: self._setIsFunnelReady(False))
@@ -119,6 +122,19 @@ class Game:
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
     ).finallyDo(
       lambda end: self._robot.elevator.setUpperStageSoftLimitsEnabled(True)
+    )
+  
+  def intake(self) -> Command:
+    return cmd.parallel(
+      self._robot.intake.intake(),
+      self.alignRobotToTargetPosition(TargetPositionType.IntakeReady)
+    )
+  
+  def moveCoralToGripper(self) -> Command:
+    return cmd.sequence(
+      self._robot.intake.alignToPosition(constants.Subsystems.Intake.kTransitionPosition),
+      self.alignRobotToTargetPosition(TargetPositionType.Intake).until(lambda: self.isGripperHolding),
+      self.alignRobotToTargetPosition(TargetPositionType.IntakeLift)
     )
 
   def isRobotAlignedToTargetPosition(self) -> bool:

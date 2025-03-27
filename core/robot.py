@@ -13,6 +13,7 @@ from core.subsystems.arm import Arm
 from core.subsystems.wrist import Wrist
 from core.subsystems.hand import Hand
 from core.subsystems.shield import Shield
+from core.subsystems.intake import Intake
 from core.services.localization import Localization
 from core.services.lights import Lights
 from core.classes import TargetAlignmentLocation, TargetPositionType, ElevatorStage
@@ -33,6 +34,7 @@ class RobotCore:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
     self.gripperDistanceSensor = DistanceSensor(constants.Sensors.Distance.Gripper.kConfig)
+    self.intakeDistanceSensor = DistanceSensor(constants.Sensors.Distance.Intake.kConfig)
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
   def _initSubsystems(self) -> None:
@@ -41,6 +43,7 @@ class RobotCore:
     self.arm = Arm()
     self.wrist = Wrist()
     self.hand = Hand(self.gripperDistanceSensor.hasTarget)
+    self.intake = Intake()
     self.shield = Shield()
     
   def _initServices(self) -> None:
@@ -131,12 +134,14 @@ class RobotCore:
     self.operator.rightTrigger().onTrue(
       self.game.score()
     )
-    self.operator.leftBumper().onTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2)
+    self.operator.leftBumper().whileTrue(
+      self.game.intake()
+    ).onFalse(
+      self.game.moveCoralToGripper()
     )
-    self.operator.rightBumper().onTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3)
-    )
+    # self.operator.rightBumper().onTrue(
+      
+    # )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )
@@ -153,11 +158,11 @@ class RobotCore:
       self.game.alignRobotToTargetPosition(TargetPositionType.CoralStation)
     )
     self.operator.b().whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.FunnelIntake)
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2)
     )
-    # self.operator.y().whileTrue(
-    #   cmd.none()
-    # )
+    self.operator.y().whileTrue(
+      self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3)
+    )
     self.operator.x().whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.CageDeepClimb)
     )
@@ -185,6 +190,12 @@ class RobotCore:
     self.operator.back().whileTrue(
       self.elevator.default(self.operator.getLeftY, ElevatorStage.Lower)
     )
+
+    # l bumper is intake sequence
+    # r bumper is eject
+
+    # b algae l2
+    # y algae l3
 
   def _initLights(self) -> None:
     self.lights = Lights(

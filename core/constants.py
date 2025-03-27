@@ -191,6 +191,32 @@ class Subsystems:
     kPositionOpen: float = 0.0
     kPositionClosed: float = 1.0
 
+  class Intake:
+    kIntakeConfig = PositionControlModuleConfig("Intake", 15, None, True, PositionControlModuleConstants(
+      distancePerRotation = 1.0,
+      motorControllerType = SparkLowLevel.SparkModel.kSparkMax,
+      motorType = SparkLowLevel.MotorType.kBrushless,
+      motorCurrentLimit = 80,
+      motorReduction = 1.0 / 1.0,
+      motorPID = PID(0.1, 0, 0.07),
+      motorOutputRange = Range(-1.0, 0.6),
+      motorMotionMaxVelocity = 15000.0,
+      motorMotionMaxAcceleration = 30000.0,
+      motorMotionVelocityFF = 1.0 / 6784,
+      motorMotionAllowedClosedLoopError = 0.25,
+      motorSoftLimitForward = 70.75,
+      motorSoftLimitReverse = 0.5,
+      motorResetSpeed = 0.2
+    ))
+
+    kRollerMotorCANId: int = 21
+    kRollerMotorCurrentLimit: int = 40
+    kRollersMotorIntakeSpeed: float = 1.0
+    kRollersMotorEjectSpeed: float = -0.3
+
+    kIntakePosition: float = 0.0
+    kTransitionPosition: float = 0.0
+
 class Services:
   class Localization:
     kStateStandardDeviations: tuple[float, float, float] = (0.04, 0.04, units.degreesToRadians(1))
@@ -206,6 +232,9 @@ class Sensors:
   class Distance:
     class Gripper:
       kConfig = DistanceSensorConfig("Gripper", 1, 60)
+
+    class Intake:
+      kConfig = DistanceSensorConfig("Intake", 1, 60)
 
   class Pose:
     _poseSensorConstants = PoseSensorConstants(
@@ -321,5 +350,8 @@ class Game:
         TargetPositionType.FunnelReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Up),
         TargetPositionType.FunnelIntake: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
         TargetPositionType.FunnelLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
+        TargetPositionType.IntakeReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Up),
+        TargetPositionType.Intake: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
+        TargetPositionType.IntakeLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
         TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.0), Value.max, Position.Up)
       }

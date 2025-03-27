@@ -152,9 +152,9 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-1.0, 0.9),
-      motorMotionMaxVelocity = 48000.0,
-      motorMotionMaxAcceleration = 96000.0,
+      motorOutputRange = Range(-1.0, 0.6),
+      motorMotionMaxVelocity = 15000.0,
+      motorMotionMaxAcceleration = 30000.0,
       motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.25,
       motorSoftLimitForward = 70.75,
@@ -171,9 +171,9 @@ class Subsystems:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.7
-    kMotorDownSpeed: units.percent = 0.2
+    kMotorDownSpeed: units.percent = 0.5
     kMotorHoldUpSpeed: units.percent = 0.5
-    kMotorHoldDownSpeed: units.percent = 0.8
+    kMotorHoldDownSpeed: units.percent = 1.0
     kSetPositionTimeout: units.seconds = 0.8
 
   class Hand:

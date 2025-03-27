@@ -43,7 +43,7 @@ class RobotCore:
     self.arm = Arm()
     self.wrist = Wrist()
     self.hand = Hand(self.gripperDistanceSensor.hasTarget)
-    self.intake = Intake()
+    self.intake = Intake(self.intakeDistanceSensor.hasTarget)
     self.shield = Shield()
     
   def _initServices(self) -> None:
@@ -137,7 +137,7 @@ class RobotCore:
     self.operator.leftBumper().whileTrue(
       self.game.intake()
     ).onFalse(
-      self.game.moveCoralToGripper()
+      self.game.moveCoralToGripper() # TODO: definitely do not want to do this and assume that a coral is in the intake
     )
     # self.operator.rightBumper().onTrue(
       

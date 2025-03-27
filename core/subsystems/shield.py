@@ -5,7 +5,7 @@ from lib.classes import Position
 import core.constants as constants
 
 class Shield(Subsystem):
-  def __init__(self):
+  def __init__(self) -> None:
     super().__init__()
     self._constants = constants.Subsystems.Shield
 

@@ -3,11 +3,13 @@ from commands2 import Subsystem, Command
 from wpilib import SmartDashboard
 from rev import SparkFlex, SparkBaseConfig, SparkBase
 from lib import logger, utils
-from lib.classes import Position
 import core.constants as constants
 
 class Hand(Subsystem):
-  def __init__(self, gripperDistanceSensorHasTarget: Callable[[], bool]):
+  def __init__(
+      self, 
+      gripperDistanceSensorHasTarget: Callable[[], bool]
+    ) -> None:
     super().__init__()
     self._constants = constants.Subsystems.Hand
 
@@ -67,5 +69,4 @@ class Hand(Subsystem):
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Hand/Gripper/IsEnabled", self.isGripperEnabled())
     SmartDashboard.putBoolean("Robot/Hand/Gripper/IsHolding", self.isGripperHolding())
-    SmartDashboard.putNumber("Robot/Hand/Gripper/Current", self._gripperMotor.getOutputCurrent())
  

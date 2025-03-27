@@ -6,7 +6,7 @@ from lib.classes import Position
 import core.constants as constants
 
 class Wrist(Subsystem):
-  def __init__(self):
+  def __init__(self) -> None:
     super().__init__()
     self._constants = constants.Subsystems.Wrist
 
@@ -84,4 +84,3 @@ class Wrist(Subsystem):
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Wrist/IsAlignedToPosition", self._isAlignedToPosition)
     SmartDashboard.putString("Robot/Wrist/Position", self._position.name)
-    SmartDashboard.putNumber("Robot/Wrist/Current", self._motor.getOutputCurrent())

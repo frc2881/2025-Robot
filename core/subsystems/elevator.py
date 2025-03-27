@@ -9,7 +9,7 @@ from core.classes import ElevatorPosition, ElevatorStage
 import core.constants as constants
 
 class Elevator(Subsystem):
-  def __init__(self):
+  def __init__(self) -> None:
     super().__init__()
     self._constants = constants.Subsystems.Elevator
 

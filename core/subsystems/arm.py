@@ -7,7 +7,7 @@ from lib.components.position_control_module import PositionControlModule
 import core.constants as constants
 
 class Arm(Subsystem):
-  def __init__(self):
+  def __init__(self) -> None:
     super().__init__()
     self._constants = constants.Subsystems.Arm
 

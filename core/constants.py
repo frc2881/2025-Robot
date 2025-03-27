@@ -192,20 +192,20 @@ class Subsystems:
     kPositionClosed: float = 1.0
 
   class Intake:
-    kIntakeConfig = PositionControlModuleConfig("Intake", 15, None, True, PositionControlModuleConstants(
+    kIntakeConfig = PositionControlModuleConfig("Intake", 15, None, False, PositionControlModuleConstants(
       distancePerRotation = 1.0,
       motorControllerType = SparkLowLevel.SparkModel.kSparkMax,
       motorType = SparkLowLevel.MotorType.kBrushless,
-      motorCurrentLimit = 80,
+      motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-1.0, 0.6),
-      motorMotionMaxVelocity = 15000.0,
-      motorMotionMaxAcceleration = 30000.0,
+      motorOutputRange = Range(-1.0, 1.0),
+      motorMotionMaxVelocity = 6000.0,
+      motorMotionMaxAcceleration = 12000.0,
       motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.25,
-      motorSoftLimitForward = 70.75,
-      motorSoftLimitReverse = 0.5,
+      motorSoftLimitForward = 10.0, # TODO: calculate correct value after mechanism install
+      motorSoftLimitReverse = 0.5, # TODO: calculate correct value after mechanism install (see intake position below)
       motorResetSpeed = 0.2
     ))
 
@@ -213,9 +213,11 @@ class Subsystems:
     kRollerMotorCurrentLimit: int = 40
     kRollersMotorIntakeSpeed: float = 1.0
     kRollersMotorEjectSpeed: float = -0.3
+    kRollersMotorScoringSpeed: float = -0.2 # TODO: placeholder for potential L1 reef coral scoring speed if practical
 
-    kIntakePosition: float = 0.0
-    kTransitionPosition: float = 0.0
+    kIntakePosition: float = 0.0 # TODO: calculate correct value after mechanism install
+    kTransitionPosition: float = 0.0 # TODO: assume hard stop (0) is the correct position for handoff to gripper, but confirm after mechanism install
+    kScoringPosition: float = 0.0 # TODO: placeholder for potential L1 reef coral scoring position if practical
 
 class Services:
   class Localization:

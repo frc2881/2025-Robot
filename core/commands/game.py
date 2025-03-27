@@ -130,6 +130,8 @@ class Game:
       self.alignRobotToTargetPosition(TargetPositionType.IntakeReady)
     )
   
+  # TODO: combine the intake and handoff sequences into one flow based on whether the intake sensor detects a coral in the right position AND the intake has been retracted (i.e. intake out -> wait for coral sensor -> retract intake -> run handoff sequene to gripper -> lift and ready for target scoring alignment choice)
+  
   def moveCoralToGripper(self) -> Command:
     return cmd.sequence(
       self._robot.intake.alignToPosition(constants.Subsystems.Intake.kTransitionPosition),

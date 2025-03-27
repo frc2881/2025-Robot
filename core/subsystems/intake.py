@@ -8,13 +8,19 @@ from lib.components.position_control_module import PositionControlModule
 import core.constants as constants
 
 class Intake(Subsystem):
-  def __init__(self):
+  def __init__(
+      self,
+      intakeDistanceSensorHasTarget: Callable[[], bool]
+    ) -> None:
     super().__init__()
     self._constants = constants.Subsystems.Intake
+
+    self._intakeDistanceSensorHasTarget = intakeDistanceSensorHasTarget
 
     self._hasInitialZeroReset: bool = False
 
     self._intake = PositionControlModule(self._constants.kIntakeConfig)
+
     self._rollers = SparkMax(self._constants.kRollerMotorCANId, SparkBase.MotorType.kBrushed)
     self._sparkConfig = SparkBaseConfig()
     (self._sparkConfig
@@ -39,9 +45,7 @@ class Intake(Subsystem):
   
   def runRollers(self) -> Command:
     return self.runEnd(
-      lambda: self._rollers.set(
-        self._constants.kRollersMotorIntakeSpeed
-      ),
+      lambda: self._rollers.set(self._constants.kRollersMotorIntakeSpeed),
       lambda: self._resetRollers()
     ).withName("Hand:RunRoller")
   
@@ -56,9 +60,7 @@ class Intake(Subsystem):
   
   def eject(self) -> Command:
     return self.runEnd(
-      lambda: self._rollers.set(
-        self._constants.kRollersMotorEjectSpeed
-      ),
+      lambda: self._rollers.set(self._constants.kRollersMotorEjectSpeed),
       lambda: self._resetRollers()
     ).withName("Hand:RunRoller")
 
@@ -67,6 +69,12 @@ class Intake(Subsystem):
 
   def isAlignedToPosition(self) -> bool:
     return self._intake.isAlignedToPosition()
+  
+  def isIntakeEnabled(self) -> bool:
+    return self._rollers.get() != 0
+  
+  def isIntakeHolding(self) -> bool:
+    return self._intakeDistanceSensorHasTarget()
   
   def resetToZero(self) -> Command:
     return self._intake.resetToZero(self).withName("Intake:ResetToZero")
@@ -82,4 +90,5 @@ class Intake(Subsystem):
 
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Intake/IsAlignedToPosition", self.isAlignedToPosition())
-    SmartDashboard.putNumber("Robot/Hand/Rollers/Current", self._rollers.getOutputCurrent())
+    SmartDashboard.putBoolean("Robot/Intake/IsEnabled", self.isIntakeEnabled())
+    SmartDashboard.putBoolean("Robot/Intake/IsHolding", self.isIntakeHolding())

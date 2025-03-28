@@ -26,7 +26,7 @@ class Intake(Subsystem):
     (self._sparkConfig
       .setIdleMode(SparkBaseConfig.IdleMode.kBrake)
       .smartCurrentLimit(self._constants.kRollerMotorCurrentLimit)
-      .inverted(False))
+      .inverted(True))
     utils.setSparkConfig(
       self._rollers.configure(
         self._sparkConfig,
@@ -37,6 +37,12 @@ class Intake(Subsystem):
 
   def periodic(self) -> None:
     self._updateTelemetry()
+
+  def default(self, getInput: Callable[[], units.percent]) -> Command:
+    return self.runEnd(
+      lambda: self._intake.setSpeed(getInput() * self._constants.kInputLimit),
+      lambda: self.reset()
+    ).withName("Arm:Run")
   
   def alignToPosition(self, position: units.inches) -> Command:
     return self.run(
@@ -58,11 +64,17 @@ class Intake(Subsystem):
       lambda: self._resetRollers()
     ).withName("Intake:Intake")
   
+  def handoff(self) -> Command:
+    return self.runEnd(
+      lambda: self._rollers.set(self._constants.kRollersMotorHandoffSpeed),
+      lambda: self._resetRollers()
+    ).withName("Hand:Handoff")
+  
   def eject(self) -> Command:
     return self.runEnd(
       lambda: self._rollers.set(self._constants.kRollersMotorEjectSpeed),
       lambda: self._resetRollers()
-    ).withName("Hand:RunRoller")
+    ).withName("Hand:Eject")
 
   def getPosition(self) -> units.inches:
     return self._intake.getPosition()

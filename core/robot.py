@@ -125,9 +125,12 @@ class RobotCore:
     self.elevator.setDefaultCommand(
       self.elevator.default(self.operator.getLeftY)
     )
-    self.arm.setDefaultCommand(
-      self.arm.default(self.operator.getRightY)
+    self.intake.setDefaultCommand(
+      self.intake.default(self.operator.getRightY)
     )
+    # self.arm.setDefaultCommand(
+    #   self.arm.default(self.operator.getRightY)
+    # )
     self.operator.leftTrigger().whileTrue(
       self.game.intakeGripper()
     )
@@ -136,12 +139,10 @@ class RobotCore:
     )
     self.operator.leftBumper().whileTrue(
       self.game.intake()
-    ).onFalse(
-      self.game.moveCoralToGripper() # TODO: definitely do not want to do this and assume that a coral is in the intake
     )
-    # self.operator.rightBumper().onTrue(
-      
-    # )
+    self.operator.rightBumper().onTrue(
+      self.intake.eject()
+    )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )

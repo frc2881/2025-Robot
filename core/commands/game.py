@@ -126,27 +126,33 @@ class Game:
     )
   
   def intake(self) -> Command:
-    return cmd.sequence(
-      cmd.parallel(
-        self._robot.intake.intake()
-        # self.alignRobotToTargetPosition(TargetPositionType.IntakeReady)
-      ).until(lambda: self.isIntakeHolding() or self.isGripperHolding()),
-      # cmd.parallel(
-      #   self._robot.intake.alignToPosition(constants.Subsystems.Intake.kUpPosition),
-      #   cmd.waitUntil(lambda: self._robot.intake.isAlignedToPosition()).andThen(self.alignRobotToTargetPosition(TargetPositionType.IntakeReady)),
-      # ).until(lambda: self.isGripperHolding()),
-      # cmd.parallel(
-      #   self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].elevator, isParallel = False),
-      #   cmd.waitUntil(lambda: self._robot.elevator.isAboveIntake()).andThen(
-      #     self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].wrist)
-      #   ),
-      #   cmd.waitUntil(lambda: self._robot.elevator.isAboveIntake()).andThen(
-      #     self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm)
-      #   ),
-      #   self._robot.intake.handoff().until(lambda: self._robot.elevator.isAboveIntake())
-      # )
+    return cmd.parallel(
+      self._robot.intake.intake(),
+      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].elevator),
+      self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].wrist),
+      self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].arm)
     ).onlyIf(
       lambda: not self.isGripperHolding()
+    ).withName("Game:Intake")
+  
+  def moveCoralToGripper(self) -> Command:
+    return cmd.sequence(
+      cmd.parallel(
+        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].elevator),
+        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].arm),
+        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].wrist),
+        cmd.sequence(
+          self._robot.intake.alignToPosition(constants.Subsystems.Intake.kHandoffPosition).until(lambda: self.isRobotAlignedToTargetPosition()),
+          cmd.parallel(
+            self._robot.hand.runGripper(),
+            self._robot.intake.handoff()
+          )
+        ),
+      ).until(lambda: self.isGripperHolding()),
+      cmd.parallel(
+        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].elevator, isParallel = False),
+        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm)
+      )
     )
   
   def isRobotAlignedToTargetPosition(self) -> bool:

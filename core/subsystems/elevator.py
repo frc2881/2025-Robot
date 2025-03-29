@@ -68,7 +68,7 @@ class Elevator(Subsystem):
     return self.getPosition().lowerStage > self._constants.kLowerStageReefCoralL4Position
   
   def isAboveIntake(self) -> bool:
-    return self.getPosition().lowerStage > self._constants.kLowerStageReefCoralL4Position
+    return self.getPosition().lowerStage > self._constants.kLowerStageIntakePosition and self.getPosition().upperStage > self._constants.kUpperStageIntakePosition
   
   def setUpperStageSoftLimitsEnabled(self, isEnabled: bool) -> None:
     self._upperStage.setSoftLimitsEnabled(isEnabled)

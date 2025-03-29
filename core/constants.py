@@ -106,7 +106,7 @@ class Subsystems:
       motorCurrentLimit = 100,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.45, 0.5), # -0.9, 1.0
+      motorOutputRange = Range(-0.9, 1.0), # -0.9, 1.0
       motorMotionMaxVelocity = 7000.0,
       motorMotionMaxAcceleration = 14000.0,
       motorMotionVelocityFF = 1.0 / 6784,
@@ -126,7 +126,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.45, 0.5), # -0.9, 1.0
+      motorOutputRange = Range(-0.9, 1.0), # -0.9, 1.0
       motorMotionMaxVelocity = 6500.0,
       motorMotionMaxAcceleration = 13000.0,
       motorMotionVelocityFF = 1.0 / 6784,
@@ -138,7 +138,9 @@ class Subsystems:
 
     kLowerStageSoftLimitBuffer: units.inches = 1.5
     kLowerStageReefCoralL4Position: units.inches = 15.0
-    kLowerStageIntakePosition: units.inches = 10.0 # TODO
+    kLowerStageIntakePosition: units.inches = 7.0 # TODO
+
+    kUpperStageIntakePosition: units.inches = 10.0
 
     kCageDeepClimbUpSpeed = -0.5
     kCageDeepClimbDownSpeed = 0.3
@@ -153,7 +155,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-1.0, 0.6), 
+      motorOutputRange = Range(-1.0, 0.6),
       motorMotionMaxVelocity = 15000.0,
       motorMotionMaxAcceleration = 30000.0,
       motorMotionVelocityFF = 1.0 / 6784,
@@ -204,7 +206,7 @@ class Subsystems:
       motorMotionMaxVelocity = 12000.0,
       motorMotionMaxAcceleration = 24000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.5,
+      motorMotionAllowedClosedLoopError = 0.25,
       motorSoftLimitForward = 18.4,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.2
@@ -218,7 +220,8 @@ class Subsystems:
     kRollersMotorScoringSpeed: float = -0.2 # TODO: placeholder for potential L1 reef coral scoring speed if practical
 
     kIntakePosition: float = 18.4 # TODO: calculate correct value after mechanism install
-    kUpPosition: float = 0.5 # TODO: assume hard stop (0) is the correct position for handoff to gripper, but confirm after mechanism install
+    kHandoffPosition: float = 4.0
+    kUpPosition: float = 0.0 # TODO: assume hard stop (0) is the correct position for handoff to gripper, but confirm after mechanism install
     kScoringPosition: float = 0.0 # TODO: placeholder for potential L1 reef coral scoring position if practical
     kIntakeHoldSpeed: float = -0.01
 
@@ -357,8 +360,8 @@ class Game:
         TargetPositionType.FunnelReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Up),
         TargetPositionType.FunnelIntake: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
         TargetPositionType.FunnelLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
-        TargetPositionType.IntakeReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Up),
-        TargetPositionType.IntakeHandoff: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
-        TargetPositionType.IntakeLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
+        TargetPositionType.IntakeReady: TargetPosition(ElevatorPosition(15.0, Value.max), 38.0, Position.Down),
+        TargetPositionType.IntakeHandoff: TargetPosition(ElevatorPosition(2.9, Value.max), 38.0, Position.Down),
+        TargetPositionType.IntakeLift: TargetPosition(ElevatorPosition(15.0, Value.max), 38.0, Position.Down),
         TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.0), Value.max, Position.Up)
       }

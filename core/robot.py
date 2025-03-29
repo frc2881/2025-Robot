@@ -88,12 +88,12 @@ class RobotCore:
       self.game.intake()
     )
     # self.driver.leftTrigger().whileTrue(cmd.none())
-    self.driver.rightBumper().whileTrue(
-      self.intake.eject()
-    )
+    # self.driver.rightBumper().whileTrue(
+      
+    # )
     # self.driver.leftBumper().whileTrue(cmd.none())
     # self.driver.povUp().and_((self.driver.start()).not_()).whileTrue(cmd.none())
-    # self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(cmd.none())
+    self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(self.intake.eject())
     # self.driver.povLeft().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povRight().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.a().onTrue(cmd.none())
@@ -143,7 +143,9 @@ class RobotCore:
     self.operator.rightTrigger().onTrue(
       self.game.score()
     )
-    # self.operator.leftBumper().whileTrue(cmd.none())
+    self.operator.leftBumper().whileTrue(
+      self.game.moveCoralToGripper()
+    )
     # self.operator.rightBumper().onTrue(cmd.none())
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)

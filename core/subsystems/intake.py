@@ -41,6 +41,8 @@ class Intake(Subsystem):
   def default(self) -> Command:
     return self.run(
       lambda: self._intake.alignToPosition(self._constants.kUpPosition)
+    ).beforeStarting(
+      lambda: self._intake.reset()
     ).until(
       lambda: self.isAlignedToPosition()
     ).andThen(
@@ -49,7 +51,7 @@ class Intake(Subsystem):
       )
     ).finallyDo(
       lambda end: self.reset()
-    ).withName("Arm:Default")
+    ).withName("Intake:Default")
   
   def alignToPosition(self, position: units.inches) -> Command:
     return self.run(
@@ -60,7 +62,7 @@ class Intake(Subsystem):
     return self.runEnd(
       lambda: self._rollers.set(self._constants.kRollersMotorIntakeSpeed),
       lambda: self._rollers.stopMotor()
-    ).withName("Hand:RunRoller")
+    ).withName("Intake:RunRoller")
   
   def intake(self) -> Command:
     return self.runEnd(
@@ -73,15 +75,21 @@ class Intake(Subsystem):
   
   def handoff(self) -> Command:
     return self.runEnd(
-      lambda: self._rollers.set(self._constants.kRollersMotorHandoffSpeed),
+      lambda: [
+        self._intake.alignToPosition(self._constants.kHandoffPosition),
+        self._rollers.set(self._constants.kRollersMotorHandoffSpeed)
+      ],
       lambda: self._rollers.stopMotor()
-    ).withName("Hand:Handoff")
+    ).withName("Intake:Handoff")
   
   def eject(self) -> Command:
     return self.runEnd(
-      lambda: self._rollers.set(self._constants.kRollersMotorEjectSpeed),
+      lambda: [
+        self._intake.alignToPosition(self._constants.kIntakePosition),
+        self._rollers.set(self._constants.kRollersMotorEjectSpeed)
+      ],
       lambda: self._rollers.stopMotor()
-    ).withName("Hand:Eject")
+    ).withName("Intake:Eject")
 
   def getPosition(self) -> units.inches:
     return self._intake.getPosition()

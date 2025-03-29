@@ -44,7 +44,7 @@ class Game:
         TargetPositionType.CoralStation: self._alignRobotToTargetPositionCoralStation(),
         TargetPositionType.FunnelIntake: self._alignRobotToTargetPositionFunnelIntake(),
         TargetPositionType.IntakeReady: self._alignRobotToTargetPosition(TargetPositionType.IntakeReady),
-        TargetPositionType.Intake: self._alignRobotToTargetPosition(TargetPositionType.Intake),
+        TargetPositionType.IntakeHandoff: self._alignRobotToTargetPosition(TargetPositionType.IntakeHandoff),
         TargetPositionType.IntakeLift: self._alignRobotToTargetPosition(TargetPositionType.IntakeLift),
         TargetPositionType.CageDeepClimb: self._alignRobotToTargetPositionCageDeepClimb()
       }, 
@@ -105,17 +105,18 @@ class Game:
     self._isFunnelReady = isFunnelReady
   
   def _alignRobotToTargetPositionCageDeepClimb(self) -> Command: # TODO: Move the intake out first
-    return cmd.sequence(
-      cmd.waitSeconds(0.5),
-      self._robot.shield.setPosition(Position.Open),
-      cmd.runOnce(lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)),
-      cmd.parallel(
-        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
-        cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-          self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist)
-        ),
-        cmd.waitUntil(lambda: self._robot.wrist.isAlignedToPosition()).andThen(
-          self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
+    return cmd.parallel(
+      self._robot.intake.alignToPosition(constants.Subsystems.Intake.kIntakePosition),
+      cmd.sequence(
+        cmd.runOnce(lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)),
+        cmd.parallel(
+          self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
+          cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
+            self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist)
+          ),
+          cmd.waitUntil(lambda: self._robot.wrist.isAlignedToPosition()).andThen(
+            self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
+          )
         )
       )
     ).alongWith(
@@ -127,25 +128,27 @@ class Game:
   def intake(self) -> Command:
     return cmd.sequence(
       cmd.parallel(
-        self._robot.intake.intake(),
-        self.alignRobotToTargetPosition(TargetPositionType.IntakeReady)
-      ).until(lambda: self.isIntakeHolding()),
-      cmd.sequence(
-        cmd.parallel(
-          self._robot.intake.alignToPosition(constants.Subsystems.Intake.kTransitionPosition),
-          cmd.waitUntil(lambda: self._robot.intake.isAlignedToPosition()).andThen(self.alignRobotToTargetPosition(TargetPositionType.Intake)),
-        ).until(lambda: self.isGripperHolding()),
-        cmd.parallel(
-          self.alignRobotToTargetPosition(TargetPositionType.IntakeLift),
-          self._robot.intake.handoff().until(lambda: self._robot.elevator.isAboveIntake())
-        )
-      )
-    ).end(
-      self._robot.intake.alignToPosition(0.0).until(lambda: self._robot.intake.isAlignedToPosition()).withTimeout(1.0) # TODO: Make this not a magic number, add safety to check that arm is out of the way?
+        self._robot.intake.intake()
+        # self.alignRobotToTargetPosition(TargetPositionType.IntakeReady)
+      ).until(lambda: self.isIntakeHolding() or self.isGripperHolding()),
+      # cmd.parallel(
+      #   self._robot.intake.alignToPosition(constants.Subsystems.Intake.kUpPosition),
+      #   cmd.waitUntil(lambda: self._robot.intake.isAlignedToPosition()).andThen(self.alignRobotToTargetPosition(TargetPositionType.IntakeReady)),
+      # ).until(lambda: self.isGripperHolding()),
+      # cmd.parallel(
+      #   self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].elevator, isParallel = False),
+      #   cmd.waitUntil(lambda: self._robot.elevator.isAboveIntake()).andThen(
+      #     self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].wrist)
+      #   ),
+      #   cmd.waitUntil(lambda: self._robot.elevator.isAboveIntake()).andThen(
+      #     self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm)
+      #   ),
+      #   self._robot.intake.handoff().until(lambda: self._robot.elevator.isAboveIntake())
+      # )
+    ).onlyIf(
+      lambda: not self.isGripperHolding()
     )
   
-  # TODO: combine the intake and handoff sequences into one flow based on whether the intake sensor detects a coral in the right position AND the intake has been retracted (i.e. intake out -> wait for coral sensor -> retract intake -> run handoff sequene to gripper -> lift and ready for target scoring alignment choice)
-
   def isRobotAlignedToTargetPosition(self) -> bool:
     return (
       self._robot.elevator.isAlignedToPosition() and 

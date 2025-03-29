@@ -200,28 +200,29 @@ class Subsystems:
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.5, 0.5), # -1.0, 1.0
-      motorMotionMaxVelocity = 6000.0,
-      motorMotionMaxAcceleration = 12000.0,
+      motorOutputRange = Range(-0.35, 0.35), # -0.45, 0.45
+      motorMotionMaxVelocity = 12000.0,
+      motorMotionMaxAcceleration = 24000.0,
       motorMotionVelocityFF = 1.0 / 6784,
-      motorMotionAllowedClosedLoopError = 0.25,
-      motorSoftLimitForward = 20.0, # TODO: calculate correct value after mechanism install
-      motorSoftLimitReverse = 0.5, # TODO: calculate correct value after mechanism install (see intake position below)
+      motorMotionAllowedClosedLoopError = 0.5,
+      motorSoftLimitForward = 18.4,
+      motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.2
     ))
 
     kRollerMotorCANId: int = 21
-    kRollerMotorCurrentLimit: int = 40
-    kRollersMotorIntakeSpeed: float = 1.0
+    kRollerMotorCurrentLimit: int = 80
+    kRollersMotorIntakeSpeed: float = 0.8
     kRollersMotorHandoffSpeed: float = -0.1
     kRollersMotorEjectSpeed: float = -0.3
     kRollersMotorScoringSpeed: float = -0.2 # TODO: placeholder for potential L1 reef coral scoring speed if practical
 
-    kIntakePosition: float = 0.0 # TODO: calculate correct value after mechanism install
-    kTransitionPosition: float = 0.0 # TODO: assume hard stop (0) is the correct position for handoff to gripper, but confirm after mechanism install
+    kIntakePosition: float = 18.4 # TODO: calculate correct value after mechanism install
+    kUpPosition: float = 0.5 # TODO: assume hard stop (0) is the correct position for handoff to gripper, but confirm after mechanism install
     kScoringPosition: float = 0.0 # TODO: placeholder for potential L1 reef coral scoring position if practical
+    kIntakeHoldSpeed: float = -0.01
 
-    kInputLimit: units.percent = 0.5
+    kInputLimit: units.percent = 0.3
 
 class Services:
   class Localization:
@@ -357,7 +358,7 @@ class Game:
         TargetPositionType.FunnelIntake: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
         TargetPositionType.FunnelLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
         TargetPositionType.IntakeReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Up),
-        TargetPositionType.Intake: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
+        TargetPositionType.IntakeHandoff: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
         TargetPositionType.IntakeLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
         TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.0), Value.max, Position.Up)
       }

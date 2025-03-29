@@ -1,3 +1,4 @@
+from commands2 import Command, cmd
 from wpilib import DriverStation, SmartDashboard
 from lib import logger, utils
 from lib.classes import TargetAlignmentMode
@@ -84,10 +85,12 @@ class RobotCore:
       self.drive.lock()
     )
     self.driver.rightTrigger().whileTrue(
-      self.drive.lock()
+      self.game.intake()
     )
     # self.driver.leftTrigger().whileTrue(cmd.none())
-    # self.driver.rightBumper().whileTrue(cmd.none())
+    self.driver.rightBumper().whileTrue(
+      self.intake.eject()
+    )
     # self.driver.leftBumper().whileTrue(cmd.none())
     # self.driver.povUp().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(cmd.none())
@@ -101,13 +104,16 @@ class RobotCore:
     self.driver.x().whileTrue(
       self.elevator.default(lambda: constants.Subsystems.Elevator.kCageDeepClimbUpSpeed, ElevatorStage.Lower)
     )
-    # self.driver.start().and_((
-    #     self.driver.povLeft()
-    #     .or_(self.driver.povUp())
-    #     .or_(self.driver.povRight())
-    #     .or_(self.driver.povDown())
-    #   ).not_()
-    # ).onTrue(cmd.none())
+    self.driver.start().and_((
+        self.driver.povLeft()
+        .or_(self.driver.povUp())
+        .or_(self.driver.povRight())
+        .or_(self.driver.povDown())
+      ).not_()
+    ).whileTrue(
+      self.intake.resetToZero()
+    )
+
     self.driver.start().and_(self.driver.povLeft()).whileTrue(
       self.auto.moveToStartingPosition(1)
     )
@@ -126,23 +132,19 @@ class RobotCore:
       self.elevator.default(self.operator.getLeftY)
     )
     self.intake.setDefaultCommand(
-      self.intake.default(self.operator.getRightY)
+      self.intake.default()
     )
-    # self.arm.setDefaultCommand(
-    #   self.arm.default(self.operator.getRightY)
-    # )
+    self.arm.setDefaultCommand(
+      self.arm.default(self.operator.getRightY) #.onlyIf(lambda: not self.intake.isIntakeUp()) TODO
+    )
     self.operator.leftTrigger().whileTrue(
       self.game.intakeGripper()
     )
     self.operator.rightTrigger().onTrue(
       self.game.score()
     )
-    self.operator.leftBumper().whileTrue(
-      self.game.intake()
-    )
-    self.operator.rightBumper().onTrue(
-      self.intake.eject()
-    )
+    # self.operator.leftBumper().whileTrue(cmd.none())
+    # self.operator.rightBumper().onTrue(cmd.none())
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )
@@ -192,12 +194,6 @@ class RobotCore:
       self.elevator.default(self.operator.getLeftY, ElevatorStage.Lower)
     )
 
-    # l bumper is intake sequence
-    # r bumper is eject
-
-    # b algae l2
-    # y algae l3
-
   def _initLights(self) -> None:
     self.lights = Lights(
       self._hasAllZeroResets,
@@ -231,6 +227,7 @@ class RobotCore:
     self.drive.reset()
     self.elevator.reset()
     self.arm.reset()
+    self.intake.reset()
     self.wrist.reset()
     self.hand.reset()
     self.shield.reset()

@@ -20,7 +20,7 @@ class TargetPositionType(Enum):
   FunnelIntake = auto()
   FunnelLift = auto()
   IntakeReady = auto()
-  Intake = auto()
+  IntakeHandoff = auto()
   IntakeLift = auto()
   CageDeepClimb = auto()
 

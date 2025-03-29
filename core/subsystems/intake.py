@@ -2,7 +2,7 @@ from typing import Callable
 from commands2 import Subsystem, Command
 from wpilib import SmartDashboard
 from wpimath import units
-from rev import SparkMax, SparkBaseConfig, SparkBase
+from rev import SparkFlex, SparkBaseConfig, SparkBase
 from lib import logger, utils
 from lib.components.position_control_module import PositionControlModule
 import core.constants as constants
@@ -21,7 +21,7 @@ class Intake(Subsystem):
 
     self._intake = PositionControlModule(self._constants.kIntakeConfig)
 
-    self._rollers = SparkMax(self._constants.kRollerMotorCANId, SparkBase.MotorType.kBrushed)
+    self._rollers = SparkFlex(self._constants.kRollerMotorCANId, SparkBase.MotorType.kBrushless)
     self._sparkConfig = SparkBaseConfig()
     (self._sparkConfig
       .setIdleMode(SparkBaseConfig.IdleMode.kBrake)
@@ -38,11 +38,18 @@ class Intake(Subsystem):
   def periodic(self) -> None:
     self._updateTelemetry()
 
-  def default(self, getInput: Callable[[], units.percent]) -> Command:
-    return self.runEnd(
-      lambda: self._intake.setSpeed(getInput() * self._constants.kInputLimit),
-      lambda: self.reset()
-    ).withName("Arm:Run")
+  def default(self) -> Command:
+    return self.run(
+      lambda: self._intake.alignToPosition(self._constants.kUpPosition)
+    ).until(
+      lambda: self.isAlignedToPosition()
+    ).andThen(
+      self.run(
+        lambda: self._intake.setSpeed(self._constants.kIntakeHoldSpeed)
+      )
+    ).finallyDo(
+      lambda end: self.reset()
+    ).withName("Arm:Default")
   
   def alignToPosition(self, position: units.inches) -> Command:
     return self.run(
@@ -52,7 +59,7 @@ class Intake(Subsystem):
   def runRollers(self) -> Command:
     return self.runEnd(
       lambda: self._rollers.set(self._constants.kRollersMotorIntakeSpeed),
-      lambda: self._resetRollers()
+      lambda: self._rollers.stopMotor()
     ).withName("Hand:RunRoller")
   
   def intake(self) -> Command:
@@ -61,19 +68,19 @@ class Intake(Subsystem):
         self._intake.alignToPosition(self._constants.kIntakePosition),
         self._rollers.set(self._constants.kRollersMotorIntakeSpeed)
       ],
-      lambda: self._resetRollers()
+      lambda: self._rollers.stopMotor()
     ).withName("Intake:Intake")
   
   def handoff(self) -> Command:
     return self.runEnd(
       lambda: self._rollers.set(self._constants.kRollersMotorHandoffSpeed),
-      lambda: self._resetRollers()
+      lambda: self._rollers.stopMotor()
     ).withName("Hand:Handoff")
   
   def eject(self) -> Command:
     return self.runEnd(
       lambda: self._rollers.set(self._constants.kRollersMotorEjectSpeed),
-      lambda: self._resetRollers()
+      lambda: self._rollers.stopMotor()
     ).withName("Hand:Eject")
 
   def getPosition(self) -> units.inches:
@@ -83,10 +90,13 @@ class Intake(Subsystem):
     return self._intake.isAlignedToPosition()
   
   def isIntakeEnabled(self) -> bool:
-    return self._rollers.get() != 0
+    return self._rollers.get() != 0 # TODO: add to logic to use the intake position for out/deployed
   
   def isIntakeHolding(self) -> bool:
     return self._intakeDistanceSensorHasTarget()
+  
+  def isIntakeUp(self) -> bool:
+    return self._intake.getPosition() < 0.75
   
   def resetToZero(self) -> Command:
     return self._intake.resetToZero(self).withName("Intake:ResetToZero")
@@ -94,13 +104,12 @@ class Intake(Subsystem):
   def hasZeroReset(self) -> bool:
     return self._intake.hasZeroReset()
 
-  def resetIntake(self) -> None:
+  def reset(self) -> None:
     self._intake.reset()
-
-  def _resetRollers(self) -> None:
     self._rollers.stopMotor()
 
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Intake/IsAlignedToPosition", self.isAlignedToPosition())
     SmartDashboard.putBoolean("Robot/Intake/IsEnabled", self.isIntakeEnabled())
     SmartDashboard.putBoolean("Robot/Intake/IsHolding", self.isIntakeHolding())
+    SmartDashboard.putNumber("Robot/Intake/Rollers/Current", self._rollers.getOutputCurrent())

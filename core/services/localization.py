@@ -37,6 +37,7 @@ class Localization():
     self._robotPose = Pose2d()
     self._targets: dict[int, Target] = {}
     self._targetPoses: list[Pose2d] = []
+    self._hasVisionTarget: bool = False
     
     self._robotPosePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Robot/Localization/Pose", Pose2d).publish()
     SmartDashboard.putNumber("Game/Field/Length", constants.Game.Field.kLength)
@@ -50,6 +51,7 @@ class Localization():
     self._updateTelemetry()
 
   def _updateRobotPose(self) -> None:
+    hasVisionTarget = False
     self._poseEstimator.update(self._getGyroRotation(), self._getModulePositions())
     for poseSensor in self._poseSensors:
       if self._getIsAligningToTarget() and poseSensor.getCameraName() in ["RearLeft", "RearRight"]:
@@ -65,8 +67,10 @@ class Localization():
               if target.getBestCameraToTarget().translation().norm() <= constants.Services.Localization.kVisionMaxTargetDistance:
                 if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Services.Localization.kVisionMaxPoseAmbiguity):
                   self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
+                  hasVisionTarget = True
                   break
     self._robotPose = self._poseEstimator.getEstimatedPosition()
+    self._hasVisionTarget = hasVisionTarget
 
   def getRobotPose(self) -> Pose2d:
     return self._robotPose
@@ -87,10 +91,7 @@ class Localization():
     return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])
 
   def hasVisionTarget(self) -> bool:
-    for poseSensor in self._poseSensors:
-      if poseSensor.hasTarget():
-        return True
-    return False
+    return self._hasVisionTarget
 
   def _updateTelemetry(self) -> None:
     self._robotPosePublisher.set(self._robotPose)

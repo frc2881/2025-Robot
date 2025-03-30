@@ -43,9 +43,6 @@ class Game:
         TargetPositionType.ReefAlgaeL2: self._alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2),
         TargetPositionType.CoralStation: self._alignRobotToTargetPositionCoralStation(),
         TargetPositionType.FunnelIntake: self._alignRobotToTargetPositionFunnelIntake(),
-        TargetPositionType.IntakeReady: self._alignRobotToTargetPosition(TargetPositionType.IntakeReady),
-        TargetPositionType.IntakeHandoff: self._alignRobotToTargetPosition(TargetPositionType.IntakeHandoff),
-        TargetPositionType.IntakeLift: self._alignRobotToTargetPosition(TargetPositionType.IntakeLift),
         TargetPositionType.CageDeepClimb: self._alignRobotToTargetPositionCageDeepClimb()
       }, 
       lambda: targetPositionType
@@ -57,7 +54,7 @@ class Game:
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist),
       self._robot.hand.runGripper().unless(
-        lambda: targetPositionType in [ TargetPositionType.ReefAlgaeL3, TargetPositionType.ReefAlgaeL2, TargetPositionType.IntakeReady ]
+        lambda: targetPositionType in [ TargetPositionType.ReefAlgaeL3, TargetPositionType.ReefAlgaeL2 ]
       ),
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Driver)),
       cmd.runOnce(lambda: self._setIsFunnelReady(False))
@@ -100,23 +97,19 @@ class Game:
       ),
       lambda: not self._isFunnelReady
     )
-  
-  def _setIsFunnelReady(self, isFunnelReady: bool) -> None:
-    self._isFunnelReady = isFunnelReady
-  
-  def _alignRobotToTargetPositionCageDeepClimb(self) -> Command: # TODO: Move the intake out first
-    return cmd.parallel(
-      self._robot.intake.alignToPosition(constants.Subsystems.Intake.kIntakePosition),
-      cmd.sequence(
-        cmd.runOnce(lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)),
-        cmd.parallel(
-          self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
-          cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
-            self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist)
-          ),
-          cmd.waitUntil(lambda: self._robot.wrist.isAlignedToPosition()).andThen(
-            self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
-          )
+    
+  def _alignRobotToTargetPositionCageDeepClimb(self) -> Command:
+    return cmd.sequence(
+      cmd.waitSeconds(0.5),
+      self._robot.funnel.setPosition(Position.Open),
+      cmd.runOnce(lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)),
+      cmd.parallel(
+        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
+        cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
+          self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist)
+        ),
+        cmd.waitUntil(lambda: self._robot.wrist.isAlignedToPosition()).andThen(
+          self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
         )
       )
     ).alongWith(
@@ -124,37 +117,10 @@ class Game:
     ).finallyDo(
       lambda end: self._robot.elevator.setUpperStageSoftLimitsEnabled(True)
     )
-  
-  def intake(self) -> Command:
-    return cmd.parallel(
-      self._robot.intake.intake(),
-      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].elevator),
-      self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].wrist),
-      self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].arm)
-    ).onlyIf(
-      lambda: not self.isGripperHolding()
-    ).withName("Game:Intake")
-  
-  def moveCoralToGripper(self) -> Command:
-    return cmd.sequence(
-      cmd.parallel(
-        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].elevator),
-        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].arm),
-        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].wrist),
-        cmd.sequence(
-          self._robot.intake.alignToPosition(constants.Subsystems.Intake.kHandoffPosition).until(lambda: self.isRobotAlignedToTargetPosition()),
-          cmd.parallel(
-            self._robot.hand.runGripper(),
-            self._robot.intake.handoff()
-          )
-        ),
-      ).until(lambda: self.isGripperHolding()),
-      cmd.parallel(
-        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].elevator, isParallel = False),
-        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm)
-      )
-    )
-  
+    
+  def _setIsFunnelReady(self, isFunnelReady: bool) -> None:
+    self._isFunnelReady = isFunnelReady
+
   def isRobotAlignedToTargetPosition(self) -> bool:
     return (
       self._robot.elevator.isAlignedToPosition() and 
@@ -167,14 +133,11 @@ class Game:
       isManual = True
     ).alongWith(
       self._robot.wrist.refreshPosition()
-    ).withName("Game:IntakeManual")
+    ).withName("Game:IntakeGripper")
   
   def isGripperHolding(self) -> bool:
     return self._robot.hand.isGripperHolding()
   
-  def isIntakeHolding(self) -> bool:
-    return self._robot.intakeDistanceSensor.hasTarget()
-
   def score(self) -> Command:
     return cmd.either(
       self._robot.hand.releaseGripper(isLowSpeed = True),

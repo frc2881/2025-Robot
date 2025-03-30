@@ -13,7 +13,7 @@ from core.subsystems.elevator import Elevator
 from core.subsystems.arm import Arm
 from core.subsystems.wrist import Wrist
 from core.subsystems.hand import Hand
-from core.subsystems.shield import Shield
+from core.subsystems.funnel import Funnel
 from core.subsystems.intake import Intake
 from core.services.localization import Localization
 from core.services.lights import Lights
@@ -35,7 +35,6 @@ class RobotCore:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
     self.gripperDistanceSensor = DistanceSensor(constants.Sensors.Distance.Gripper.kConfig)
-    self.intakeDistanceSensor = DistanceSensor(constants.Sensors.Distance.Intake.kConfig)
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
   def _initSubsystems(self) -> None:
@@ -44,8 +43,7 @@ class RobotCore:
     self.arm = Arm()
     self.wrist = Wrist()
     self.hand = Hand(self.gripperDistanceSensor.hasTarget)
-    self.intake = Intake(self.intakeDistanceSensor.hasTarget)
-    self.shield = Shield()
+    self.funnel = Funnel()
     
   def _initServices(self) -> None:
     self.localization = Localization(
@@ -84,16 +82,12 @@ class RobotCore:
     self.driver.leftStick().whileTrue(
       self.drive.lock()
     )
-    self.driver.rightTrigger().whileTrue(
-      self.game.intake()
-    )
+    # self.driver.rightTrigger().whileTrue(cmd.none())
     # self.driver.leftTrigger().whileTrue(cmd.none())
     # self.driver.rightBumper().whileTrue(cmd.none())
     # self.driver.leftBumper().whileTrue(cmd.none())
     # self.driver.povUp().and_((self.driver.start()).not_()).whileTrue(cmd.none())
-    self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(
-      self.intake.eject()
-    )
+    # self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povLeft().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povRight().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.a().onTrue(cmd.none())
@@ -104,16 +98,13 @@ class RobotCore:
     self.driver.x().whileTrue(
       self.elevator.default(lambda: constants.Subsystems.Elevator.kCageDeepClimbUpSpeed, ElevatorStage.Lower)
     )
-    self.driver.start().and_((
-        self.driver.povLeft()
-        .or_(self.driver.povUp())
-        .or_(self.driver.povRight())
-        .or_(self.driver.povDown())
-      ).not_()
-    ).whileTrue(
-      self.intake.resetToZero()
-    )
-
+    # self.driver.start().and_((
+    #     self.driver.povLeft()
+    #     .or_(self.driver.povUp())
+    #     .or_(self.driver.povRight())
+    #     .or_(self.driver.povDown())
+    #   ).not_()
+    # ).onTrue(cmd.none())
     self.driver.start().and_(self.driver.povLeft()).whileTrue(
       self.auto.moveToStartingPosition(1)
     )
@@ -131,11 +122,8 @@ class RobotCore:
     self.elevator.setDefaultCommand(
       self.elevator.default(self.operator.getLeftY)
     )
-    self.intake.setDefaultCommand(
-      self.intake.default()
-    )
     self.arm.setDefaultCommand(
-      self.arm.default(self.operator.getRightY) # TODO: .onlyIf(lambda: not self.intake.isIntakeUp())
+      self.arm.default(self.operator.getRightY)
     )
     self.operator.leftTrigger().whileTrue(
       self.game.intakeGripper()
@@ -144,11 +132,9 @@ class RobotCore:
       self.game.score()
     )
     self.operator.leftBumper().whileTrue(
-      self.game.moveCoralToGripper()
+      self.game.alignRobotToTargetPosition(TargetPositionType.FunnelIntake)
     )
-    # self.operator.rightBumper().whileTrue(
-    #   self.intake.alignToPosition(constants.Subsystems.Intake.kHandoffPosition)
-    # )
+    # self.operator.rightBumper().whileTrue(cmd.none())
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )
@@ -231,10 +217,9 @@ class RobotCore:
     self.drive.reset()
     self.elevator.reset()
     self.arm.reset()
-    self.intake.reset()
     self.wrist.reset()
     self.hand.reset()
-    self.shield.reset()
+    self.funnel.reset()
 
   def _hasAllZeroResets(self) -> bool:
     return utils.isCompetitionMode() or (

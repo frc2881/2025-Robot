@@ -4,10 +4,10 @@ from lib import logger, utils
 from lib.classes import Position
 import core.constants as constants
 
-class Shield(Subsystem):
+class Funnel(Subsystem):
   def __init__(self) -> None:
     super().__init__()
-    self._constants = constants.Subsystems.Shield
+    self._constants = constants.Subsystems.Funnel
 
     self._position = Position.Closed
 
@@ -26,7 +26,7 @@ class Shield(Subsystem):
       lambda: setattr(self, "_position", position)
     ).withTimeout(
       self._constants.kServoSetPositionTimeout
-    ).withName("Shield:SetPosition")
+    ).withName("Funnel:SetPosition")
   
   def getPosition(self) -> Position:
     return self._position
@@ -36,4 +36,4 @@ class Shield(Subsystem):
     self._position = Position.Closed
 
   def _updateTelemetry(self) -> None:
-    SmartDashboard.putString("Robot/Shield/Position", self._position.name)
+    SmartDashboard.putString("Robot/Funnel/Position", self._position.name)

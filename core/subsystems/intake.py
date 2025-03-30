@@ -49,8 +49,6 @@ class Intake(Subsystem):
       self.run(
         lambda: self._intake.setSpeed(self._constants.kIntakeHoldSpeed)
       )
-    ).finallyDo(
-      lambda end: self.reset()
     ).withName("Intake:Default")
   
   def alignToPosition(self, position: units.inches) -> Command:
@@ -86,7 +84,7 @@ class Intake(Subsystem):
     return self.runEnd(
       lambda: [
         self._intake.alignToPosition(self._constants.kIntakePosition),
-        self._rollers.set(self._constants.kRollersMotorEjectSpeed)
+        self._rollers.set(self._constants.kRollersMotorEjectSpeed if self.isAlignedToPosition() else 0)
       ],
       lambda: self._rollers.stopMotor()
     ).withName("Intake:Eject")

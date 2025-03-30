@@ -90,12 +90,12 @@ class Subsystems:
     kTargetAlignmentConstants = TargetAlignmentConstants(
       rotationPID = PID(0.1, 0, 0),
       rotationTolerance = Tolerance(0.25, 0.5),
-      rotationSpeedMax = kRotationSpeedMax * 0.2, 
+      rotationSpeedMax = kRotationSpeedMax * 0.25, 
       rotationHeadingModeOffset = 0.0,
       rotationTranslationModeOffset = 180,
       translationPID = PID(5.0, 0, 0),
       translationTolerance = Tolerance(0.025, 0.05),
-      translationSpeedMax = kTranslationSpeedMax * 0.2
+      translationSpeedMax = kTranslationSpeedMax * 0.25
     )
 
   class Elevator:
@@ -106,7 +106,7 @@ class Subsystems:
       motorCurrentLimit = 100,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.9, 1.0), # -0.9, 1.0
+      motorOutputRange = Range(-0.9, 1.0),
       motorMotionMaxVelocity = 7000.0,
       motorMotionMaxAcceleration = 14000.0,
       motorMotionVelocityFF = 1.0 / 6784,
@@ -126,7 +126,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.9, 1.0), # -0.9, 1.0
+      motorOutputRange = Range(-0.9, 1.0),
       motorMotionMaxVelocity = 6500.0,
       motorMotionMaxAcceleration = 13000.0,
       motorMotionVelocityFF = 1.0 / 6784,
@@ -138,13 +138,8 @@ class Subsystems:
 
     kLowerStageSoftLimitBuffer: units.inches = 1.5
     kLowerStageReefCoralL4Position: units.inches = 15.0
-    kLowerStageIntakePosition: units.inches = 7.0 # TODO
-
-    kUpperStageIntakePosition: units.inches = 10.0
-
     kCageDeepClimbUpSpeed = -0.5
     kCageDeepClimbDownSpeed = 0.3
-
     kInputLimit: units.percent = 0.5
 
   class Arm:
@@ -167,7 +162,6 @@ class Subsystems:
 
     kCoralStationSafePosition: units.inches = 30.0
     kReefCoralL1Position: units.inches = 20.0
-    
     kInputLimit: units.percent = 0.6
 
   class Wrist:
@@ -202,7 +196,7 @@ class Subsystems:
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.35, 0.35), # -0.45, 0.45
+      motorOutputRange = Range(-0.35, 0.35),
       motorMotionMaxVelocity = 12000.0,
       motorMotionMaxAcceleration = 24000.0,
       motorMotionVelocityFF = 1.0 / 6784,
@@ -218,13 +212,11 @@ class Subsystems:
     kRollersMotorHandoffSpeed: float = -0.1
     kRollersMotorEjectSpeed: float = -0.3
     kRollersMotorScoringSpeed: float = -0.2 # TODO: placeholder for potential L1 reef coral scoring speed if practical
-
-    kIntakePosition: float = 18.4 # TODO: calculate correct value after mechanism install
+    kIntakePosition: float = 18.4
     kHandoffPosition: float = 4.0
-    kUpPosition: float = 0.0 # TODO: assume hard stop (0) is the correct position for handoff to gripper, but confirm after mechanism install
+    kUpPosition: float = 0.0
     kScoringPosition: float = 0.0 # TODO: placeholder for potential L1 reef coral scoring position if practical
     kIntakeHoldSpeed: float = -0.01
-
     kInputLimit: units.percent = 0.3
 
 class Services:

@@ -88,12 +88,12 @@ class RobotCore:
       self.game.intake()
     )
     # self.driver.leftTrigger().whileTrue(cmd.none())
-    # self.driver.rightBumper().whileTrue(
-      
-    # )
+    # self.driver.rightBumper().whileTrue(cmd.none())
     # self.driver.leftBumper().whileTrue(cmd.none())
     # self.driver.povUp().and_((self.driver.start()).not_()).whileTrue(cmd.none())
-    self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(self.intake.eject())
+    self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(
+      self.intake.eject()
+    )
     # self.driver.povLeft().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povRight().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.a().onTrue(cmd.none())
@@ -135,7 +135,7 @@ class RobotCore:
       self.intake.default()
     )
     self.arm.setDefaultCommand(
-      self.arm.default(self.operator.getRightY) #.onlyIf(lambda: not self.intake.isIntakeUp()) TODO
+      self.arm.default(self.operator.getRightY) # TODO: .onlyIf(lambda: not self.intake.isIntakeUp())
     )
     self.operator.leftTrigger().whileTrue(
       self.game.intakeGripper()
@@ -146,7 +146,9 @@ class RobotCore:
     self.operator.leftBumper().whileTrue(
       self.game.moveCoralToGripper()
     )
-    # self.operator.rightBumper().onTrue(cmd.none())
+    # self.operator.rightBumper().whileTrue(
+    #   self.intake.alignToPosition(constants.Subsystems.Intake.kHandoffPosition)
+    # )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )

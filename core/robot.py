@@ -14,7 +14,6 @@ from core.subsystems.arm import Arm
 from core.subsystems.wrist import Wrist
 from core.subsystems.hand import Hand
 from core.subsystems.funnel import Funnel
-from core.subsystems.intake import Intake
 from core.services.localization import Localization
 from core.services.lights import Lights
 from core.classes import TargetAlignmentLocation, TargetPositionType, ElevatorStage
@@ -82,7 +81,9 @@ class RobotCore:
     self.driver.leftStick().whileTrue(
       self.drive.lock()
     )
-    # self.driver.rightTrigger().whileTrue(cmd.none())
+    self.driver.rightTrigger().whileTrue(
+      self.drive.lock()
+    )
     # self.driver.leftTrigger().whileTrue(cmd.none())
     # self.driver.rightBumper().whileTrue(cmd.none())
     # self.driver.leftBumper().whileTrue(cmd.none())
@@ -126,15 +127,17 @@ class RobotCore:
       self.arm.default(self.operator.getRightY)
     )
     self.operator.leftTrigger().whileTrue(
-      self.game.intakeGripper()
+      self.game.runGripper()
     )
     self.operator.rightTrigger().onTrue(
-      self.game.score()
+      self.game.scoreCoral()
     )
     self.operator.leftBumper().whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.FunnelIntake)
     )
-    # self.operator.rightBumper().whileTrue(cmd.none())
+    self.operator.rightBumper().onTrue(
+      self.wrist.togglePosition()
+    )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)
     )
@@ -187,7 +190,7 @@ class RobotCore:
   def _initLights(self) -> None:
     self.lights = Lights(
       self._hasAllZeroResets,
-      self.localization.hasVisionTarget,
+      self.localization.hasValidVisionTarget,
       self.game.isGripperHolding,
       self.game.isRobotAlignedForScoring
     )
@@ -222,9 +225,11 @@ class RobotCore:
     self.funnel.reset()
 
   def _hasAllZeroResets(self) -> bool:
-    return utils.isCompetitionMode() or (
-      self.elevator.hasZeroReset() and self.arm.hasZeroReset()
+    return (
+      self.elevator.hasZeroReset() and self.arm.hasZeroReset() 
+      if not utils.isCompetitionMode() else 
+      True
     )
-
+      
   def _updateTelemetry(self) -> None:
     SmartDashboard.putBoolean("Robot/Status/HasAllZeroResets", self._hasAllZeroResets())

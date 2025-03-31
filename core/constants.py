@@ -168,10 +168,10 @@ class Subsystems:
     kMotorCANId: int = 13
     kMotorCurrentLimit: int = 20
     kMotorUpSpeed: units.percent = 0.7
-    kMotorDownSpeed: units.percent = 0.1
+    kMotorDownSpeed: units.percent = 0.15
     kMotorHoldUpSpeed: units.percent = 0.5
     kMotorHoldDownSpeed: units.percent = 1.0
-    kSetPositionTimeout: units.seconds = 0.8
+    kSetPositionTimeout: units.seconds = 1.0
 
   class Hand:
     kGripperMotorCANId: int = 14

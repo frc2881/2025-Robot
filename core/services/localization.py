@@ -37,7 +37,7 @@ class Localization():
     self._robotPose = Pose2d()
     self._targets: dict[int, Target] = {}
     self._targetPoses: list[Pose2d] = []
-    self._hasVisionTarget: bool = False
+    self._hasValidVisionTarget: bool = False
     
     self._robotPosePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Robot/Localization/Pose", Pose2d).publish()
     SmartDashboard.putNumber("Game/Field/Length", constants.Game.Field.kLength)
@@ -70,7 +70,7 @@ class Localization():
                   hasVisionTarget = True
                   break
     self._robotPose = self._poseEstimator.getEstimatedPosition()
-    self._hasVisionTarget = hasVisionTarget
+    self._hasValidVisionTarget = hasVisionTarget
 
   def getRobotPose(self) -> Pose2d:
     return self._robotPose
@@ -90,8 +90,9 @@ class Localization():
       targetAlignmentLocation = TargetAlignmentLocation.LeftL4 if targetAlignmentLocation == TargetAlignmentLocation.Left else TargetAlignmentLocation.RightL4
     return target.pose.transformBy(constants.Game.Field.Targets.kTargetAlignmentTransforms[target.type][targetAlignmentLocation])
 
-  def hasVisionTarget(self) -> bool:
-    return self._hasVisionTarget
+  def hasValidVisionTarget(self) -> bool:
+    return self._hasValidVisionTarget
 
   def _updateTelemetry(self) -> None:
+    SmartDashboard.putBoolean("Robot/Localization/HasValidVisionTarget", self._hasValidVisionTarget)
     self._robotPosePublisher.set(self._robotPose)

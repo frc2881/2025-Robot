@@ -9,13 +9,13 @@ class Lights():
   def __init__(
       self,
       hasAllZeroResets: Callable[[], bool],
-      hasVisionTarget: Callable[[], bool],
+      hasValidVisionTarget: Callable[[], bool],
       isGripperHolding: Callable[[], bool],
       isRobotAlignedForScoring: Callable[[], bool]
     ) -> None:
     super().__init__()
     self._hasAllZeroResets = hasAllZeroResets
-    self._hasVisionTarget = hasVisionTarget
+    self._hasValidVisionTarget = hasValidVisionTarget
     self._isGripperHolding = isGripperHolding
     self._isRobotAlignedForScoring = isRobotAlignedForScoring
 
@@ -35,7 +35,7 @@ class Lights():
       if not utils.isCompetitionMode() and not self._hasAllZeroResets():
         self._lightsController.setMode(LightsMode.RobotNotReset)
         return
-      if utils.isCompetitionMode() and not self._hasVisionTarget():
+      if utils.isCompetitionMode() and not self._hasValidVisionTarget():
         self._lightsController.setMode(LightsMode.VisionNotReady)
         return
     else:

@@ -60,8 +60,9 @@ class Auto:
     self._autos.addOption("[2R]_22", self.auto_2R_22)
     self._autos.addOption("[2L]_21", self.auto_2L_21)
     self._autos.addOption("[2L]_2", self.auto_2L_2)
-    
+
     self._autos.onChange(lambda auto: setattr(self, "_auto", auto()))
+
     SmartDashboard.putData("Robot/Auto", self._autos)
 
   def get(self) -> Command:
@@ -88,7 +89,7 @@ class Auto:
         self._move(autoPath),
         self._alignToTarget(targetAlignmentLocation))
       .deadlineFor(self._alignForScoring())
-      .andThen(cmd.waitSeconds(0.2).andThen(self._robot.game.score()))
+      .andThen(cmd.waitSeconds(0.2).andThen(self._robot.game.scoreCoral()))
     )
   
   def _moveAlignIntake(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:

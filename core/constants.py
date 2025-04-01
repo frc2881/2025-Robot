@@ -236,7 +236,7 @@ class Sensors:
       PoseSensorConfig(
         "RearRight",
         Transform3d(
-          Translation3d(units.inchesToMeters(-8.3236), units.inchesToMeters(-7.2958), units.inchesToMeters(36.1515)),
+          Translation3d(units.inchesToMeters(-8.8236), units.inchesToMeters(-7.2958), units.inchesToMeters(36.1515)),
           Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(-165.0))
         ), _poseSensorConstants
       )

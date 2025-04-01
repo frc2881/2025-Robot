@@ -1,6 +1,6 @@
 from typing import Callable
 from ntcore import NetworkTableInstance
-from wpilib import SmartDashboard
+from wpilib import SmartDashboard, Timer
 from wpimath.geometry import Rotation2d, Pose2d, Pose3d
 from wpimath.kinematics import SwerveModulePosition
 from wpimath.estimator import SwerveDrive4PoseEstimator
@@ -38,6 +38,7 @@ class Localization():
     self._targets: dict[int, Target] = {}
     self._targetPoses: list[Pose2d] = []
     self._hasValidVisionTarget: bool = False
+    self._validVisionTargetBufferTimer = Timer()
     
     self._robotPosePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Robot/Localization/Pose", Pose2d).publish()
     SmartDashboard.putNumber("Game/Field/Length", constants.Game.Field.kLength)
@@ -70,7 +71,12 @@ class Localization():
                   hasVisionTarget = True
                   break
     self._robotPose = self._poseEstimator.getEstimatedPosition()
-    self._hasValidVisionTarget = hasVisionTarget
+    if hasVisionTarget:
+      self._hasValidVisionTarget = True
+      self._validVisionTargetBufferTimer.restart()
+    else:
+      if self._hasValidVisionTarget and self._validVisionTargetBufferTimer.hasElapsed(0.1):
+        self._hasValidVisionTarget = False
 
   def getRobotPose(self) -> Pose2d:
     return self._robotPose

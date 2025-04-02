@@ -131,7 +131,7 @@ class Subsystems:
       motorMotionMaxAcceleration = 13000.0,
       motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.25,
-      motorSoftLimitForward = 29.0,
+      motorSoftLimitForward = 28.75,
       motorSoftLimitReverse = 0.5,
       motorResetSpeed = 0.1
     ))
@@ -150,7 +150,7 @@ class Subsystems:
       motorCurrentLimit = 80,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-1.0, 0.6),
+      motorOutputRange = Range(-0.8, 0.6),
       motorMotionMaxVelocity = 15000.0,
       motorMotionMaxAcceleration = 30000.0,
       motorMotionVelocityFF = 1.0 / 6784,
@@ -312,11 +312,11 @@ class Game:
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(4.2, 28.0), 6.0, Position.Down),
         TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 14.30), 5.0, Position.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 15.0), 23.0, Position.Up),
-        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(7.0, 28.0), 18.5, Position.Up),
+        TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(8.0, 28.0), 18.5, Position.Up),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Up),
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), Value.min, Position.Up),
-        TargetPositionType.FunnelReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Up),
+        TargetPositionType.FunnelReady: TargetPosition(ElevatorPosition(Value.min, 17.0), Value.min, Position.Down),
         TargetPositionType.FunnelIntake: TargetPosition(ElevatorPosition(Value.min, Value.max), 54.0, Position.Down),
         TargetPositionType.FunnelLift: TargetPosition(ElevatorPosition(15.0, Value.max), 45.0, Position.Down),
-        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(7.0, 29.0), Value.max, Position.Up)
+        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(8.0, 29.0), Value.max, Position.Up)
       }

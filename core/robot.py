@@ -191,8 +191,9 @@ class RobotCore:
     self.lights = Lights(
       self._hasAllZeroResets,
       self.localization.hasValidVisionTarget,
+      self.game.isRobotAlignedForScoring,
       self.game.isGripperHolding,
-      self.game.isRobotAlignedForScoring
+      self.game.isFunnelReady
     )
 
   def _periodic(self) -> None:

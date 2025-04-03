@@ -61,6 +61,7 @@ class LightsMode(Enum):
   RobotNotConnected = auto()
   RobotNotReset = auto()
   VisionNotReady = auto()
+  FunnelReady = auto()
   IntakeReady = auto()
   ScoreReady = auto()
   ClimbReady = auto()

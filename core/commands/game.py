@@ -130,6 +130,9 @@ class Game:
   def _setIsFunnelReady(self, isFunnelReady: bool) -> None:
     self._isFunnelReady = isFunnelReady
 
+  def isFunnelReady(self) -> bool:
+    return self._isFunnelReady
+
   def runGripper(self) -> Command:
     return self._robot.hand.runGripper(
       isManual = True

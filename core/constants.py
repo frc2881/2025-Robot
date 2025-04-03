@@ -161,7 +161,7 @@ class Subsystems:
     ))
 
     kCoralStationSafePosition: units.inches = 30.0
-    kReefCoralL1Position: units.inches = 20.0
+    kReefCoralL1Position: units.inches = 10.0
     kInputLimit: units.percent = 0.6
 
   class Wrist:

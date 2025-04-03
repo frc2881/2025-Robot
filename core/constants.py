@@ -184,7 +184,7 @@ class Subsystems:
 
   class Funnel:
     kServoChannel: int = 9
-    kServoSetPositionTimeout: units.seconds = 1.0
+    kServoSetPositionTimeout: units.seconds = 0.5
     kPositionOpen: float = 1.0
     kPositionClosed: float = 0.0
 

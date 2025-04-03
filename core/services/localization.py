@@ -61,15 +61,15 @@ class Localization():
       if estimatedRobotPose is not None:
         pose = estimatedRobotPose.estimatedPose.toPose2d()
         if utils.isPoseInBounds(pose, constants.Game.Field.kBounds):
-          if estimatedRobotPose.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR:
-            self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
-          else:
-            for target in estimatedRobotPose.targetsUsed:
-              if target.getBestCameraToTarget().translation().norm() <= constants.Services.Localization.kVisionMaxTargetDistance:
-                if utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Services.Localization.kVisionMaxPoseAmbiguity):
-                  self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
-                  hasVisionTarget = True
-                  break
+          for target in estimatedRobotPose.targetsUsed:
+            if target.getBestCameraToTarget().translation().norm() <= constants.Services.Localization.kVisionMaxTargetDistance:
+              if (
+                estimatedRobotPose.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR or 
+                utils.isValueInRange(target.getPoseAmbiguity(), 0, constants.Services.Localization.kVisionMaxPoseAmbiguity)
+              ):
+                self._poseEstimator.addVisionMeasurement(pose, estimatedRobotPose.timestampSeconds)
+                hasVisionTarget = True
+                break
     self._robotPose = self._poseEstimator.getEstimatedPosition()
     if hasVisionTarget:
       self._hasValidVisionTarget = True

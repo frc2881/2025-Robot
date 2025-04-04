@@ -27,12 +27,6 @@
           "data": {
             "pathName": "Pickup4_2"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Move2_4L"
-          }
         }
       ]
     }

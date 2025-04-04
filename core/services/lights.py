@@ -1,6 +1,6 @@
 from typing import Callable
 from wpilib import DriverStation
-from lib.classes import RobotState
+from lib.classes import RobotState, RobotMode
 from lib.controllers.lights import Lights as LightsController
 from lib import logger, utils
 from core.classes import LightsMode
@@ -41,7 +41,7 @@ class Lights():
         self._lightsController.setMode(LightsMode.VisionNotReady)
         return
     else:
-      if utils.isValueInRange(utils.getMatchTime(), 0.02, 15):
+      if utils.getRobotMode() == RobotMode.Teleop and utils.isValueInRange(utils.getMatchTime(), 0.02, 15):
         self._lightsController.setMode(LightsMode.ClimbReady)
         return
       if self._isRobotAlignedForScoring():

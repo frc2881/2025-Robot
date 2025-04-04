@@ -138,7 +138,7 @@ class Subsystems:
 
     kLowerStageSoftLimitBuffer: units.inches = 1.5
     kLowerStageReefCoralL4Position: units.inches = 15.0
-    kCageDeepClimbUpSpeed = -0.5
+    kCageDeepClimbUpSpeed = -1.0
     kCageDeepClimbDownSpeed = 0.3
     kInputLimit: units.percent = 0.5
 

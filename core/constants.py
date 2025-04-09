@@ -259,7 +259,7 @@ class Controllers:
 
 class Game:
   class Commands:
-    kTargetAlignmentTimeout: units.seconds = 1.5
+    kTargetAlignmentTimeout: units.seconds = 2.0
     kAutoMoveTimeout: units.seconds = 4.0
 
   class Field:

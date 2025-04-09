@@ -8,12 +8,12 @@ import core.constants as constants
 class Hand(Subsystem):
   def __init__(
       self, 
-      gripperDistanceSensorHasTarget: Callable[[], bool]
+      gripperSensorHasTarget: Callable[[], bool]
     ) -> None:
     super().__init__()
     self._constants = constants.Subsystems.Hand
 
-    self._gripperDistanceSensorHasTarget = gripperDistanceSensorHasTarget
+    self._gripperSensorHasTarget = gripperSensorHasTarget
 
     self._gripperMotor = SparkFlex(self._constants.kGripperMotorCANId, SparkBase.MotorType.kBrushless)
     self._sparkConfig = SparkBaseConfig()
@@ -36,7 +36,7 @@ class Hand(Subsystem):
     return self.runEnd(
       lambda: self._gripperMotor.set(
         self._constants.kGripperMotorHoldSpeed 
-        if self._gripperDistanceSensorHasTarget() and not isManual else
+        if self._gripperSensorHasTarget() and not isManual else
         self._constants.kGripperMotorIntakeSpeed
       ),
       lambda: self._resetGripper()
@@ -58,7 +58,7 @@ class Hand(Subsystem):
     return self._gripperMotor.get() != 0
   
   def isGripperHolding(self) -> bool:
-    return self._gripperDistanceSensorHasTarget()
+    return self._gripperSensorHasTarget()
   
   def _resetGripper(self) -> None:
     self._gripperMotor.stopMotor()

@@ -14,8 +14,6 @@ class Game:
     ) -> None:
     self._robot = robot
 
-    self._isFunnelReady = False
-
   def alignRobotToTarget(self, targetAlignmentMode: TargetAlignmentMode, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return self._robot.drive.alignToTarget(
       self._robot.localization.getRobotPose, 
@@ -42,7 +40,9 @@ class Game:
         TargetPositionType.ReefAlgaeL3: self._alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3),
         TargetPositionType.ReefAlgaeL2: self._alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL2),
         TargetPositionType.CoralStation: self._alignRobotToTargetPositionCoralStation(),
-        TargetPositionType.FunnelIntake: self._alignRobotToTargetPositionFunnelIntake(),
+        TargetPositionType.IntakeReady: self._alignRobotToTargetPosition(TargetPositionType.IntakeReady),
+        TargetPositionType.IntakeHandoff: self._alignRobotToTargetPosition(TargetPositionType.IntakeHandoff),
+        TargetPositionType.IntakeLift: self._alignRobotToTargetPosition(TargetPositionType.IntakeLift),
         TargetPositionType.CageDeepClimb: self._alignRobotToTargetPositionCageDeepClimb()
       }, 
       lambda: targetPositionType
@@ -61,9 +61,12 @@ class Game:
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist),
       self._robot.hand.runGripper().unless(
-        lambda: targetPositionType in [ TargetPositionType.ReefAlgaeL3, TargetPositionType.ReefAlgaeL2 ]
+        lambda: targetPositionType in [ 
+          TargetPositionType.ReefAlgaeL3, 
+          TargetPositionType.ReefAlgaeL2, 
+          TargetPositionType.IntakeReady 
+        ]
       ),
-      cmd.runOnce(lambda: self._setIsFunnelReady(False)),
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
     )
 
@@ -77,49 +80,20 @@ class Game:
         self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CoralStation].wrist)
       ),
       self._robot.hand.runGripper(),
-      cmd.runOnce(lambda: self._setIsFunnelReady(False)),
       cmd.waitUntil(lambda: self.isGripperHolding()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
     )
 
-  def _alignRobotToTargetPositionFunnelIntake(self):
-    return cmd.either(
-      cmd.parallel(
-        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelReady].elevator, isParallel = False),
-        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelReady].arm),
-        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelReady].wrist),
-        cmd.runOnce(lambda: self._setIsFunnelReady(True))
-      ),
-      cmd.parallel(
-        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelIntake].elevator),
-        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelIntake].arm),
-        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelIntake].wrist),
-        self._robot.hand.runGripper(),
-        cmd.runOnce(lambda: self._setIsFunnelReady(False))
-      ).until(
-        lambda: self.isGripperHolding()
-      ).andThen(
-        cmd.parallel(
-          self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelLift].elevator),
-          self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelLift].arm),
-          self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.FunnelLift].wrist),
-          self._robot.hand.runGripper(),
-          cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Operator))
-        )
-      ),
-      lambda: not self._isFunnelReady
-    )
-    
   def _alignRobotToTargetPositionCageDeepClimb(self) -> Command:
     return cmd.sequence(
       cmd.waitSeconds(0.5),
-      self._robot.funnel.setPosition(Position.Open),
       cmd.runOnce(lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)),
       cmd.parallel(
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
         cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
           self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
         ),
-        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist)
+        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist),
+        self._robot.intake.alignToPosition(constants.Subsystems.Intake.kIntakePosition)
       )
     ).alongWith(
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
@@ -127,11 +101,35 @@ class Game:
       lambda end: self._robot.elevator.setUpperStageSoftLimitsEnabled(True)
     )
     
-  def _setIsFunnelReady(self, isFunnelReady: bool) -> None:
-    self._isFunnelReady = isFunnelReady
-
-  def isFunnelReady(self) -> bool:
-    return self._isFunnelReady
+  def intake(self) -> Command:
+    return cmd.parallel(
+      self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].elevator),
+      self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].wrist),
+      self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].arm),
+      self._robot.intake.intake()
+    ).onlyIf(
+      lambda: not self.isGripperHolding()
+    ).withName("Game:Intake")
+  
+  def moveCoralToGripper(self) -> Command:
+    return cmd.sequence(
+      cmd.parallel(
+        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].elevator),
+        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].arm),
+        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].wrist),
+        cmd.sequence(
+          self._robot.intake.alignToPosition(constants.Subsystems.Intake.kHandoffPosition).until(lambda: self.isRobotAlignedToTargetPosition()),
+          cmd.parallel(
+            self._robot.hand.runGripper(),
+            self._robot.intake.handoff()
+          )
+        ),
+      ).until(lambda: self.isGripperHolding()),
+      cmd.parallel(
+        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].elevator, isParallel = False),
+        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm)
+      )
+    )
 
   def runGripper(self) -> Command:
     return self._robot.hand.runGripper(
@@ -142,6 +140,9 @@ class Game:
   
   def isGripperHolding(self) -> bool:
     return self._robot.hand.isGripperHolding()
+  
+  def isIntakeHolding(self) -> bool:
+    return self._robot.intakeSensor.hasTarget()
   
   def scoreCoral(self) -> Command:
     return cmd.either(

@@ -16,9 +16,9 @@ class TargetPositionType(Enum):
   ReefAlgaeL3 = auto()
   ReefAlgaeL2 = auto()
   CoralStation = auto()
-  FunnelReady = auto()
-  FunnelIntake = auto()
-  FunnelLift = auto()
+  IntakeReady = auto()
+  IntakeHandoff = auto()
+  IntakeLift = auto()
   CageDeepClimb = auto()
 
 class TargetAlignmentLocation(Enum):
@@ -61,7 +61,6 @@ class LightsMode(Enum):
   RobotNotConnected = auto()
   RobotNotReset = auto()
   VisionNotReady = auto()
-  FunnelReady = auto()
   IntakeReady = auto()
   ScoreReady = auto()
   ClimbReady = auto()

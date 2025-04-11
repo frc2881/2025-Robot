@@ -35,19 +35,21 @@ class Intake(Subsystem):
       )
     )
 
+    self.setDefaultCommand(self.default())
+
   def periodic(self) -> None:
     self._updateTelemetry()
 
   def default(self) -> Command:
     return self.run(
-      lambda: self._intake.alignToPosition(self._constants.kUpPosition)
+      lambda: self._intake.alignToPosition(self._constants.kInPosition)
     ).beforeStarting(
       lambda: self._intake.reset()
     ).until(
       lambda: self.isAlignedToPosition()
     ).andThen(
       self.run(
-        lambda: self._intake.setSpeed(self._constants.kIntakeHoldSpeed)
+        lambda: self._intake.setSpeed(self._constants.kHoldSpeed)
       )
     ).withName("Intake:Default")
   
@@ -58,15 +60,15 @@ class Intake(Subsystem):
   
   def runRollers(self) -> Command:
     return self.runEnd(
-      lambda: self._rollers.set(self._constants.kRollersMotorIntakeSpeed),
+      lambda: self._rollers.set(self._constants.kRollerMotorIntakeSpeed),
       lambda: self._rollers.stopMotor()
     ).withName("Intake:RunRoller")
   
   def intake(self) -> Command:
     return self.runEnd(
       lambda: [
-        self._intake.alignToPosition(self._constants.kIntakePosition),
-        self._rollers.set(self._constants.kRollersMotorIntakeSpeed)
+        self._intake.alignToPosition(self._constants.kOutPosition),
+        self._rollers.set(self._constants.kRollerMotorIntakeSpeed)
       ],
       lambda: self._rollers.stopMotor()
     ).withName("Intake:Intake")
@@ -75,7 +77,7 @@ class Intake(Subsystem):
     return self.runEnd(
       lambda: [
         self._intake.alignToPosition(self._constants.kHandoffPosition),
-        self._rollers.set(self._constants.kRollersMotorHandoffSpeed)
+        self._rollers.set(self._constants.kRollerMotorHandoffSpeed)
       ],
       lambda: self._rollers.stopMotor()
     ).withName("Intake:Handoff")
@@ -83,12 +85,12 @@ class Intake(Subsystem):
   def eject(self) -> Command:
     return self.runEnd(
       lambda: [
-        self._intake.alignToPosition(self._constants.kIntakePosition),
-        self._rollers.set(self._constants.kRollersMotorEjectSpeed if self.isAlignedToPosition() else 0)
+        self._intake.alignToPosition(self._constants.kOutPosition),
+        self._rollers.set(self._constants.kRollerMotorEjectSpeed if self.isAlignedToPosition() else 0)
       ],
       lambda: self._rollers.stopMotor()
     ).withName("Intake:Eject")
-
+  
   def getPosition(self) -> units.inches:
     return self._intake.getPosition()
 
@@ -96,20 +98,20 @@ class Intake(Subsystem):
     return self._intake.isAlignedToPosition()
   
   def isIntakeEnabled(self) -> bool:
-    return self._rollers.get() != 0 # TODO: add to logic to use the intake position for out/deployed
+    return self._rollers.get() != 0
   
   def isIntakeHolding(self) -> bool:
     return self._intakeSensorHasTarget()
   
   def isIntakeUp(self) -> bool:
-    return self._intake.getPosition() < 0.75
+    return self._intake.getPosition() < 1.0
   
   def resetToZero(self) -> Command:
     return self._intake.resetToZero(self).withName("Intake:ResetToZero")
 
   def hasZeroReset(self) -> bool:
     return self._intake.hasZeroReset()
-
+  
   def reset(self) -> None:
     self._intake.reset()
     self._rollers.stopMotor()

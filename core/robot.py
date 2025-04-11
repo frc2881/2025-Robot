@@ -4,6 +4,7 @@ from lib import logger, utils
 from lib.classes import TargetAlignmentMode
 from lib.controllers.xbox import Xbox
 from lib.sensors.distance import DistanceSensor
+from lib.sensors.beambreak import BeamBreakSensor
 from lib.sensors.gyro_navx2 import Gyro_NAVX2
 from lib.sensors.pose import PoseSensor
 from core.commands.auto import Auto
@@ -34,7 +35,7 @@ class RobotCore:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
     self.gripperSensor = DistanceSensor(constants.Sensors.Distance.Gripper.kConfig)
-    self.intakeSensor = DistanceSensor(constants.Sensors.Distance.Intake.kConfig)
+    self.intakeSensor = BeamBreakSensor("Intake", constants.Sensors.BeamBreak.Intake.kChannel) 
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
   def _initSubsystems(self) -> None:
@@ -70,9 +71,6 @@ class RobotCore:
     self.drive.setDefaultCommand(
       self.drive.default(self.driver.getLeftY, self.driver.getLeftX, self.driver.getRightX)
     )
-    self.intake.setDefaultCommand(
-      self.intake.default()
-    )
     self.driver.rightStick().and_((self.driver.rightBumper().or_(self.driver.leftBumper())).not_()).whileTrue(
       self.game.alignRobotToTarget(TargetAlignmentMode.Translation, TargetAlignmentLocation.Center)
     )
@@ -85,10 +83,10 @@ class RobotCore:
     self.driver.leftStick().whileTrue(
       self.drive.lock()
     )
-    self.driver.rightTrigger().whileTrue(
+    self.driver.leftTrigger().whileTrue(
       self.game.scoreCoral()
     )
-    self.driver.leftTrigger().whileTrue(
+    self.driver.rightTrigger().whileTrue(
       self.game.intake()
     )
     # self.driver.rightBumper().whileTrue(cmd.none())
@@ -97,7 +95,7 @@ class RobotCore:
     # self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povLeft().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povRight().and_((self.driver.start()).not_()).whileTrue(cmd.none())
-    self.driver.a().onTrue(
+    self.driver.a().whileTrue(
       self.intake.eject()
     )
     # self.driver.b().whileTrue(cmd.none())

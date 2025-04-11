@@ -189,29 +189,31 @@ class Subsystems:
       motorType = SparkLowLevel.MotorType.kBrushless,
       motorCurrentLimit = 60,
       motorReduction = 1.0 / 1.0,
-      motorPID = PID(0.1, 0, 0.07),
-      motorOutputRange = Range(-0.35, 0.35),
+      motorPID = PID(0.1, 0, 0.08),
+      motorOutputRange = Range(-0.3, 0.2),
       motorMotionMaxVelocity = 12000.0,
       motorMotionMaxAcceleration = 24000.0,
       motorMotionVelocityFF = 1.0 / 6784,
       motorMotionAllowedClosedLoopError = 0.25,
-      motorSoftLimitForward = 18.4,
-      motorSoftLimitReverse = 0.5,
+      motorSoftLimitForward = 12.0,
+      motorSoftLimitReverse = 0.0,
       motorResetSpeed = 0.2
     ))
 
+    kInPosition: float = 0.0
+    kOutPosition: float = 12.0
+    kHandoffPosition: float = 0.0 # TODO: calibrate value
+    kScoringPosition: float = 0.0 # TODO: placeholder for potential L1 reef coral scoring position if practical
+    kHoldSpeed: float = -0.05
+    kInputLimit: units.percent = 0.3
+
     kRollerMotorCANId: int = 21
     kRollerMotorCurrentLimit: int = 80
-    kRollersMotorIntakeSpeed: float = 0.8
-    kRollersMotorHandoffSpeed: float = -0.1
-    kRollersMotorEjectSpeed: float = -0.3
-    kRollersMotorScoringSpeed: float = -0.2 # TODO: placeholder for potential L1 reef coral scoring speed if practical
-    kIntakePosition: float = 18.4
-    kHandoffPosition: float = 4.0
-    kUpPosition: float = 0.0
-    kScoringPosition: float = 0.0 # TODO: placeholder for potential L1 reef coral scoring position if practical
-    kIntakeHoldSpeed: float = -0.01
-    kInputLimit: units.percent = 0.3
+
+    kRollerMotorIntakeSpeed: float = 0.8
+    kRollerMotorHandoffSpeed: float = -0.1
+    kRollerMotorEjectSpeed: float = -0.4
+    kRollerMotorScoringSpeed: float = -0.2 # TODO: placeholder for potential L1 reef coral scoring speed if practical
 
 class Services:
   class Localization:
@@ -228,9 +230,10 @@ class Sensors:
   class Distance:
     class Gripper:
       kConfig = DistanceSensorConfig("Gripper", 1, 60)
-
+  
+  class BeamBreak:
     class Intake:
-      kConfig = DistanceSensorConfig("Intake", 1, 60)
+      kChannel = 9
 
   class Pose:
     _poseSensorConstants = PoseSensorConstants(
@@ -258,7 +261,7 @@ class Sensors:
         "RearLeft",
         Transform3d(
           Translation3d(units.inchesToMeters(-8.8236), units.inchesToMeters(7.2958), units.inchesToMeters(36.1419)),
-          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(167.5))
+          Rotation3d(units.degreesToRadians(0), units.degreesToRadians(20.0), units.degreesToRadians(165.0))
         ), _poseSensorConstants
       ),
       PoseSensorConfig(
@@ -343,8 +346,8 @@ class Game:
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(8.0, 28.0), 18.5, Position.Up),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Up),
         TargetPositionType.CoralStation: TargetPosition(ElevatorPosition(Value.min, Value.min), Value.min, Position.Up),
-        TargetPositionType.IntakeReady: TargetPosition(ElevatorPosition(15.0, Value.max), 38.0, Position.Down),
-        TargetPositionType.IntakeHandoff: TargetPosition(ElevatorPosition(2.9, Value.max), 38.0, Position.Down),
+        TargetPositionType.IntakeReady: TargetPosition(ElevatorPosition(15.0, Value.max), 46.0, Position.Down),
+        TargetPositionType.IntakeHandoff: TargetPosition(ElevatorPosition(10.6, Value.max), 46.0, Position.Down),
         TargetPositionType.IntakeLift: TargetPosition(ElevatorPosition(15.0, Value.max), 38.0, Position.Down),
-        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(8.0, 29.0), Value.max, Position.Up)
+        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(8.0, 29.0), 60.0, Position.Up)
       }

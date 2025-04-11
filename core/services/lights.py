@@ -11,15 +11,13 @@ class Lights():
       hasAllZeroResets: Callable[[], bool],
       hasValidVisionTarget: Callable[[], bool],
       isRobotAlignedForScoring: Callable[[], bool],
-      isGripperHolding: Callable[[], bool],
-      isFunnelReady: Callable[[], bool]
+      isGripperHolding: Callable[[], bool]
     ) -> None:
     super().__init__()
     self._hasAllZeroResets = hasAllZeroResets
     self._hasValidVisionTarget = hasValidVisionTarget
     self._isGripperHolding = isGripperHolding
     self._isRobotAlignedForScoring = isRobotAlignedForScoring
-    self._isFunnelReady = isFunnelReady
 
     self._lightsController = LightsController()
 
@@ -50,7 +48,5 @@ class Lights():
       if self._isGripperHolding():
         self._lightsController.setMode(LightsMode.IntakeReady)
         return
-      if self._isFunnelReady():
-        self._lightsController.setMode(LightsMode.FunnelReady)
       
     self._lightsController.setMode(LightsMode.Default)

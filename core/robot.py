@@ -4,6 +4,7 @@ from lib import logger, utils
 from lib.classes import TargetAlignmentMode
 from lib.controllers.xbox import Xbox
 from lib.sensors.distance import DistanceSensor
+from lib.sensors.beambreak import BeamBreakSensor
 from lib.sensors.gyro_navx2 import Gyro_NAVX2
 from lib.sensors.pose import PoseSensor
 from core.commands.auto import Auto
@@ -13,7 +14,7 @@ from core.subsystems.elevator import Elevator
 from core.subsystems.arm import Arm
 from core.subsystems.wrist import Wrist
 from core.subsystems.hand import Hand
-from core.subsystems.funnel import Funnel
+from core.subsystems.intake import Intake
 from core.services.localization import Localization
 from core.services.lights import Lights
 from core.classes import TargetAlignmentLocation, TargetPositionType, ElevatorStage
@@ -33,7 +34,8 @@ class RobotCore:
   def _initSensors(self) -> None:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
     self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
-    self.gripperDistanceSensor = DistanceSensor(constants.Sensors.Distance.Gripper.kConfig)
+    self.gripperSensor = DistanceSensor(constants.Sensors.Distance.Gripper.kConfig)
+    self.intakeSensor = BeamBreakSensor("Intake", constants.Sensors.BeamBreak.Intake.kChannel) 
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
   def _initSubsystems(self) -> None:
@@ -41,8 +43,8 @@ class RobotCore:
     self.elevator = Elevator()
     self.arm = Arm()
     self.wrist = Wrist()
-    self.hand = Hand(self.gripperDistanceSensor.hasTarget)
-    self.funnel = Funnel()
+    self.hand = Hand(self.gripperSensor.hasTarget)
+    self.intake = Intake(self.intakeSensor.hasTarget)
     
   def _initServices(self) -> None:
     self.localization = Localization(
@@ -81,17 +83,21 @@ class RobotCore:
     self.driver.leftStick().whileTrue(
       self.drive.lock()
     )
-    self.driver.rightTrigger().whileTrue(
-      self.drive.lock()
+    self.driver.leftTrigger().whileTrue(
+      self.game.scoreCoral()
     )
-    # self.driver.leftTrigger().whileTrue(cmd.none())
+    self.driver.rightTrigger().whileTrue(
+      self.game.intake()
+    )
     # self.driver.rightBumper().whileTrue(cmd.none())
     # self.driver.leftBumper().whileTrue(cmd.none())
     # self.driver.povUp().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povLeft().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povRight().and_((self.driver.start()).not_()).whileTrue(cmd.none())
-    # self.driver.a().onTrue(cmd.none())
+    self.driver.a().whileTrue(
+      self.intake.eject()
+    )
     # self.driver.b().whileTrue(cmd.none())
     self.driver.y().whileTrue(
       self.elevator.default(lambda: constants.Subsystems.Elevator.kCageDeepClimbDownSpeed, ElevatorStage.Lower)
@@ -99,13 +105,15 @@ class RobotCore:
     self.driver.x().whileTrue(
       self.elevator.default(lambda: constants.Subsystems.Elevator.kCageDeepClimbUpSpeed, ElevatorStage.Lower)
     )
-    # self.driver.start().and_((
-    #     self.driver.povLeft()
-    #     .or_(self.driver.povUp())
-    #     .or_(self.driver.povRight())
-    #     .or_(self.driver.povDown())
-    #   ).not_()
-    # ).onTrue(cmd.none())
+    self.driver.start().and_((
+        self.driver.povLeft()
+        .or_(self.driver.povUp())
+        .or_(self.driver.povRight())
+        .or_(self.driver.povDown())
+      ).not_()
+    ).whileTrue(
+      self.intake.resetToZero()
+    )
     self.driver.start().and_(self.driver.povLeft()).whileTrue(
       self.auto.moveToStartingPosition(1)
     )
@@ -133,7 +141,7 @@ class RobotCore:
       self.game.scoreCoral()
     )
     self.operator.leftBumper().whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.FunnelIntake)
+      self.game.moveCoralToGripper()
     )
     self.operator.rightBumper().onTrue(
       self.wrist.togglePosition()
@@ -192,8 +200,7 @@ class RobotCore:
       self._hasAllZeroResets,
       self.localization.hasValidVisionTarget,
       self.game.isRobotAlignedForScoring,
-      self.game.isGripperHolding,
-      self.game.isFunnelReady
+      self.game.isGripperHolding
     )
 
   def _periodic(self) -> None:
@@ -223,7 +230,7 @@ class RobotCore:
     self.arm.reset()
     self.wrist.reset()
     self.hand.reset()
-    self.funnel.reset()
+    self.intake.reset()
 
   def _hasAllZeroResets(self) -> bool:
     return (

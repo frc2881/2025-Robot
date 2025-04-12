@@ -62,9 +62,7 @@ class Intake(Subsystem):
     ).until(
       lambda: self.isAlignedToPosition()
     ).andThen(
-      self.run(
-        lambda: self._intake.setSpeed(self._constants.kHoldSpeed)
-      )
+      self.run(lambda: self._intake.setSpeed(self._constants.kHoldSpeed))
     ).withName("Intake:Hold") 
 
   def intake(self) -> Command:
@@ -88,7 +86,7 @@ class Intake(Subsystem):
   def eject(self) -> Command:
     return self.runEnd(
       lambda: [
-        self._intake.alignToPosition(self._constants.kOutPosition),
+        self._intake.alignToPosition(self._constants.kHandoffPosition),
         self._rollers.set(self._constants.kRollerMotorEjectSpeed if self.isAlignedToPosition() else 0)
       ],
       lambda: self._rollers.stopMotor()
@@ -106,9 +104,6 @@ class Intake(Subsystem):
   def isIntakeHolding(self) -> bool:
     return self._intakeSensorHasTarget()
   
-  def isIntakeUp(self) -> bool:
-    return self._intake.getPosition() < 1.0
-  
   def resetToZero(self) -> Command:
     return self._intake.resetToZero(self).withName("Intake:ResetToZero")
 
@@ -123,4 +118,4 @@ class Intake(Subsystem):
     SmartDashboard.putBoolean("Robot/Intake/IsAlignedToPosition", self.isAlignedToPosition())
     SmartDashboard.putBoolean("Robot/Intake/IsEnabled", self.isIntakeEnabled())
     SmartDashboard.putBoolean("Robot/Intake/IsHolding", self.isIntakeHolding())
-    SmartDashboard.putNumber("Robot/Intake/Rollers/Current", self._rollers.getOutputCurrent())
+    # SmartDashboard.putNumber("Robot/Intake/Rollers/Current", self._rollers.getOutputCurrent())

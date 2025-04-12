@@ -36,7 +36,7 @@ class Hand(Subsystem):
     return self.runEnd(
       lambda: self._gripperMotor.set(
         self._constants.kGripperMotorHoldSpeed 
-        if self._gripperSensorHasTarget() and not isManual else
+        if (self._gripperSensorHasTarget() and not isManual) else
         self._constants.kGripperMotorIntakeSpeed
       ),
       lambda: self._resetGripper()

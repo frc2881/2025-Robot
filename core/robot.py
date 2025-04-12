@@ -84,10 +84,10 @@ class RobotCore:
       self.drive.lock()
     )
     self.driver.leftTrigger().whileTrue(
-      self.game.scoreCoral()
+      self.game.intakeCoral()
     )
     self.driver.rightTrigger().whileTrue(
-      self.game.intakeCoral()
+      self.game.scoreCoral()
     )
     # self.driver.rightBumper().whileTrue(cmd.none())
     # self.driver.leftBumper().whileTrue(cmd.none())
@@ -95,10 +95,10 @@ class RobotCore:
     # self.driver.povDown().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povLeft().and_((self.driver.start()).not_()).whileTrue(cmd.none())
     # self.driver.povRight().and_((self.driver.start()).not_()).whileTrue(cmd.none())
-    self.driver.a().whileTrue(
+    # self.driver.a().whileTrue(cmd.none())
+    self.driver.b().whileTrue(
       self.intake.eject()
     )
-    # self.driver.b().whileTrue(cmd.none())
     self.driver.y().whileTrue(
       self.elevator.default(lambda: constants.Subsystems.Elevator.kCageDeepClimbDownSpeed, ElevatorStage.Lower)
     )

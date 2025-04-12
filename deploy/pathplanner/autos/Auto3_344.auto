@@ -13,19 +13,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Pickup3_2"
+            "pathName": "Pickup3_B"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Move2_4R"
+            "pathName": "MoveB_4R"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Pickup4_2"
+            "pathName": "Pickup4_B"
           }
         }
       ]

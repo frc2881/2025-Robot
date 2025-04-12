@@ -61,9 +61,7 @@ class Game:
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist),
       self._robot.hand.runGripper().unless(
-        lambda: targetPositionType in [ 
-          TargetPositionType.ReefAlgaeL3, 
-          TargetPositionType.ReefAlgaeL2, 
+        lambda: targetPositionType in [
           TargetPositionType.IntakeReady 
         ]
       ),

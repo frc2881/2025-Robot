@@ -67,6 +67,7 @@ class Game:
           TargetPositionType.IntakeReady 
         ]
       ),
+      self._robot.intake.hold(),
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
     )
 
@@ -101,7 +102,7 @@ class Game:
       lambda end: self._robot.elevator.setUpperStageSoftLimitsEnabled(True)
     )
     
-  def intake(self) -> Command:
+  def intakeCoral(self) -> Command:
     return cmd.sequence(
       cmd.parallel(
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].elevator),
@@ -109,6 +110,13 @@ class Game:
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].arm),
         self._robot.intake.intake()
       ).until(lambda: self.isIntakeHolding()),
+      self.liftCoral()
+    ).onlyIf(
+      lambda: not self.isGripperHolding()
+    ).withName("Game:IntakeCoral")
+
+  def liftCoral(self) -> Command:
+    return cmd.sequence(
       cmd.parallel(
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].elevator),
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].arm),
@@ -127,40 +135,19 @@ class Game:
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm),
         self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].wrist),
         cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition() and self._robot.arm.isAlignedToPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
-      ) 
-    ).onlyIf(
-      lambda: not self.isGripperHolding()
-    ).withName("Game:Intake")
-  
-  # def intake(self) -> Command:
-  #   return cmd.parallel(
-  #     self._robot.intake.intake(),
-  #     self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].elevator),
-  #     self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].wrist),
-  #     self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeReady].arm)
-  #   ).until(lambda: self.isIntakeHolding()).onlyIf(
-  #     lambda: not self.isGripperHolding()
-  #   ).withName("Game:Intake")
-  
-  def moveCoralToGripper(self) -> Command:
-    return cmd.sequence(
-      cmd.parallel(
-        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].elevator),
-        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].arm),
-        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeHandoff].wrist),
-        cmd.sequence(
-          self._robot.intake.alignToPosition(constants.Subsystems.Intake.kHandoffPosition).until(lambda: self.isRobotAlignedToTargetPosition()),
-          cmd.parallel(
-            self._robot.hand.runGripper(),
-            self._robot.intake.handoff()
-          )
-        ),
-      ).until(lambda: self.isGripperHolding()),
-      cmd.parallel(
-        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].elevator, isParallel = False),
-        self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm)
       )
-    )
+    ).onlyIf(
+      lambda: self.isIntakeHolding()
+    ).withName("Game:LiftCoral")
+
+  def scoreCoral(self) -> Command:
+    return cmd.either(
+      self._robot.hand.releaseGripper(isLowSpeed = True),
+      self._robot.hand.releaseGripper(isLowSpeed = False),
+      lambda: self._robot.arm.isAtReefCoralL1Position()
+    ).andThen(
+      self.rumbleControllers(ControllerRumbleMode.Both)
+    ).withName("Game:ScoreCoral")
 
   def runGripper(self) -> Command:
     return self._robot.hand.runGripper(
@@ -174,15 +161,6 @@ class Game:
   
   def isIntakeHolding(self) -> bool:
     return self._robot.intakeSensor.hasTarget()
-  
-  def scoreCoral(self) -> Command:
-    return cmd.either(
-      self._robot.hand.releaseGripper(isLowSpeed = True),
-      self._robot.hand.releaseGripper(isLowSpeed = False),
-      lambda: self._robot.arm.isAtReefCoralL1Position()
-    ).andThen(
-      self.rumbleControllers(ControllerRumbleMode.Both)
-    ).withName("Game:ScoreCoral")
   
   def isRobotAlignedForScoring(self) -> bool:
     return (

@@ -89,7 +89,7 @@ class Auto:
         self._move(autoPath),
         self._alignToTarget(targetAlignmentLocation))
       .deadlineFor(self._alignForScoring())
-      .andThen(cmd.waitSeconds(0.15).andThen(self._robot.game.scoreCoral()))
+      .andThen(cmd.waitSeconds(0.1).andThen(self._robot.game.scoreCoral()))
     )
   
   def _moveAlignIntake(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
@@ -119,21 +119,21 @@ class Auto:
   def auto_3_344(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Left), 
+      self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Center), 
       self._moveAlignScore(AutoPath.Move2_4R, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Left),
+      self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move2_4L, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Left)
+      self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center)
     ).withName("Auto:[3]_344")
 
   def auto_1_166(self) -> Command:
     return cmd.sequence(
       self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Right),
+      self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move1_6L, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Right),
+      self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center),
       self._moveAlignScore(AutoPath.Move1_6R, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Right)
+      self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center)
     ).withName("Auto:[1]_166")
   
   def auto_2R_222(self) -> Command:

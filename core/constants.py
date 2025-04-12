@@ -1,6 +1,6 @@
 import math
 from wpimath import units
-from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d
+from wpimath.geometry import Transform3d, Translation3d, Rotation3d, Translation2d, Rotation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
 import wpilib
 from robotpy_apriltag import AprilTagFieldLayout
@@ -211,7 +211,7 @@ class Subsystems:
     kRollerMotorCurrentLimit: int = 80
 
     kRollerMotorIntakeSpeed: float = 0.8
-    kRollerMotorHandoffSpeed: float = -0.1
+    kRollerMotorHandoffSpeed: float = -0.3
     kRollerMotorEjectSpeed: float = -0.4
     kRollerMotorScoringSpeed: float = -0.2 # TODO: placeholder for potential L1 reef coral scoring speed if practical
 
@@ -341,7 +341,7 @@ class Game:
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.5, 28.0), 6.9, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(4.2, 27.5), 6.0, Position.Down),
-        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 14.30), 5.0, Position.Down),
+        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 14.30), 5.75, Position.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, Value.min), 13.0, Position.Up),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(8.0, 28.0), 18.5, Position.Up),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Up),

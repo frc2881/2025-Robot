@@ -41,17 +41,7 @@ class Intake(Subsystem):
     self._updateTelemetry()
 
   def default(self) -> Command:
-    return self.run(
-      lambda: self._intake.alignToPosition(self._constants.kInPosition)
-    ).beforeStarting(
-      lambda: self._intake.reset()
-    ).until(
-      lambda: self.isAlignedToPosition()
-    ).andThen(
-      self.run(
-        lambda: self._intake.setSpeed(self._constants.kHoldSpeed)
-      )
-    ).withName("Intake:Default")
+    return self.hold()
   
   def alignToPosition(self, position: units.inches) -> Command:
     return self.run(
@@ -64,6 +54,19 @@ class Intake(Subsystem):
       lambda: self._rollers.stopMotor()
     ).withName("Intake:RunRoller")
   
+  def hold(self) -> Command:
+    return self.run(
+      lambda: self._intake.alignToPosition(self._constants.kInPosition)
+    ).beforeStarting(
+      lambda: self._intake.reset()
+    ).until(
+      lambda: self.isAlignedToPosition()
+    ).andThen(
+      self.run(
+        lambda: self._intake.setSpeed(self._constants.kHoldSpeed)
+      )
+    ).withName("Intake:Hold") 
+
   def intake(self) -> Command:
     return self.runEnd(
       lambda: [

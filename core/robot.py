@@ -87,7 +87,7 @@ class RobotCore:
       self.game.scoreCoral()
     )
     self.driver.rightTrigger().whileTrue(
-      self.game.intake()
+      self.game.intakeCoral()
     )
     # self.driver.rightBumper().whileTrue(cmd.none())
     # self.driver.leftBumper().whileTrue(cmd.none())
@@ -137,14 +137,14 @@ class RobotCore:
     self.operator.leftTrigger().whileTrue(
       self.game.runGripper()
     )
-    self.operator.rightTrigger().onTrue(
+    self.operator.rightTrigger().whileTrue(
       self.game.scoreCoral()
     )
     self.operator.leftBumper().whileTrue(
-      self.game.moveCoralToGripper()
+      self.hand.holdGripper()
     )
-    self.operator.rightBumper().onTrue(
-      self.wrist.togglePosition()
+    self.operator.rightBumper().whileTrue(
+      self.game.liftCoral()
     )
     self.operator.povUp().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4)

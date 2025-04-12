@@ -1,5 +1,5 @@
 from typing import Callable
-from commands2 import Subsystem, Command
+from commands2 import Subsystem, Command, InterruptionBehavior
 from wpilib import SmartDashboard
 from rev import SparkFlex, SparkBaseConfig, SparkBase
 from lib import logger, utils
@@ -41,6 +41,14 @@ class Hand(Subsystem):
       ),
       lambda: self._resetGripper()
     ).withName("Hand:RunGripper")
+  
+  def holdGripper(self) -> Command:
+    return self.runEnd(
+      lambda: self._gripperMotor.set(
+        self._constants.kGripperMotorHoldSpeed
+      ),
+      lambda: self._resetGripper()
+    ).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("Hand:HoldGripper")
   
   def releaseGripper(self, isLowSpeed: bool = False) -> Command:
     return self.startEnd(

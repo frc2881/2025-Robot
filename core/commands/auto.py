@@ -53,8 +53,8 @@ class Auto:
     self._autos = SendableChooser()
     self._autos.setDefaultOption("None", cmd.none)
     
-    self._autos.addOption("[3]_344", self.auto_3_344)
-    self._autos.addOption("[1]_166", self.auto_1_166)
+    self._autos.addOption("[3]_3_4_4_", self.auto_3_344)
+    self._autos.addOption("[1]_1_6_6_", self.auto_1_166)
     self._autos.addOption("[2R]_2B2", self.auto_2R_2B2)
     self._autos.addOption("[2L]_2A2", self.auto_2L_2A2)
     self._autos.addOption("[2R]_2B", self.auto_2R_2B)
@@ -80,9 +80,9 @@ class Auto:
   def _alignToTarget(self, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
     return self._robot.game.alignRobotToTarget(TargetAlignmentMode.Translation, targetAlignmentLocation)
   
-  def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation) -> Command:
+  def _moveAlignScore(self, autoPath: AutoPath, targetAlignmentLocation: TargetAlignmentLocation, waitTime: float = 0.02) -> Command:
     return (
-      (self._move(autoPath).andThen(self._alignToTarget(targetAlignmentLocation)).andThen(cmd.waitSeconds(0.13)))
+      (self._move(autoPath).andThen(self._alignToTarget(targetAlignmentLocation)).andThen(cmd.waitSeconds(waitTime)))
       .deadlineFor(self._robot.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL4))
       .andThen(self._robot.game.scoreCoral())
     )
@@ -111,51 +111,51 @@ class Auto:
   
   def auto_3_344(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup3_2, TargetAlignmentLocation.Center), 
-      self._moveAlignScore(AutoPath.Move2_4R, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center),
-      self._moveAlignScore(AutoPath.Move2_4L, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup4_2, TargetAlignmentLocation.Center)
+      self._moveAlignScore(AutoPath.Start3_3, TargetAlignmentLocation.Left, 0.15),
+      self._moveAlignIntake(AutoPath.Pickup3_B, TargetAlignmentLocation.Center), 
+      self._moveAlignScore(AutoPath.MoveB_4R, TargetAlignmentLocation.Right),
+      self._moveAlignIntake(AutoPath.Pickup4_B, TargetAlignmentLocation.Center),
+      self._moveAlignScore(AutoPath.MoveB_4L, TargetAlignmentLocation.Left),
+      self._moveAlignIntake(AutoPath.Pickup4_B, TargetAlignmentLocation.Center)
     ).withName("Auto:[3]_344")
 
   def auto_1_166(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup1_1, TargetAlignmentLocation.Center),
-      self._moveAlignScore(AutoPath.Move1_6L, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center),
-      self._moveAlignScore(AutoPath.Move1_6R, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup6_1, TargetAlignmentLocation.Center)
+      self._moveAlignScore(AutoPath.Start1_1, TargetAlignmentLocation.Right, 0.15),
+      self._moveAlignIntake(AutoPath.Pickup1_A, TargetAlignmentLocation.Center),
+      self._moveAlignScore(AutoPath.MoveA_6L, TargetAlignmentLocation.Left),
+      self._moveAlignIntake(AutoPath.Pickup6_A, TargetAlignmentLocation.Center),
+      self._moveAlignScore(AutoPath.MoveA_6R, TargetAlignmentLocation.Right),
+      self._moveAlignIntake(AutoPath.Pickup6_A, TargetAlignmentLocation.Center)
     ).withName("Auto:[1]_166")
   
   def auto_2R_2B2(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2R_2, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup2_2, TargetAlignmentLocation.Left),
-      self._moveAlignScore(AutoPath.Move2_2, TargetAlignmentLocation.Left)
+      self._moveAlignScore(AutoPath.Start2R_2, TargetAlignmentLocation.Right, 0.15),
+      self._moveAlignIntake(AutoPath.Pickup2_B, TargetAlignmentLocation.Left),
+      self._moveAlignScore(AutoPath.MoveB_2, TargetAlignmentLocation.Left)
     ).withName("Auto:[2R]_2B2")
 
   def auto_2L_2A2(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup2_1, TargetAlignmentLocation.Right),
-      self._moveAlignScore(AutoPath.Move1_2, TargetAlignmentLocation.Right)
+      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left, 0.15),
+      self._moveAlignIntake(AutoPath.Pickup2_A, TargetAlignmentLocation.Right),
+      self._moveAlignScore(AutoPath.MoveA_2, TargetAlignmentLocation.Right)
     ).withName("Auto:[2L]_2A2")
 
   def auto_2R_2B(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2R_2, TargetAlignmentLocation.Right),
-      self._moveAlignIntake(AutoPath.Pickup2_2, TargetAlignmentLocation.Left)
+      self._moveAlignScore(AutoPath.Start2R_2, TargetAlignmentLocation.Right, 0.15),
+      self._moveAlignIntake(AutoPath.Pickup2_B, TargetAlignmentLocation.Left)
     ).withName("Auto:[2R]_2B")
 
   def auto_2L_2(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left)
+      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left, 0.15)
     ).withName("Auto:[2L]_2")
   
   def auto_2L_2A(self) -> Command:
     return cmd.sequence(
-      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left),
-      self._moveAlignIntake(AutoPath.Pickup2_1, TargetAlignmentLocation.Right)
+      self._moveAlignScore(AutoPath.Start2L_2, TargetAlignmentLocation.Left, 0.15),
+      self._moveAlignIntake(AutoPath.Pickup2_A, TargetAlignmentLocation.Right)
     ).withName("Auto:[2L]_2A")

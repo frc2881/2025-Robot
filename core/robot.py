@@ -155,7 +155,7 @@ class RobotCore:
     self.operator.povDown().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL2)
     )
-    self.operator.povLeft().and_((self.operator.start()).not_()).whileTrue(
+    self.operator.povLeft().and_((self.operator.start().or_(self.operator.x())).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL1)
     )
     self.operator.a().whileTrue(
@@ -167,7 +167,10 @@ class RobotCore:
     self.operator.y().whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefAlgaeL3)
     )
-    self.operator.x().whileTrue(
+    self.operator.x().and_((self.operator.povLeft()).not_()).whileTrue(
+      self.game.alignRobotToTargetPosition(TargetPositionType.CageIntercept)
+    )
+    self.operator.x().and_((self.operator.povLeft())).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.CageDeepClimb)
     )
     self.operator.start().and_(self.operator.povDown()).whileTrue(

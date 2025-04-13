@@ -1,5 +1,5 @@
 from typing import Callable
-from commands2 import Subsystem, Command, InterruptionBehavior
+from commands2 import Subsystem, Command, cmd
 from wpilib import SmartDashboard
 from rev import SparkFlex, SparkBaseConfig, SparkBase
 from lib import logger, utils
@@ -14,6 +14,8 @@ class Hand(Subsystem):
     self._constants = constants.Subsystems.Hand
 
     self._gripperSensorHasTarget = gripperSensorHasTarget
+    
+    self._isGripperHoldingManual = False
 
     self._gripperMotor = SparkFlex(self._constants.kGripperMotorCANId, SparkBase.MotorType.kBrushless)
     self._sparkConfig = SparkBaseConfig()
@@ -36,19 +38,17 @@ class Hand(Subsystem):
     return self.runEnd(
       lambda: self._gripperMotor.set(
         self._constants.kGripperMotorHoldSpeed 
-        if (self._gripperSensorHasTarget() and not isManual) else
+        if (self.isGripperHolding() and not isManual) else
         self._constants.kGripperMotorIntakeSpeed
       ),
       lambda: self._resetGripper()
     ).withName("Hand:RunGripper")
   
   def holdGripper(self) -> Command:
-    return self.runEnd(
-      lambda: self._gripperMotor.set(
-        self._constants.kGripperMotorHoldSpeed
-      ),
-      lambda: self._resetGripper()
-    ).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName("Hand:HoldGripper")
+    return cmd.runEnd(
+      lambda: setattr(self, "_isGripperHoldingManual", True),
+      lambda: setattr(self, "_isGripperHoldingManual", False)
+    ).withName("Hand:HoldGripper")
   
   def releaseGripper(self, isLowSpeed: bool = False) -> Command:
     return self.startEnd(
@@ -66,10 +66,11 @@ class Hand(Subsystem):
     return self._gripperMotor.get() != 0
   
   def isGripperHolding(self) -> bool:
-    return self._gripperSensorHasTarget()
+    return self._gripperSensorHasTarget() or self._isGripperHoldingManual
   
   def _resetGripper(self) -> None:
     self._gripperMotor.stopMotor()
+    self._isGripperHoldingManual = False
 
   def reset(self) -> None:
     self._resetGripper()

@@ -103,7 +103,7 @@ class Subsystems:
       distancePerRotation = 0.5,
       motorControllerType = SparkLowLevel.SparkModel.kSparkFlex,
       motorType = SparkLowLevel.MotorType.kBrushless,
-      motorCurrentLimit = 100,
+      motorCurrentLimit = 120,
       motorReduction = 1.0 / 1.0,
       motorPID = PID(0.1, 0, 0.07),
       motorOutputRange = Range(-0.9, 1.0),
@@ -203,7 +203,7 @@ class Subsystems:
     kInPosition: float = 0.0
     kOutPosition: float = 12.0
     kHandoffPosition: float = 0.0
-    kScoringPosition: float = 2.6
+    kEjectPosition: float = 2.6
     kHoldSpeed: float = -0.05
     kInputLimit: units.percent = 0.3
 
@@ -213,7 +213,7 @@ class Subsystems:
     kRollerMotorIntakeSpeed: float = 0.8
     kRollerMotorHandoffSpeed: float = -0.4
     kRollerMotorEjectSpeed: float = -0.4
-    kRollerMotorScoringSpeed: float = -0.2
+    kRollerMotorClimbSpeed: float = -0.1
 
 class Services:
   class Localization:
@@ -326,10 +326,10 @@ class Game:
       kTargetAlignmentTransforms: dict[TargetType, dict[TargetAlignmentLocation, Transform3d]] = {
         TargetType.Reef: {
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(36), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(22.5), units.inchesToMeters(-6.5), 0, Rotation3d()),
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(22.5), units.inchesToMeters(6.5), 0, Rotation3d()),
-          TargetAlignmentLocation.LeftL4: Transform3d(units.inchesToMeters(23.75), units.inchesToMeters(-6.5), 0, Rotation3d()),
-          TargetAlignmentLocation.RightL4: Transform3d(units.inchesToMeters(23.75), units.inchesToMeters(6.5), 0, Rotation3d())
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(21.25), units.inchesToMeters(-6.5), 0, Rotation3d()), # 22
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(21.25), units.inchesToMeters(6.5), 0, Rotation3d()), # 22
+          TargetAlignmentLocation.LeftL4: Transform3d(units.inchesToMeters(22.25), units.inchesToMeters(-6.5), 0, Rotation3d()), # 23
+          TargetAlignmentLocation.RightL4: Transform3d(units.inchesToMeters(22.25), units.inchesToMeters(6.5), 0, Rotation3d()) # 23
         },
         TargetType.CoralStation: {
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(20.0), units.inchesToMeters(0.0), 0, Rotation3d()),
@@ -349,5 +349,6 @@ class Game:
         TargetPositionType.IntakeReady: TargetPosition(ElevatorPosition(15.0, Value.max), 46.0, Position.Down),
         TargetPositionType.IntakeHandoff: TargetPosition(ElevatorPosition(10.6, Value.max), 46.0, Position.Down),
         TargetPositionType.IntakeLift: TargetPosition(ElevatorPosition(15.0, Value.max), 38.0, Position.Down),
-        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(8.0, 29.0), 60.0, Position.Up)
+        TargetPositionType.CageIntercept: TargetPosition(ElevatorPosition(8.0, 18.0), 40.0, Position.Up),
+        TargetPositionType.CageDeepClimb: TargetPosition(ElevatorPosition(8.0, 29.0), 70.75, Position.Up)
       }

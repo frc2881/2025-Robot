@@ -86,11 +86,20 @@ class Intake(Subsystem):
   def eject(self) -> Command:
     return self.runEnd(
       lambda: [
-        self._intake.alignToPosition(self._constants.kHandoffPosition),
+        self._intake.alignToPosition(self._constants.kEjectPosition),
         self._rollers.set(self._constants.kRollerMotorEjectSpeed if self.isAlignedToPosition() else 0)
       ],
       lambda: self._rollers.stopMotor()
     ).withName("Intake:Eject")
+  
+  def climb(self) -> Command:
+    return self.runEnd(
+      lambda: [
+        self._intake.alignToPosition(self._constants.kOutPosition),
+        self._rollers.set(self._constants.kRollerMotorClimbSpeed if self.isAlignedToPosition() else 0)
+      ],
+      lambda: self._rollers.stopMotor()
+    ).withName("Intake:Climb")
   
   def getPosition(self) -> units.inches:
     return self._intake.getPosition()

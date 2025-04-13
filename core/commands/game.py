@@ -43,6 +43,7 @@ class Game:
         TargetPositionType.IntakeReady: self._alignRobotToTargetPosition(TargetPositionType.IntakeReady),
         TargetPositionType.IntakeHandoff: self._alignRobotToTargetPosition(TargetPositionType.IntakeHandoff),
         TargetPositionType.IntakeLift: self._alignRobotToTargetPosition(TargetPositionType.IntakeLift),
+        TargetPositionType.CageIntercept: self._alignRobotToTargetPositionCageIntercept(),
         TargetPositionType.CageDeepClimb: self._alignRobotToTargetPositionCageDeepClimb()
       }, 
       lambda: targetPositionType
@@ -60,11 +61,7 @@ class Game:
       self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].elevator),
       self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].arm),
       self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[targetPositionType].wrist),
-      self._robot.hand.runGripper().unless(
-        lambda: targetPositionType in [
-          TargetPositionType.IntakeReady 
-        ]
-      ),
+      self._robot.hand.runGripper().unless(lambda: targetPositionType in [ TargetPositionType.IntakeReady ]),
       self._robot.intake.hold(),
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
     )
@@ -81,10 +78,24 @@ class Game:
       self._robot.hand.runGripper(),
       cmd.waitUntil(lambda: self.isGripperHolding()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
     )
+  
+  def _alignRobotToTargetPositionCageIntercept(self) -> Command:
+    return cmd.sequence(
+      cmd.waitSeconds(0.5),
+      cmd.parallel(
+        self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageIntercept].elevator, isParallel = False),
+        cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition()).andThen(
+          self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageIntercept].arm)
+        ),
+        self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageIntercept].wrist),
+        self._robot.intake.climb()
+      )
+    ).alongWith(
+      cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
+    )
 
   def _alignRobotToTargetPositionCageDeepClimb(self) -> Command:
     return cmd.sequence(
-      cmd.waitSeconds(0.5),
       cmd.runOnce(lambda: self._robot.elevator.setUpperStageSoftLimitsEnabled(False)),
       cmd.parallel(
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].elevator, isParallel = False),
@@ -92,7 +103,9 @@ class Game:
           self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].arm)
         ),
         self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.CageDeepClimb].wrist),
-        self._robot.intake.alignToPosition(constants.Subsystems.Intake.kOutPosition)
+        cmd.waitUntil(lambda: self._robot.arm.isAlignedToPosition()).andThen(
+          self._robot.intake.climb()
+        )
       )
     ).alongWith(
       cmd.waitUntil(lambda: self.isRobotAlignedToTargetPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
@@ -128,10 +141,10 @@ class Game:
         ),
       ).until(lambda: self.isGripperHolding()),
       cmd.parallel(
-        self._robot.hand.runGripper(),
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].elevator, isParallel = False),
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm),
         self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].wrist),
+        self._robot.hand.runGripper(),
         cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition() and self._robot.arm.isAlignedToPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
       )
     ).onlyIf(

@@ -61,9 +61,9 @@ class Auto:
     self._autos.addOption("[2L]_2A2", self.auto_2L_2A2)
     self._autos.addOption("[2R]_2B", self.auto_2R_2B)
     self._autos.addOption("[2L]_2A", self.auto_2L_2A)
-    self._autos.addOption("[2R]", self.auto_2RMove)
-    self._autos.addOption("[2L]", self.auto_2LMove)
-    self._autos.addOption("[2L]2", self.auto_2L)
+    self._autos.addOption("[2R]Move", self.auto_2RMove)
+    self._autos.addOption("[2L]Move", self.auto_2LMove)
+    self._autos.addOption("[2L]", self.auto_2L)
 
     self._autos.onChange(lambda auto: setattr(self, "_auto", auto()))
 

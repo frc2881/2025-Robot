@@ -344,7 +344,7 @@ class Game:
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.5, 28.0), 6.9, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(4.2, 27.5), 6.0, Position.Down),
-        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 14.30), 4.25, Position.Down),
+        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 15.7), 4.25, Position.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 20.0), 23.0, Position.Up),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(8.0, 28.0), 18.5, Position.Up),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Up),

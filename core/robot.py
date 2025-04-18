@@ -33,8 +33,9 @@ class RobotCore:
 
   def _initSensors(self) -> None:
     self.gyro = Gyro_NAVX2(constants.Sensors.Gyro.NAVX2.kComType)
-    self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs)
-    self.gripperSensor = DistanceSensor(constants.Sensors.Distance.Gripper.kConfig)
+    self.poseSensors = tuple(PoseSensor(c) for c in constants.Sensors.Pose.kPoseSensorConfigs) 
+    # self.gripperSensor = DistanceSensor(constants.Sensors.Distance.Gripper.kConfig
+    self.gripperSensor = BeamBreakSensor("Gripper", constants.Sensors.BeamBreak.Gripper.kChannel) 
     self.intakeSensor = BeamBreakSensor("Intake", constants.Sensors.BeamBreak.Intake.kChannel) 
     SmartDashboard.putString("Robot/Sensors/Camera/Streams", utils.toJson(constants.Sensors.Camera.kStreams))
 
@@ -155,9 +156,7 @@ class RobotCore:
     self.operator.povDown().and_((self.operator.start()).not_()).whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL2)
     )
-    self.operator.povLeft().and_((self.operator.start().or_(self.operator.x())).not_()).whileTrue(
-      self.game.alignRobotToTargetPosition(TargetPositionType.ReefCoralL1)
-    )
+    #self.operator.povLeft().whileTrue(cmd.none())
     self.operator.a().whileTrue(
       self.game.alignRobotToTargetPosition(TargetPositionType.CoralStation)
     )

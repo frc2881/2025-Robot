@@ -38,7 +38,7 @@ from core.classes import (
   ElevatorPosition
 )
 
-APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout(f'{ wpilib.getDeployDirectory() }/localization/2025-reefscape-andymark-filtered.json')
+APRIL_TAG_FIELD_LAYOUT = AprilTagFieldLayout(f'{ wpilib.getDeployDirectory() }/localization/2025-reefscape-welded-filtered.json')
 PATHPLANNER_ROBOT_CONFIG = RobotConfig.fromGUISettings()
 
 class Subsystems:
@@ -235,6 +235,9 @@ class Sensors:
     class Intake:
       kChannel = 9
 
+    class Gripper:
+      kChannel = 7
+
   class Pose:
     _poseSensorConstants = PoseSensorConstants(
       aprilTagFieldLayout = APRIL_TAG_FIELD_LAYOUT,
@@ -326,10 +329,10 @@ class Game:
       kTargetAlignmentTransforms: dict[TargetType, dict[TargetAlignmentLocation, Transform3d]] = {
         TargetType.Reef: {
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(36), 0, 0, Rotation3d()),
-          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(21.25), units.inchesToMeters(-6.5), 0, Rotation3d()), # 22
-          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(21.25), units.inchesToMeters(6.5), 0, Rotation3d()), # 22
-          TargetAlignmentLocation.LeftL4: Transform3d(units.inchesToMeters(22.25), units.inchesToMeters(-6.5), 0, Rotation3d()), # 23
-          TargetAlignmentLocation.RightL4: Transform3d(units.inchesToMeters(22.25), units.inchesToMeters(6.5), 0, Rotation3d()) # 23
+          TargetAlignmentLocation.Left: Transform3d(units.inchesToMeters(22.0), units.inchesToMeters(-6.5), 0, Rotation3d(Rotation2d.fromDegrees(0.0))), # 2.0 degress for the arm
+          TargetAlignmentLocation.Right: Transform3d(units.inchesToMeters(22.0), units.inchesToMeters(6.5), 0, Rotation3d(Rotation2d.fromDegrees(0.0))),
+          TargetAlignmentLocation.LeftL4: Transform3d(units.inchesToMeters(23.0), units.inchesToMeters(-6.5), 0, Rotation3d(Rotation2d.fromDegrees(0.0))),
+          TargetAlignmentLocation.RightL4: Transform3d(units.inchesToMeters(23.0), units.inchesToMeters(6.5), 0, Rotation3d(Rotation2d.fromDegrees(0.0))) 
         },
         TargetType.CoralStation: {
           TargetAlignmentLocation.Center: Transform3d(units.inchesToMeters(20.0), units.inchesToMeters(0.0), 0, Rotation3d()),
@@ -341,7 +344,7 @@ class Game:
       kTargetPositions: dict[TargetPositionType, TargetPosition] = {
         TargetPositionType.ReefCoralL4: TargetPosition(ElevatorPosition(28.5, 28.0), 6.9, Position.Down),
         TargetPositionType.ReefCoralL3: TargetPosition(ElevatorPosition(4.2, 27.5), 6.0, Position.Down),
-        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 14.30), 5.75, Position.Down),
+        TargetPositionType.ReefCoralL2: TargetPosition(ElevatorPosition(Value.min, 14.30), 4.25, Position.Down),
         TargetPositionType.ReefCoralL1: TargetPosition(ElevatorPosition(Value.min, 20.0), 23.0, Position.Up),
         TargetPositionType.ReefAlgaeL3: TargetPosition(ElevatorPosition(8.0, 28.0), 18.5, Position.Up),
         TargetPositionType.ReefAlgaeL2: TargetPosition(ElevatorPosition(6.5, 19), 24.0, Position.Up),

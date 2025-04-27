@@ -136,7 +136,8 @@ class Game:
           self._robot.intake.alignToPosition(constants.Subsystems.Intake.kHandoffPosition).until(lambda: self.isRobotAlignedToTargetPosition()),
           cmd.parallel(
             self._robot.hand.runGripper(),
-            self._robot.intake.handoff()
+            self._robot.intake.handoff(),
+            self.rumbleControllers(ControllerRumbleMode.Both)
           )
         ),
       ).until(lambda: self.isGripperHolding()),
@@ -144,8 +145,7 @@ class Game:
         self._robot.elevator.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].elevator, isParallel = False),
         self._robot.arm.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].arm),
         self._robot.wrist.alignToPosition(constants.Game.Field.Targets.kTargetPositions[TargetPositionType.IntakeLift].wrist),
-        self._robot.hand.runGripper(),
-        cmd.waitUntil(lambda: self._robot.elevator.isAlignedToPosition() and self._robot.arm.isAlignedToPosition()).andThen(self.rumbleControllers(ControllerRumbleMode.Both))
+        self._robot.hand.runGripper()
       )
     ).onlyIf(
       lambda: self.isIntakeHolding()
